@@ -1,0 +1,229 @@
+package com.beancounter.marketdata.price
+
+import com.beancounter.common.model.Asset
+import com.beancounter.common.model.MarketData
+import com.beancounter.marketdata.price.backfill.PriceSeriesGaps
+import org.springframework.data.jpa.repository.JpaRepository
+import org.springframework.data.jpa.repository.Query
+import org.springframework.data.repository.query.Param
+import java.math.BigDecimal
+import java.time.LocalDate
+import java.util.Optional
+
+/**
+ * MarketData CRUD repo. Extends JpaRepository (rather than plain CrudRepository)
+ * so [com.beancounter.marketdata.persistence.ConflictTolerantWriter] can use
+ * `saveAllAndFlush`/`saveAndFlush` to surface a concurrent-insert conflict on
+ * the (source, asset_id, priceDate) unique constraint inside its own
+ * transaction instead of at some later, unrelated flush.
+ */
+interface MarketDataRepo : JpaRepository<MarketData, String> {
+    fun findByAssetIdAndPriceDate(
+        assetId: String,
+        date: LocalDate?
+    ): Optional<MarketData>
+
+    /**
+     * Every row for an asset on a given date, across all sources. The unique
+     * key on `MarketData` is `(source, asset_id, price_date)`, so a single
+     * (asset_id, price_date) tuple can have multiple rows when more than one
+     * provider supplies the asset. Splits / dividends apply to the asset
+     * regardless of provider, so the repair endpoint stamps every match.
+     */
+    fun findAllByAssetIdAndPriceDate(
+        assetId: String,
+        priceDate: LocalDate
+    ): List<MarketData>
+
+    fun findTop1ByAssetAndPriceDateLessThanEqualOrderByPriceDateDesc(
+        asset: Asset,
+        priceDate: LocalDate
+    ): Optional<MarketData>
+
+    /**
+     * Find the most recent market data for an asset strictly before the given date.
+     * Used to calculate previousClose when API doesn't provide it.
+     */
+    fun findTop1ByAssetAndPriceDateLessThanOrderByPriceDateDesc(
+        asset: Asset,
+        priceDate: LocalDate
+    ): Optional<MarketData>
+
+    @Query(
+        "SELECT md FROM MarketData md JOIN FETCH md.asset WHERE md.asset IN :assets AND md.priceDate = :priceDate"
+    )
+    fun findByAssetInAndPriceDate(
+        @Param("assets") assets: Collection<Asset>,
+        @Param("priceDate") priceDate: LocalDate
+    ): List<MarketData>
+
+    @Query(
+        "SELECT md FROM MarketData md JOIN FETCH md.asset WHERE md.asset IN :assets AND md.priceDate IN :dates"
+    )
+    fun findByAssetInAndPriceDateIn(
+        @Param("assets") assets: Collection<Asset>,
+        @Param("dates") dates: Collection<LocalDate>
+    ): List<MarketData>
+
+    @Query(
+        "SELECT md FROM MarketData md JOIN FETCH md.asset a " +
+            "WHERE a.id = :assetId AND md.priceDate BETWEEN :from AND :to " +
+            "ORDER BY md.priceDate ASC"
+    )
+    fun findPriceHistory(
+        @Param("assetId") assetId: String,
+        @Param("from") from: LocalDate,
+        @Param("to") to: LocalDate
+    ): List<MarketData>
+
+    /**
+     * Only what split detection needs, for many assets in one query: (asset, date, split).
+     */
+    @Query(
+        "SELECT md.asset.id AS assetId, md.priceDate AS priceDate, md.split AS split " +
+            "FROM MarketData md " +
+            "WHERE md.asset.id IN :assetIds AND md.priceDate BETWEEN :from AND :to " +
+            "ORDER BY md.asset.id, md.priceDate"
+    )
+    fun findSplitHistory(
+        @Param("assetIds") assetIds: Collection<String>,
+        @Param("from") from: LocalDate,
+        @Param("to") to: LocalDate
+    ): List<SplitRow>
+
+    /**
+     * SAFEGUARD: Count market data records for an asset on a specific date
+     */
+    fun countByAssetIdAndPriceDate(
+        assetId: String,
+        priceDate: LocalDate
+    ): Long
+
+    @Query("SELECT MIN(md.priceDate) FROM MarketData md WHERE md.asset.id = :assetId")
+    fun findEarliestPriceDateByAssetId(
+        @Param("assetId") assetId: String
+    ): LocalDate?
+
+    /**
+     * Every distinct stored price date for one asset inside [from, to], ascending. Dates
+     * only — a 10y series is ~2,600 values, cheap enough for the backfill coverage check
+     * to see internal holes that MIN/MAX cannot (see [PriceSeriesGaps]). DISTINCT because
+     * uniqueness is `(source, asset_id, priceDate)`: two providers can hold one date.
+     */
+    @Query(
+        "SELECT DISTINCT md.priceDate FROM MarketData md " +
+            "WHERE md.asset.id = :assetId AND md.priceDate BETWEEN :from AND :to " +
+            "ORDER BY md.priceDate ASC"
+    )
+    fun findPriceDatesByAssetIdBetween(
+        @Param("assetId") assetId: String,
+        @Param("from") from: LocalDate,
+        @Param("to") to: LocalDate
+    ): List<LocalDate>
+
+    /** First stored row strictly after [priceDate]: the successor a gap fill must relink. */
+    fun findTop1ByAssetAndPriceDateGreaterThanOrderByPriceDateAsc(
+        asset: Asset,
+        priceDate: LocalDate
+    ): Optional<MarketData>
+
+    @Query("SELECT MAX(md.priceDate) FROM MarketData md WHERE md.asset.id = :assetId")
+    fun findLatestPriceDateByAssetId(
+        @Param("assetId") assetId: String
+    ): LocalDate?
+
+    /**
+     * Bulk window load used by getBulkMarketData to eliminate N+1 nearest-prior fallback
+     * queries. Returns every price row for the given assets between [from] and [to] inclusive
+     * in a single query, ordered ascending. Caller resolves exact-date hits + nearest-prior
+     * fallback (weekends/holidays) in memory.
+     */
+    @Query(
+        "SELECT md FROM MarketData md JOIN FETCH md.asset a " +
+            "WHERE a IN :assets AND md.priceDate BETWEEN :from AND :to " +
+            "ORDER BY md.priceDate ASC"
+    )
+    fun findByAssetInAndPriceDateBetween(
+        @Param("assets") assets: Collection<Asset>,
+        @Param("from") from: LocalDate,
+        @Param("to") to: LocalDate
+    ): List<MarketData>
+
+    /**
+     * Single-asset variant of [findByAssetInAndPriceDateBetween]. Lets
+     * [com.beancounter.marketdata.price.PriceService.handle] load one asset
+     * group's pre-existing stored rows (for dedup + previous-close resolution)
+     * in a single query instead of one `countByAssetIdAndPriceDate` call per row
+     * (#1096: a 1y/260-row backfill was issuing 500+ per-row queries).
+     */
+    fun findByAssetIdAndPriceDateBetween(
+        assetId: String,
+        from: LocalDate,
+        to: LocalDate
+    ): List<MarketData>
+
+    /**
+     * Batched latest-on-or-before lookup for a set of assets (DATA-6G). For each asset in
+     * [assets], returns its row with the greatest `priceDate <= date` — i.e. the same answer
+     * [findTop1ByAssetAndPriceDateLessThanEqualOrderByPriceDateDesc] gives per asset, but in
+     * one query for the whole set. Lets
+     * [com.beancounter.marketdata.price.PriceService.getLatestMarketData] replace a
+     * findTop1-per-asset fallback loop (POST /api/prices on a market-closed day) with a
+     * single round trip.
+     *
+     * Implemented as a correlated MAX subquery rather than `DISTINCT ON` / a window function
+     * so it runs unchanged on H2 (tests) and Postgres (prod). When more than one source has a
+     * row for an asset on its own latest date, every tied row is returned — the caller picks
+     * one per asset id, which matches the existing "any provider's close is acceptable for
+     * previous-close resolution" tie policy used elsewhere in this repo.
+     */
+    @Query(
+        "SELECT md FROM MarketData md JOIN FETCH md.asset a " +
+            "WHERE a IN :assets AND md.priceDate <= :date " +
+            "AND md.priceDate = (" +
+            "SELECT MAX(md2.priceDate) FROM MarketData md2 " +
+            "WHERE md2.asset = a AND md2.priceDate <= :date" +
+            ")"
+    )
+    fun findLatestByAssetInAndPriceDateLessThanEqual(
+        @Param("assets") assets: Collection<Asset>,
+        @Param("date") date: LocalDate
+    ): List<MarketData>
+
+    /**
+     * Find stored prices that represent corporate events (dividend or split).
+     */
+    @Query(
+        "SELECT md FROM MarketData md WHERE md.asset.id = :assetId AND (md.dividend > 0 OR md.split <> 1)"
+    )
+    fun findEventsByAssetId(
+        @Param("assetId") assetId: String
+    ): List<MarketData>
+
+    /**
+     * Delete all market data for a specific asset.
+     * Used when cascading asset deletion.
+     */
+    fun deleteByAssetId(assetId: String)
+
+    /**
+     * Group MarketData row count by the owning asset's marketCode.
+     * Surfaced as the `beancounter.market_data.count.by_market` MultiGauge.
+     * Note: heavy query on large tables — refreshed via @Scheduled rather than
+     * on every actuator scrape (see EntityCountMetrics).
+     */
+    @Query(
+        "SELECT new com.beancounter.marketdata.metrics.MarketCount(md.asset.marketCode, COUNT(md)) " +
+            "FROM MarketData md GROUP BY md.asset.marketCode ORDER BY COUNT(md) DESC"
+    )
+    fun countByMarketCode(): List<com.beancounter.marketdata.metrics.MarketCount>
+}
+
+/**
+ * Projection: one stored price row's split marker.
+ */
+interface SplitRow {
+    val assetId: String
+    val priceDate: LocalDate
+    val split: BigDecimal
+}

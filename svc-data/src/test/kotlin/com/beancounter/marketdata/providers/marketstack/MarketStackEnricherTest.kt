@@ -1,7 +1,7 @@
 package com.beancounter.marketdata.providers.marketstack
 
-import com.beancounter.marketdata.assets.AccountingTypeService
-import com.beancounter.marketdata.assets.DefaultEnricher
+import com.beancounter.marketdata.assets.accounting.AccountingTypeService
+import com.beancounter.marketdata.assets.enrichment.DefaultEnricher
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.providers.marketstack.model.MarketStackTicker
 import org.assertj.core.api.Assertions.assertThat

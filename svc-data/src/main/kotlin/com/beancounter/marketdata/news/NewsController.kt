@@ -1,6 +1,8 @@
 package com.beancounter.marketdata.news
 
 import com.beancounter.auth.model.AuthConstants
+import com.beancounter.marketdata.news.sentiment.NewsSentimentSchedule
+import com.beancounter.marketdata.news.sentiment.NewsSentimentService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag

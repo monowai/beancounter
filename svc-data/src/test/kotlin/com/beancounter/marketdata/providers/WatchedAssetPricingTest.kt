@@ -13,6 +13,7 @@ import com.beancounter.marketdata.Constants.Companion.PRIVATE
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetRepository
+import com.beancounter.marketdata.price.PriceRefresh
 import com.beancounter.marketdata.providers.alpha.AlphaPriceService
 import com.beancounter.marketdata.registration.SystemUserRepository
 import com.beancounter.marketdata.watchlist.WatchlistItemRepository

@@ -7,8 +7,8 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.TargetDirection
 import com.beancounter.common.model.WatchlistItem
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.marketdata.providers.PriceService
-import com.beancounter.marketdata.providers.PriceSplits
+import com.beancounter.marketdata.price.PriceService
+import com.beancounter.marketdata.price.history.PriceSplits
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import org.springframework.transaction.PlatformTransactionManager

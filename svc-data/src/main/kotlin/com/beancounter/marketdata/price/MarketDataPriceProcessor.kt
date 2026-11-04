@@ -1,0 +1,280 @@
+package com.beancounter.marketdata.price
+
+import com.beancounter.common.contracts.PriceRequest
+import com.beancounter.common.contracts.PriceResponse
+import com.beancounter.common.model.Asset
+import com.beancounter.common.model.MarketData
+import com.beancounter.marketdata.providers.MarketDataPriceProvider
+import com.beancounter.marketdata.providers.ProviderUtils
+import com.beancounter.marketdata.providers.cash.CashProviderService
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.slf4j.LoggerFactory
+import org.springframework.stereotype.Service
+import java.time.LocalDate
+
+/**
+ * Service responsible for processing price requests and orchestrating price retrieval.
+ */
+@Service
+class MarketDataPriceProcessor(
+    private val providerUtils: ProviderUtils,
+    private val priceService: PriceService,
+    private val utilityService: MarketDataUtilityService
+) {
+    private val log = LoggerFactory.getLogger(MarketDataPriceProcessor::class.java)
+
+    /**
+     * Immutable data class to hold price results from different sources.
+     */
+    private data class PriceResults(
+        val foundInDb: List<MarketData> = emptyList(),
+        val foundOverApi: List<MarketData> = emptyList(),
+        val customPrice: List<MarketData> = emptyList()
+    ) {
+        companion object {
+            fun empty() = PriceResults()
+        }
+
+        fun addFoundInDb(prices: List<MarketData>): PriceResults = copy(foundInDb = foundInDb + prices)
+
+        fun addNewPrices(
+            prices: Collection<MarketData>,
+            isApiSupported: Boolean
+        ): PriceResults =
+            when {
+                isApiSupported -> copy(foundOverApi = foundOverApi + prices)
+                else -> copy(customPrice = customPrice + prices)
+            }
+
+        fun getAllPrices(): List<MarketData> = foundInDb + foundOverApi + customPrice
+    }
+
+    /**
+     * Immutable data class to hold date cache information.
+     */
+    private data class DateCache(
+        val dates: Map<String, LocalDate>
+    ) {
+        companion object {
+            fun empty() = DateCache(emptyMap())
+        }
+
+        fun getDate(timezoneId: String): LocalDate? = dates[timezoneId]
+
+        fun addDate(
+            timezoneId: String,
+            date: LocalDate
+        ): DateCache = copy(dates = dates + (timezoneId to date))
+    }
+
+    /**
+     * Processes a price request and returns price response.
+     */
+    fun getPriceResponse(priceRequest: PriceRequest): PriceResponse {
+        val byProviders = providerUtils.splitProviders(priceRequest.assets)
+
+        val priceResults =
+            byProviders.entries.fold(PriceResults.empty()) { results, (provider, assets) ->
+                val priceDate = getPriceDateForProvider(provider, assets, priceRequest)
+                val existingPrices = getExistingPrices(provider, assets, priceDate)
+
+                val (foundInDb, remainingAssets) = processExistingPrices(existingPrices, assets)
+                if (remainingAssets.isNotEmpty() && provider.isApiSupported()) {
+                    log.trace(
+                        "Cache miss for {} of {} assets on {} via {} - requesting from API",
+                        remainingAssets.size,
+                        assets.size,
+                        priceDate,
+                        provider.getId()
+                    )
+                }
+                val newPrices = getNewPricesFromProvider(remainingAssets, priceDate, provider, priceRequest)
+
+                results
+                    .addFoundInDb(foundInDb)
+                    .addNewPrices(newPrices, provider.isApiSupported())
+            }
+
+        logPriceResults(priceResults)
+        saveApiPricesAsync(priceResults.foundOverApi)
+
+        return PriceResponse(priceResults.getAllPrices())
+    }
+
+    /**
+     * Get the price date for a specific provider and its assets.
+     */
+    private fun getPriceDateForProvider(
+        marketDataProvider: MarketDataPriceProvider,
+        assets: Collection<Asset>,
+        priceRequest: PriceRequest
+    ): LocalDate {
+        val dateCache = buildDateCache(marketDataProvider, assets, priceRequest)
+        val timezoneId =
+            assets
+                .first()
+                .market.timezone.id
+        return dateCache.getDate(timezoneId)
+            ?: utilityService.getMarketDate(marketDataProvider, assets.first(), priceRequest)
+    }
+
+    /**
+     * Build immutable date cache for assets.
+     */
+    private fun buildDateCache(
+        marketDataProvider: MarketDataPriceProvider,
+        assets: Collection<Asset>,
+        priceRequest: PriceRequest
+    ): DateCache =
+        assets.fold(DateCache.empty()) { cache, asset ->
+            val timezoneId = asset.market.timezone.id
+            if (cache.getDate(timezoneId) != null) {
+                cache
+            } else {
+                val date = utilityService.getMarketDate(marketDataProvider, asset, priceRequest)
+                cache.addDate(timezoneId, date)
+            }
+        }
+
+    /**
+     * Get existing prices from database or provider.
+     */
+    private fun getExistingPrices(
+        marketDataProvider: MarketDataPriceProvider,
+        assets: Collection<Asset>,
+        priceDate: LocalDate
+    ): List<MarketData> =
+        if (marketDataProvider.getId() == CashProviderService.ID) {
+            // Cash is constant - get from provider
+            getFromProvider(assets.toList(), priceDate, marketDataProvider, PriceRequest()).toList()
+        } else {
+            // Get from database
+            priceService.getMarketData(assets, priceDate)
+        }
+
+    /**
+     * Process existing prices and return found prices and remaining assets.
+     */
+    private fun processExistingPrices(
+        existingPrices: List<MarketData>,
+        assets: Collection<Asset>
+    ): Pair<List<MarketData>, List<Asset>> {
+        val existingPriceMap = existingPrices.associateBy { it.asset.id }
+
+        val (foundInDb, remainingAssets) =
+            assets
+                .partition { asset ->
+                    existingPriceMap.containsKey(asset.id)
+                }.let { (found, remaining) ->
+                    val foundPrices =
+                        found.mapNotNull { asset ->
+                            existingPriceMap[asset.id]?.copy(asset = asset)
+                        }
+                    Pair(foundPrices, remaining)
+                }
+
+        return Pair(foundInDb, remainingAssets)
+    }
+
+    /**
+     * Get new prices from provider for remaining assets.
+     * For API-based providers: if no valid prices returned (market closed/holiday),
+     * falls back to most recent available price.
+     * For custom providers (private assets): returns whatever the provider returns.
+     */
+    private fun getNewPricesFromProvider(
+        remainingAssets: List<Asset>,
+        priceDate: LocalDate,
+        marketDataProvider: MarketDataPriceProvider,
+        priceRequest: PriceRequest
+    ): Collection<MarketData> {
+        val providerPrices = getFromProvider(remainingAssets, priceDate, marketDataProvider, priceRequest)
+
+        // For non-API providers (private/custom assets), return as-is
+        if (!marketDataProvider.isApiSupported()) {
+            return providerPrices
+        }
+
+        // For API providers, filter to only valid prices (close > 0)
+        val validPrices = providerPrices.filter { it.close.signum() > 0 }
+
+        return if (validPrices.isNotEmpty() || remainingAssets.isEmpty()) {
+            validPrices
+        } else {
+            latestPrices(remainingAssets, priceDate)
+        }
+    }
+
+    /**
+     * API provider returned no valid prices - market may be closed (holiday).
+     * Fall back to most recent available prices. Batched into a single query
+     * (DATA-6G) instead of one lookup per asset.
+     */
+    private fun latestPrices(
+        remainingAssets: List<Asset>,
+        priceDate: LocalDate
+    ): Collection<MarketData> {
+        val latestByAssetId = priceService.getLatestMarketData(remainingAssets, priceDate)
+        val fallbackPrices =
+            remainingAssets.mapNotNull { asset ->
+                latestByAssetId[asset.id]?.copy(asset = asset)
+            }
+
+        if (fallbackPrices.isNotEmpty()) {
+            log.trace(
+                "Market closed on {} - using {} fallback prices from previous trading day",
+                priceDate,
+                fallbackPrices.size
+            )
+        }
+
+        return fallbackPrices
+    }
+
+    /**
+     * Log price results summary.
+     */
+    private fun logPriceResults(priceResults: PriceResults) {
+        if (priceResults.foundInDb.size + priceResults.foundOverApi.size > 1) {
+            log.trace(
+                "From DB: ${priceResults.foundInDb.size}, " +
+                    "from API: ${priceResults.foundOverApi.size}, " +
+                    "custom prices: ${priceResults.customPrice.size}"
+            )
+        }
+    }
+
+    /**
+     * Save API prices asynchronously.
+     */
+    private fun saveApiPricesAsync(apiPrices: List<MarketData>) {
+        if (apiPrices.isNotEmpty()) {
+            CoroutineScope(Dispatchers.IO).launch {
+                priceService.handle(PriceResponse(apiPrices))
+            }
+        }
+    }
+
+    private fun getFromProvider(
+        providerAssets: Collection<Asset>,
+        priceDate: LocalDate,
+        marketDataPriceProvider: MarketDataPriceProvider,
+        request: PriceRequest
+    ): Collection<MarketData> {
+        if (providerAssets.isEmpty()) {
+            return emptyList()
+        }
+
+        val assetInputs = providerUtils.getInputs(providerAssets.toList())
+        val priceRequest =
+            PriceRequest(
+                priceDate.toString(),
+                assets = assetInputs,
+                currentMode = request.currentMode,
+                closePrice = request.closePrice
+            )
+        return marketDataPriceProvider.getMarketData(priceRequest)
+    }
+}

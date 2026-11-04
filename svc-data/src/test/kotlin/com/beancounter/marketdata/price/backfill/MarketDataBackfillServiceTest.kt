@@ -1,0 +1,353 @@
+package com.beancounter.marketdata.price.backfill
+
+import com.beancounter.common.contracts.PriceAsset
+import com.beancounter.common.contracts.PriceResponse
+import com.beancounter.common.model.Asset
+import com.beancounter.common.model.MarketData
+import com.beancounter.common.utils.DateUtils
+import com.beancounter.marketdata.Constants.Companion.NASDAQ
+import com.beancounter.marketdata.assets.AssetFinder
+import com.beancounter.marketdata.cache.CacheInvalidationProducer
+import com.beancounter.marketdata.price.MarketDataRepo
+import com.beancounter.marketdata.price.PriceService
+import com.beancounter.marketdata.providers.MarketDataPriceProvider
+import com.beancounter.marketdata.providers.ProviderUtils
+import com.beancounter.marketdata.trn.TrnRepository
+import org.assertj.core.api.Assertions.assertThat
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
+import java.math.BigDecimal
+import java.time.LocalDate
+
+/**
+ * Tests anchor + skip behaviour. Provider lineage is not preserved — these tests assert
+ * the service treats any existing price as coverage, regardless of source.
+ *
+ * Today is fixed (a Wednesday) through an injected [DateUtils]: edge coverage depends on the
+ * weekday, so a clock-relative `today` made tests red whenever it landed on a weekend or Monday.
+ * Other dates are still built relative to [today].
+ */
+class MarketDataBackfillServiceTest {
+    private lateinit var providerUtils: ProviderUtils
+    private lateinit var priceService: PriceService
+    private lateinit var assetFinder: AssetFinder
+    private lateinit var marketDataRepo: MarketDataRepo
+    private lateinit var trnRepository: TrnRepository
+    private lateinit var cacheInvalidationProducer: CacheInvalidationProducer
+    private lateinit var provider: MarketDataPriceProvider
+    private lateinit var service: MarketDataBackfillService
+
+    private val today: LocalDate = LocalDate.of(2026, 10, 7)
+    private val asset = Asset(code = "AAPL", id = "aapl-id", market = NASDAQ)
+
+    @BeforeEach
+    fun setUp() {
+        providerUtils = mock()
+        priceService = mock()
+        assetFinder = mock()
+        marketDataRepo = mock()
+        trnRepository = mock()
+        cacheInvalidationProducer = mock()
+        provider = mock()
+
+        whenever(providerUtils.getInputs(eq(listOf(asset))))
+            .thenReturn(listOf(PriceAsset(asset)))
+        whenever(providerUtils.splitProviders(any()))
+            .thenReturn(mutableMapOf(provider to mutableListOf(asset)))
+        whenever(provider.backFill(any(), any())).thenReturn(PriceResponse(emptyList()))
+
+        service = serviceOn(today)
+    }
+
+    private fun serviceOn(date: LocalDate): MarketDataBackfillService {
+        val dateUtils: DateUtils = mock()
+        whenever(dateUtils.date).thenReturn(date)
+        return MarketDataBackfillService(
+            providerUtils,
+            priceService,
+            assetFinder,
+            marketDataRepo,
+            trnRepository,
+            cacheInvalidationProducer,
+            maxBackfillYears = 10,
+            dateUtils = dateUtils
+        )
+    }
+
+    private fun weekdays(
+        from: LocalDate,
+        to: LocalDate
+    ): List<LocalDate> =
+        generateSequence(from) { it.plusDays(1) }
+            .takeWhile { !it.isAfter(to) }
+            .filter { it.dayOfWeek.value <= 5 }
+            .toList()
+
+    @Test
+    fun `anchor widens fromDate when older holdings exist in another portfolio`() {
+        // Caller window starts 3y back; cross-portfolio earliest holding is 7y back — both inside 10y floor.
+        val requested = today.minusYears(3)
+        val earliestHeld = today.minusYears(7)
+        whenever(trnRepository.findEarliestTradeDateByAssetId(asset.id)).thenReturn(earliestHeld)
+        stubStoredDates(requested, today)
+
+        service.backFill(asset, requested)
+
+        val captor = argumentCaptor<LocalDate>()
+        verify(provider).backFill(eq(asset), captor.capture())
+        assertThat(captor.firstValue).isEqualTo(earliestHeld)
+    }
+
+    @Test
+    fun `anchor floors at maxBackfillYears so providers are not asked for 30 years`() {
+        // Holdings reach back 30y; floor pulls request to today - 10y.
+        val ancient = today.minusYears(30)
+        whenever(trnRepository.findEarliestTradeDateByAssetId(asset.id)).thenReturn(ancient)
+        stubStoredDates(null, null)
+
+        service.backFill(asset, today.minusYears(2))
+
+        val captor = argumentCaptor<LocalDate>()
+        verify(provider).backFill(eq(asset), captor.capture())
+        assertThat(captor.firstValue).isEqualTo(today.minusYears(10))
+    }
+
+    @Test
+    fun `anchor keeps caller fromDate when no holdings recorded`() {
+        val requested = today.minusYears(2)
+        whenever(trnRepository.findEarliestTradeDateByAssetId(asset.id)).thenReturn(null)
+        stubStoredDates(null, null)
+
+        service.backFill(asset, requested)
+
+        verify(provider).backFill(eq(asset), eq(requested))
+    }
+
+    @Test
+    fun `skip provider call when DB already covers requested range`() {
+        // DB has prices from 10y back to yesterday — full coverage of any reasonable request.
+        whenever(trnRepository.findEarliestTradeDateByAssetId(asset.id)).thenReturn(today.minusYears(10))
+        stubStoredDates(today.minusYears(10), today.minusDays(1))
+
+        service.backFill(asset, today.minusYears(5))
+
+        verify(provider, never()).backFill(any(), any())
+        verify(priceService, never()).handle(any())
+    }
+
+    @Test
+    fun `call provider when DB coverage starts later than anchored fromDate`() {
+        // Anchored to 8y back (cross-portfolio, inside 10y floor); DB only has 3y onwards → gap.
+        val earliestHeld = today.minusYears(8)
+        whenever(trnRepository.findEarliestTradeDateByAssetId(asset.id)).thenReturn(earliestHeld)
+        stubStoredDates(today.minusYears(3), today)
+
+        service.backFill(asset, today.minusYears(3))
+
+        verify(provider).backFill(eq(asset), eq(earliestHeld))
+    }
+
+    @Test
+    fun `call provider when DB has no rows yet`() {
+        val requested = today.minusYears(2)
+        whenever(trnRepository.findEarliestTradeDateByAssetId(asset.id)).thenReturn(null)
+        stubStoredDates(null, null)
+
+        service.backFill(asset, requested)
+
+        verify(provider).backFill(eq(asset), eq(requested))
+    }
+
+    @Test
+    fun `never fires PRICE_HISTORY invalidation from backFill path`() {
+        // Backfill only inserts dates that aren't already present (PriceService.handle dedups
+        // on (assetId, priceDate)). It can't modify a price inside the existing svc-position
+        // snapshot range, so the event would always be a false invalidation. The OOM incident
+        // (POSITION-3T..3V, 2026-05-18) was caused by sending the event with the widened
+        // fromDate, which wiped years of snapshots. This test guards against regression by
+        // asserting NO event fires regardless of dbMin/dbMax shape.
+        whenever(trnRepository.findEarliestTradeDateByAssetId(asset.id)).thenReturn(today.minusYears(7))
+        stubStoredDates(today.minusYears(3), today)
+
+        service.backFill(asset, today.minusYears(3))
+
+        verify(provider).backFill(eq(asset), eq(today.minusYears(7)))
+        verify(cacheInvalidationProducer, never()).sendPriceHistoryEvent(any(), any())
+        verify(cacheInvalidationProducer, never()).sendPriceEvent(any())
+    }
+
+    @Test
+    fun `trims provider rows before the anchored fromDate`() {
+        // Alpha Vantage ignores fromDate and returns FULL history (can be
+        // 25y). backFill must trim the provider's response to
+        // [anchored, ...] before handing it to priceService.handle,
+        // regardless of how far back the provider actually returned (#1096).
+        val anchored = today.minusYears(2)
+        whenever(trnRepository.findEarliestTradeDateByAssetId(asset.id)).thenReturn(null)
+        stubStoredDates(null, null)
+
+        val beforeAnchor = MarketData(asset = asset, priceDate = anchored.minusYears(20), close = BigDecimal("1.00"))
+        val onAnchor = MarketData(asset = asset, priceDate = anchored, close = BigDecimal("2.00"))
+        val afterAnchor = MarketData(asset = asset, priceDate = anchored.plusDays(1), close = BigDecimal("3.00"))
+        whenever(provider.backFill(any(), any()))
+            .thenReturn(PriceResponse(listOf(beforeAnchor, onAnchor, afterAnchor)))
+
+        service.backFill(asset, anchored)
+
+        val captor = argumentCaptor<PriceResponse>()
+        verify(priceService).handle(captor.capture())
+        assertThat(captor.firstValue.data.map { it.priceDate })
+            .containsExactlyInAnyOrder(anchored, anchored.plusDays(1))
+    }
+
+    @Test
+    fun `keeps dividend and split rows even when they land before the anchored fromDate`() {
+        // A provider's full-history dump can carry a real corporate event
+        // (dividend/split) decades before the anchor window. Trimming must
+        // not silently swallow it — PriceService.handle's corporate-event
+        // loop is the only thing that ever dispatches it downstream, and it
+        // only ever sees what backFill hands it. Regression: an earlier cut
+        // of the #1096 trim dropped these rows outright, which broke
+        // AlphaPriceApiTest.is_BackFillWritingDividendEvent (KMI dividend
+        // fixture dated 2020-05-01, ~4y before a 2y default anchor).
+        val anchored = today.minusYears(2)
+        whenever(trnRepository.findEarliestTradeDateByAssetId(asset.id)).thenReturn(null)
+        stubStoredDates(null, null)
+
+        val ancientDividend =
+            MarketData(
+                asset = asset,
+                priceDate = anchored.minusYears(4),
+                close = BigDecimal("14.56"),
+                dividend = BigDecimal("0.2625")
+            )
+        val ancientPlainRow =
+            MarketData(asset = asset, priceDate = anchored.minusYears(4).plusDays(1), close = BigDecimal("14.90"))
+        val inRangeRow = MarketData(asset = asset, priceDate = anchored, close = BigDecimal("15.00"))
+        whenever(provider.backFill(any(), any()))
+            .thenReturn(PriceResponse(listOf(ancientDividend, ancientPlainRow, inRangeRow)))
+
+        service.backFill(asset, anchored)
+
+        val captor = argumentCaptor<PriceResponse>()
+        verify(priceService).handle(captor.capture())
+        assertThat(captor.firstValue.data.map { it.priceDate })
+            .containsExactlyInAnyOrder(ancientDividend.priceDate, inRangeRow.priceDate)
+    }
+
+    /** Stub a contiguous daily series spanning [from, to]; null bounds mean no rows stored. */
+    private fun stubStoredDates(
+        from: LocalDate?,
+        to: LocalDate?
+    ) {
+        val dates =
+            if (from == null || to == null) {
+                emptyList()
+            } else {
+                generateSequence(from) { it.plusDays(1) }.takeWhile { !it.isAfter(to) }.toList()
+            }
+        whenever(marketDataRepo.findPriceDatesByAssetIdBetween(eq(asset.id), any(), any())).thenReturn(dates)
+    }
+
+    @Test
+    fun `call provider from the last stored date before an internal gap`() {
+        // Daily rows up to 5 months back, then a 26-day hole, then daily rows to yesterday.
+        // Min/max coverage looks perfect; the hole is what produced a month-wide "daily" change.
+        val start = today.minusYears(2)
+        val gapStart = today.minusMonths(5)
+        val gapEnd = gapStart.plusDays(26)
+        val dates =
+            generateSequence(start) { it.plusDays(1) }
+                .takeWhile { !it.isAfter(today.minusDays(1)) }
+                .filter { it.isBefore(gapStart) || !it.isBefore(gapEnd) }
+                .plus(gapStart)
+                .sorted()
+                .toList()
+        whenever(trnRepository.findEarliestTradeDateByAssetId(asset.id)).thenReturn(null)
+        whenever(marketDataRepo.findPriceDatesByAssetIdBetween(eq(asset.id), any(), any())).thenReturn(dates)
+
+        service.backFill(asset, start)
+
+        verify(provider).backFill(eq(asset), eq(gapStart))
+    }
+
+    @Test
+    fun `skip provider call when the only holes are weekends and holidays`() {
+        // Weekday-only series with one 4-day Easter weekend: no hole exceeds the tolerance.
+        val start = today.minusYears(1)
+        val easter = start.plusMonths(3)
+        val dates =
+            generateSequence(start) { it.plusDays(1) }
+                .takeWhile { !it.isAfter(today.minusDays(1)) }
+                .filter { it.dayOfWeek.value <= 5 }
+                .filterNot { it == easter || it == easter.plusDays(3) }
+                .toList()
+        whenever(trnRepository.findEarliestTradeDateByAssetId(asset.id)).thenReturn(null)
+        whenever(marketDataRepo.findPriceDatesByAssetIdBetween(eq(asset.id), any(), any())).thenReturn(dates)
+
+        service.backFill(asset, start)
+
+        verify(provider, never()).backFill(any(), any())
+    }
+
+    @Test
+    fun `call provider from the stored tail when only the tail is stale`() {
+        // Leading edge covered; series stopped 40 days ago. Fetch from the tail, not the anchor,
+        // so a stale benchmark does not re-pull years of rows PriceService will only discard.
+        val start = today.minusYears(3)
+        val tail = today.minusDays(40)
+        whenever(trnRepository.findEarliestTradeDateByAssetId(asset.id)).thenReturn(null)
+        stubStoredDates(start, tail)
+
+        service.backFill(asset, start)
+
+        verify(provider).backFill(eq(asset), eq(tail))
+    }
+
+    @Test
+    fun `skip provider call when the anchor is a weekend and the series starts the following Monday`() {
+        val sunday = LocalDate.of(2025, 10, 5)
+        val monday = sunday.plusDays(1)
+        whenever(trnRepository.findEarliestTradeDateByAssetId(asset.id)).thenReturn(null)
+        whenever(marketDataRepo.findPriceDatesByAssetIdBetween(eq(asset.id), any(), any()))
+            .thenReturn(weekdays(monday, today.minusDays(1)))
+
+        service.backFill(asset, sunday)
+
+        verify(provider, never()).backFill(any(), any())
+    }
+
+    @Test
+    fun `skip provider call on a Monday when the last stored close is Friday`() {
+        val monday = LocalDate.of(2026, 10, 12)
+        val friday = monday.minusDays(3)
+        val start = monday.minusYears(1).plusDays(2) // a Wednesday
+        whenever(trnRepository.findEarliestTradeDateByAssetId(asset.id)).thenReturn(null)
+        whenever(marketDataRepo.findPriceDatesByAssetIdBetween(eq(asset.id), any(), any()))
+            .thenReturn(weekdays(start, friday))
+
+        serviceOn(monday).backFill(asset, start)
+
+        verify(provider, never()).backFill(any(), any())
+    }
+
+    @Test
+    fun `call provider from the anchor when the series starts more than the tolerance after it`() {
+        val start = today.minusYears(1)
+        val firstStored = start.plusDays(PriceSeriesGaps.MAX_CALENDAR_GAP_DAYS + 1)
+        whenever(trnRepository.findEarliestTradeDateByAssetId(asset.id)).thenReturn(null)
+        whenever(marketDataRepo.findPriceDatesByAssetIdBetween(eq(asset.id), any(), any()))
+            .thenReturn(weekdays(firstStored, today.minusDays(1)))
+
+        service.backFill(asset, start)
+
+        verify(provider).backFill(eq(asset), eq(start))
+    }
+}

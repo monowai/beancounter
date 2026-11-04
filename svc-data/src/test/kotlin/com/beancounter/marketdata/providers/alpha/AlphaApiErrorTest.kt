@@ -9,7 +9,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.markets.MarketService
-import com.beancounter.marketdata.providers.MarketDataService
+import com.beancounter.marketdata.price.MarketDataService
 import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.P_ASSET
 import com.beancounter.marketdata.providers.alpha.AlphaConstants.Companion.P_CLOSE

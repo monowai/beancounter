@@ -8,6 +8,9 @@ import com.beancounter.common.model.ClassificationStandard
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.Status
 import com.beancounter.marketdata.MarketDataBoot
+import com.beancounter.marketdata.classification.enricher.EnrichmentResult
+import com.beancounter.marketdata.classification.enricher.EodhdClassificationEnricher
+import com.beancounter.marketdata.classification.enricher.SectorNormalizerEodhdTest
 import com.github.tomakehurst.wiremock.client.WireMock
 import com.github.tomakehurst.wiremock.client.WireMock.aResponse
 import com.github.tomakehurst.wiremock.client.WireMock.get

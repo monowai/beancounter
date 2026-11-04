@@ -13,7 +13,7 @@ import java.time.LocalDateTime
  * Daily prune of news articles whose `published` timestamp is older than
  * [EodhdNewsProperties.retentionDays]. CASCADE on the join tables cleans the ticker / tag rows.
  *
- * Gated on `schedule.enabled=true` — same pattern as [com.beancounter.marketdata.providers.PriceSchedule]
+ * Gated on `schedule.enabled=true` — same pattern as [com.beancounter.marketdata.price.PriceSchedule]
  * so the prune doesn't fire in tests or local dev unless explicitly turned on.
  *
  * The cron trigger is already pinned to the configured schedule zone via `@scheduleZone`, but

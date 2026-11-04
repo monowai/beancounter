@@ -9,15 +9,15 @@ import com.beancounter.common.model.FxRate
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.SpringMvcDbTest
-import com.beancounter.marketdata.assets.AssetSearchService
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.figi.FigiGateway
+import com.beancounter.marketdata.assets.search.AssetSearchService
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.fx.FxRateRepository
 import com.beancounter.marketdata.fx.FxRateService
 import com.beancounter.marketdata.fx.fxrates.FxProviderService
 import com.beancounter.marketdata.markets.MarketService
-import com.beancounter.marketdata.providers.MarketDataService
+import com.beancounter.marketdata.price.MarketDataService
 import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.registration.SystemUserRepository
 import com.beancounter.marketdata.watchlist.AddWatchlistItemRequest

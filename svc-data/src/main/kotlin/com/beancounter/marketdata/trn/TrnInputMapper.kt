@@ -16,6 +16,7 @@ import com.beancounter.common.utils.TradeCalculator
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.broker.BrokerRepository
 import com.beancounter.marketdata.currency.CurrencyService
+import com.beancounter.marketdata.trn.io.BcRowAdapter
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 

@@ -8,7 +8,7 @@ import com.beancounter.marketdata.Constants.Companion.CASH_MARKET
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetRepository
 import com.beancounter.marketdata.cash.CashService
-import com.beancounter.marketdata.providers.MarketDataRepo
+import com.beancounter.marketdata.price.MarketDataRepo
 import com.beancounter.marketdata.providers.alpha.AlphaGateway
 import com.beancounter.marketdata.providers.alpha.F_CHANGE
 import com.beancounter.marketdata.providers.alpha.F_DATE

@@ -43,7 +43,7 @@ data class EodhdGeneral(
 data class EodhdEtfData(
     /**
      * Keyed by EODHD (Morningstar-style) sector name, e.g. "Technology", "Financial Services".
-     * Weights are Morningstar buckets, not GICS — [com.beancounter.marketdata.classification.SectorNormalizer]
+     * Weights are Morningstar buckets, not GICS — [com.beancounter.marketdata.classification.enricher.SectorNormalizer]
      * maps them onto the canonical GICS names used across Beancounter.
      */
     @JsonProperty("Sector_Weights")

@@ -15,8 +15,8 @@ import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.SpringMvcDbTest
-import com.beancounter.marketdata.assets.DefaultEnricher
-import com.beancounter.marketdata.assets.EnrichmentFactory
+import com.beancounter.marketdata.assets.enrichment.DefaultEnricher
+import com.beancounter.marketdata.assets.enrichment.EnrichmentFactory
 import com.beancounter.marketdata.assets.figi.FigiProxy
 import com.beancounter.marketdata.utils.BcMvcHelper
 import org.assertj.core.api.Assertions.assertThat

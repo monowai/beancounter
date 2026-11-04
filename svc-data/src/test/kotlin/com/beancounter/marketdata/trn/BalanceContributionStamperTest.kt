@@ -5,9 +5,9 @@ import com.beancounter.common.model.Market
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
-import com.beancounter.marketdata.assets.ContributionFrequency
-import com.beancounter.marketdata.assets.PrivateAssetConfig
-import com.beancounter.marketdata.assets.PrivateAssetConfigRepository
+import com.beancounter.marketdata.assets.privateasset.ContributionFrequency
+import com.beancounter.marketdata.assets.privateasset.PrivateAssetConfig
+import com.beancounter.marketdata.assets.privateasset.PrivateAssetConfigRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock

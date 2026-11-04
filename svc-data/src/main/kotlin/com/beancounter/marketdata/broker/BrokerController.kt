@@ -8,7 +8,7 @@ import com.beancounter.common.contracts.BrokersWithAccountsResponse
 import com.beancounter.common.input.BrokerInput
 import com.beancounter.common.model.Broker
 import com.beancounter.marketdata.registration.SystemUserService
-import com.beancounter.marketdata.trn.TrnBrokerService
+import com.beancounter.marketdata.trn.broker.TrnBrokerService
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity

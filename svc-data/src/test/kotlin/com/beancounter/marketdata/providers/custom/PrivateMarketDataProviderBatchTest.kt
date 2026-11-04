@@ -8,7 +8,7 @@ import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetRepository
-import com.beancounter.marketdata.providers.MarketDataRepo
+import com.beancounter.marketdata.price.MarketDataRepo
 import jakarta.persistence.EntityManagerFactory
 import org.assertj.core.api.Assertions.assertThat
 import org.hibernate.SessionFactory

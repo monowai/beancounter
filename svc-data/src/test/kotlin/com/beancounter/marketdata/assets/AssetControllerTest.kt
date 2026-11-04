@@ -16,6 +16,8 @@ import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.SpringMvcDbTest
+import com.beancounter.marketdata.assets.enrichment.DefaultEnricher
+import com.beancounter.marketdata.assets.enrichment.EnrichmentFactory
 import com.beancounter.marketdata.utils.ASSET_ROOT
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test

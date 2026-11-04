@@ -1,5 +1,11 @@
 package com.beancounter.marketdata.classification
 
+import com.beancounter.marketdata.classification.enricher.AlphaClassificationEnricher
+import com.beancounter.marketdata.classification.enricher.ChainedClassificationEnricher
+import com.beancounter.marketdata.classification.enricher.ClassificationEnricher
+import com.beancounter.marketdata.classification.enricher.ClassificationEnricherConfig
+import com.beancounter.marketdata.classification.enricher.EodhdClassificationEnricher
+import com.beancounter.marketdata.classification.enricher.SecClassificationEnricher
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.markets.MarketConfig
 import org.assertj.core.api.Assertions.assertThat

@@ -2,7 +2,7 @@ package com.beancounter.marketdata.assets.figi
 
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
-import com.beancounter.marketdata.assets.AccountingTypeService
+import com.beancounter.marketdata.assets.accounting.AccountingTypeService
 import com.beancounter.marketdata.currency.CurrencyService
 import org.springframework.stereotype.Service
 

@@ -8,7 +8,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.trn.TrnService
-import com.beancounter.marketdata.trn.cashLegInput
+import com.beancounter.marketdata.trn.settlement.cashLegInput
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 import java.math.BigDecimal

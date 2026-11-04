@@ -2,6 +2,7 @@ package com.beancounter.marketdata.assets
 
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Market
+import com.beancounter.marketdata.assets.search.AssetSearchService
 import com.beancounter.marketdata.markets.MarketService
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service

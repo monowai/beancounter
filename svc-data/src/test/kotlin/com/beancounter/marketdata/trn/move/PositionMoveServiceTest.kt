@@ -1,0 +1,592 @@
+package com.beancounter.marketdata.trn.move
+
+import com.beancounter.client.ingest.FxTransactions
+import com.beancounter.common.contracts.PositionMoveRequest
+import com.beancounter.common.contracts.TrnRequest
+import com.beancounter.common.exception.NotFoundException
+import com.beancounter.common.input.TrnInput
+import com.beancounter.common.model.Asset
+import com.beancounter.common.model.Market
+import com.beancounter.common.model.Portfolio
+import com.beancounter.common.model.SystemUser
+import com.beancounter.common.model.Trn
+import com.beancounter.common.model.TrnStatus
+import com.beancounter.common.model.TrnType
+import com.beancounter.marketdata.Constants.Companion.MSFT
+import com.beancounter.marketdata.Constants.Companion.NZD
+import com.beancounter.marketdata.Constants.Companion.USD
+import com.beancounter.marketdata.Constants.Companion.nzdCashBalance
+import com.beancounter.marketdata.Constants.Companion.usdCashBalance
+import com.beancounter.marketdata.cache.CacheInvalidationProducer
+import com.beancounter.marketdata.portfolio.PortfolioService
+import com.beancounter.marketdata.trn.TrnRepository
+import com.beancounter.marketdata.trn.TrnService
+import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.junit.jupiter.api.BeforeEach
+import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.whenever
+import java.math.BigDecimal
+import java.time.LocalDate
+
+/**
+ * Unit tests for PositionMoveService - moves all transactions
+ * for an asset from one portfolio to another, optionally creating
+ * compensating cash transactions to maintain cash balances.
+ */
+class PositionMoveServiceTest {
+    private lateinit var trnRepository: TrnRepository
+    private lateinit var portfolioService: PortfolioService
+    private lateinit var fxTransactions: FxTransactions
+    private lateinit var trnService: TrnService
+    private lateinit var cacheInvalidationProducer: CacheInvalidationProducer
+    private lateinit var positionMoveService: PositionMoveService
+
+    private val owner = SystemUser("test-user", "test@example.com")
+
+    private val sourcePortfolio =
+        Portfolio(
+            id = "source-portfolio-id",
+            code = "SOURCE",
+            name = "Source Portfolio",
+            currency = USD,
+            base = USD,
+            owner = owner
+        )
+
+    private val targetPortfolio =
+        Portfolio(
+            id = "target-portfolio-id",
+            code = "TARGET",
+            name = "Target Portfolio",
+            currency = USD,
+            base = USD,
+            owner = owner
+        )
+
+    @BeforeEach
+    fun setUp() {
+        trnRepository = mock()
+        portfolioService = mock()
+        fxTransactions = mock()
+        trnService = mock()
+        cacheInvalidationProducer = mock()
+        positionMoveService =
+            PositionMoveService(
+                trnRepository,
+                portfolioService,
+                fxTransactions,
+                trnService,
+                cacheInvalidationProducer
+            )
+
+        whenever(portfolioService.find("source-portfolio-id")).thenReturn(sourcePortfolio)
+        whenever(portfolioService.find("target-portfolio-id")).thenReturn(targetPortfolio)
+    }
+
+    @Test
+    fun `should move transactions to target portfolio`() {
+        val trn = createBuyTransaction("trn-1", sourcePortfolio)
+        whenever(trnRepository.findByPortfolioIdAndAssetId(sourcePortfolio.id, MSFT.id))
+            .thenReturn(listOf(trn))
+
+        val result =
+            positionMoveService.movePosition(
+                PositionMoveRequest(
+                    sourcePortfolioId = sourcePortfolio.id,
+                    targetPortfolioId = targetPortfolio.id,
+                    assetId = MSFT.id
+                )
+            )
+
+        assertThat(result.movedCount).isEqualTo(1)
+        assertThat(result.compensatingTransactions).isEqualTo(0)
+        assertThat(trn.portfolio).isEqualTo(targetPortfolio)
+        verify(trnRepository).saveAll(any<List<Trn>>())
+    }
+
+    @Test
+    fun `should throw when no transactions found`() {
+        whenever(trnRepository.findByPortfolioIdAndAssetId(sourcePortfolio.id, MSFT.id))
+            .thenReturn(emptyList())
+
+        assertThatThrownBy {
+            positionMoveService.movePosition(
+                PositionMoveRequest(
+                    sourcePortfolioId = sourcePortfolio.id,
+                    targetPortfolioId = targetPortfolio.id,
+                    assetId = MSFT.id
+                )
+            )
+        }.isInstanceOf(NotFoundException::class.java)
+    }
+
+    @Test
+    fun `should create consolidated compensating cash transactions`() {
+        val buyTrn = createBuyTransaction("trn-1", sourcePortfolio)
+        whenever(trnRepository.findByPortfolioIdAndAssetId(sourcePortfolio.id, MSFT.id))
+            .thenReturn(listOf(buyTrn))
+
+        val result =
+            positionMoveService.movePosition(
+                PositionMoveRequest(
+                    sourcePortfolioId = sourcePortfolio.id,
+                    targetPortfolioId = targetPortfolio.id,
+                    assetId = MSFT.id,
+                    maintainCashBalances = true
+                )
+            )
+
+        assertThat(result.movedCount).isEqualTo(1)
+        assertThat(result.compensatingTransactions).isEqualTo(2)
+
+        val requestCaptor = argumentCaptor<TrnRequest>()
+        verify(trnService).save(eq(sourcePortfolio), requestCaptor.capture())
+        verify(trnService).save(eq(targetPortfolio), requestCaptor.capture())
+
+        // BUY debited cash (negative cashAmount). Moving it removes the debit from source
+        // (source cash rises), so WITHDRAW from source to compensate.
+        val sourceRequest = requestCaptor.firstValue
+        assertThat(sourceRequest.data).hasSize(1)
+        assertThat(sourceRequest.data[0].trnType).isEqualTo(TrnType.WITHDRAWAL)
+        assertThat(sourceRequest.data[0].tradeAmount).isEqualByComparingTo(BigDecimal("5000"))
+
+        // Target gains the debit (target cash falls), so DEPOSIT into target to compensate.
+        val targetRequest = requestCaptor.secondValue
+        assertThat(targetRequest.data).hasSize(1)
+        assertThat(targetRequest.data[0].trnType).isEqualTo(TrnType.DEPOSIT)
+        assertThat(targetRequest.data[0].tradeAmount).isEqualByComparingTo(BigDecimal("5000"))
+    }
+
+    @Test
+    fun `should consolidate multiple transactions to net amount per cash asset`() {
+        // 2 BUYs ($5000 each = -$10000 cash) and 1 SELL ($3000 = +$3000 cash)
+        // Net = -$7000. Moving removes debits from source (cash rises) → WITHDRAWAL $7000
+        // Target gains debits (cash falls) → DEPOSIT $7000
+        val buy1 = createBuyTransaction("trn-1", sourcePortfolio)
+        val buy2 = createBuyTransaction("trn-2", sourcePortfolio)
+        val sell = createSellTransaction("trn-3", sourcePortfolio)
+        whenever(trnRepository.findByPortfolioIdAndAssetId(sourcePortfolio.id, MSFT.id))
+            .thenReturn(listOf(buy1, buy2, sell))
+
+        val result =
+            positionMoveService.movePosition(
+                PositionMoveRequest(
+                    sourcePortfolioId = sourcePortfolio.id,
+                    targetPortfolioId = targetPortfolio.id,
+                    assetId = MSFT.id,
+                    maintainCashBalances = true
+                )
+            )
+
+        assertThat(result.movedCount).isEqualTo(3)
+        // Only 1 consolidated pair (not 3 pairs)
+        assertThat(result.compensatingTransactions).isEqualTo(2)
+
+        val requestCaptor = argumentCaptor<TrnRequest>()
+        verify(trnService).save(eq(sourcePortfolio), requestCaptor.capture())
+        verify(trnService).save(eq(targetPortfolio), requestCaptor.capture())
+
+        // Net is -$7000, source cash rises → single WITHDRAWAL
+        val sourceRequest = requestCaptor.firstValue
+        assertThat(sourceRequest.data).hasSize(1)
+        assertThat(sourceRequest.data[0].trnType).isEqualTo(TrnType.WITHDRAWAL)
+        assertThat(sourceRequest.data[0].tradeAmount).isEqualByComparingTo(BigDecimal("7000"))
+
+        // Target cash falls → single DEPOSIT
+        val targetRequest = requestCaptor.secondValue
+        assertThat(targetRequest.data).hasSize(1)
+        assertThat(targetRequest.data[0].trnType).isEqualTo(TrnType.DEPOSIT)
+        assertThat(targetRequest.data[0].tradeAmount).isEqualByComparingTo(BigDecimal("7000"))
+    }
+
+    @Test
+    fun `should create reverse compensating transactions for SELL`() {
+        val sellTrn = createSellTransaction("trn-1", sourcePortfolio)
+        whenever(trnRepository.findByPortfolioIdAndAssetId(sourcePortfolio.id, MSFT.id))
+            .thenReturn(listOf(sellTrn))
+
+        val result =
+            positionMoveService.movePosition(
+                PositionMoveRequest(
+                    sourcePortfolioId = sourcePortfolio.id,
+                    targetPortfolioId = targetPortfolio.id,
+                    assetId = MSFT.id,
+                    maintainCashBalances = true
+                )
+            )
+
+        assertThat(result.compensatingTransactions).isEqualTo(2)
+
+        val requestCaptor = argumentCaptor<TrnRequest>()
+        verify(trnService).save(eq(sourcePortfolio), requestCaptor.capture())
+        verify(trnService).save(eq(targetPortfolio), requestCaptor.capture())
+
+        // SELL credited cash (positive cashAmount). Moving removes credit from source
+        // (source cash falls) → DEPOSIT to compensate.
+        val sourceRequest = requestCaptor.firstValue
+        assertThat(sourceRequest.data[0].trnType).isEqualTo(TrnType.DEPOSIT)
+
+        // Target gains credit (target cash rises) → WITHDRAWAL to compensate.
+        val targetRequest = requestCaptor.secondValue
+        assertThat(targetRequest.data[0].trnType).isEqualTo(TrnType.WITHDRAWAL)
+    }
+
+    @Test
+    fun `should skip non-cash-impacted transactions for compensating`() {
+        val splitTrn =
+            Trn(
+                id = "trn-split",
+                trnType = TrnType.SPLIT,
+                asset = MSFT,
+                quantity = BigDecimal("2"),
+                tradeCurrency = USD,
+                portfolio = sourcePortfolio,
+                tradeDate = LocalDate.now().minusDays(5),
+                status = TrnStatus.SETTLED
+            )
+        whenever(trnRepository.findByPortfolioIdAndAssetId(sourcePortfolio.id, MSFT.id))
+            .thenReturn(listOf(splitTrn))
+
+        val result =
+            positionMoveService.movePosition(
+                PositionMoveRequest(
+                    sourcePortfolioId = sourcePortfolio.id,
+                    targetPortfolioId = targetPortfolio.id,
+                    assetId = MSFT.id,
+                    maintainCashBalances = true
+                )
+            )
+
+        assertThat(result.movedCount).isEqualTo(1)
+        assertThat(result.compensatingTransactions).isEqualTo(0)
+        verify(trnService, never()).save(any<Portfolio>(), any<TrnRequest>())
+    }
+
+    @Test
+    fun `should skip compensating when buy and sell net to zero`() {
+        // BUY -$5000 + SELL +$5000 = net $0 — no compensating transactions needed
+        val buy = createBuyTransaction("trn-1", sourcePortfolio)
+        val sell =
+            Trn(
+                id = "trn-2",
+                trnType = TrnType.SELL,
+                asset = MSFT,
+                quantity = BigDecimal("100"),
+                tradeAmount = BigDecimal("5000"),
+                tradeCurrency = USD,
+                cashAsset = usdCashBalance,
+                cashCurrency = USD,
+                cashAmount = BigDecimal("5000"),
+                portfolio = sourcePortfolio,
+                tradeDate = LocalDate.now().minusDays(3),
+                status = TrnStatus.SETTLED
+            )
+        whenever(trnRepository.findByPortfolioIdAndAssetId(sourcePortfolio.id, MSFT.id))
+            .thenReturn(listOf(buy, sell))
+
+        val result =
+            positionMoveService.movePosition(
+                PositionMoveRequest(
+                    sourcePortfolioId = sourcePortfolio.id,
+                    targetPortfolioId = targetPortfolio.id,
+                    assetId = MSFT.id,
+                    maintainCashBalances = true
+                )
+            )
+
+        assertThat(result.movedCount).isEqualTo(2)
+        assertThat(result.compensatingTransactions).isEqualTo(0)
+        verify(trnService, never()).save(any<Portfolio>(), any<TrnRequest>())
+    }
+
+    @Test
+    fun `should recalculate FX rates when portfolio currencies differ`() {
+        val nzdTargetPortfolio =
+            Portfolio(
+                id = "nzd-portfolio-id",
+                code = "NZD-TARGET",
+                name = "NZD Target",
+                currency = NZD,
+                base = NZD,
+                owner = owner
+            )
+        whenever(portfolioService.find("nzd-portfolio-id")).thenReturn(nzdTargetPortfolio)
+
+        val trn = createBuyTransaction("trn-1", sourcePortfolio)
+        whenever(trnRepository.findByPortfolioIdAndAssetId(sourcePortfolio.id, MSFT.id))
+            .thenReturn(listOf(trn))
+
+        positionMoveService.movePosition(
+            PositionMoveRequest(
+                sourcePortfolioId = sourcePortfolio.id,
+                targetPortfolioId = nzdTargetPortfolio.id,
+                assetId = MSFT.id
+            )
+        )
+
+        verify(fxTransactions).setRates(eq(nzdTargetPortfolio), any<TrnInput>())
+        assertThat(trn.portfolio).isEqualTo(nzdTargetPortfolio)
+    }
+
+    @Test
+    fun `should not recalculate FX rates when portfolio currencies match`() {
+        val trn = createBuyTransaction("trn-1", sourcePortfolio)
+        whenever(trnRepository.findByPortfolioIdAndAssetId(sourcePortfolio.id, MSFT.id))
+            .thenReturn(listOf(trn))
+
+        positionMoveService.movePosition(
+            PositionMoveRequest(
+                sourcePortfolioId = sourcePortfolio.id,
+                targetPortfolioId = targetPortfolio.id,
+                assetId = MSFT.id
+            )
+        )
+
+        verify(fxTransactions, never()).setRates(any(), any<TrnInput>())
+    }
+
+    @Test
+    fun `should invalidate caches for both portfolios`() {
+        val tradeDate = LocalDate.now().minusDays(30)
+        val trn =
+            Trn(
+                id = "trn-1",
+                trnType = TrnType.BUY,
+                asset = MSFT,
+                quantity = BigDecimal("100"),
+                tradeAmount = BigDecimal("5000"),
+                tradeCurrency = USD,
+                cashAsset = usdCashBalance,
+                cashCurrency = USD,
+                cashAmount = BigDecimal("-5000"),
+                portfolio = sourcePortfolio,
+                tradeDate = tradeDate,
+                status = TrnStatus.SETTLED
+            )
+        whenever(trnRepository.findByPortfolioIdAndAssetId(sourcePortfolio.id, MSFT.id))
+            .thenReturn(listOf(trn))
+
+        positionMoveService.movePosition(
+            PositionMoveRequest(
+                sourcePortfolioId = sourcePortfolio.id,
+                targetPortfolioId = targetPortfolio.id,
+                assetId = MSFT.id
+            )
+        )
+
+        verify(cacheInvalidationProducer).sendTransactionEvent(sourcePortfolio.id, tradeDate)
+        verify(cacheInvalidationProducer).sendTransactionEvent(targetPortfolio.id, tradeDate)
+    }
+
+    @Test
+    fun `should move multiple transactions`() {
+        val trn1 = createBuyTransaction("trn-1", sourcePortfolio)
+        val trn2 = createBuyTransaction("trn-2", sourcePortfolio)
+        val trn3 = createSellTransaction("trn-3", sourcePortfolio)
+        whenever(trnRepository.findByPortfolioIdAndAssetId(sourcePortfolio.id, MSFT.id))
+            .thenReturn(listOf(trn1, trn2, trn3))
+
+        val result =
+            positionMoveService.movePosition(
+                PositionMoveRequest(
+                    sourcePortfolioId = sourcePortfolio.id,
+                    targetPortfolioId = targetPortfolio.id,
+                    assetId = MSFT.id
+                )
+            )
+
+        assertThat(result.movedCount).isEqualTo(3)
+        assertThat(trn1.portfolio).isEqualTo(targetPortfolio)
+        assertThat(trn2.portfolio).isEqualTo(targetPortfolio)
+        assertThat(trn3.portfolio).isEqualTo(targetPortfolio)
+    }
+
+    @Test
+    fun `should create compensating transactions for INCOME and EXPENSE`() {
+        // RE apartment with INCOME +200 NZD and EXPENSE -100 NZD → net +100 NZD
+        // Moving removes credits from source (cash falls) → DEPOSIT to compensate
+        // Target gains credits (cash rises) → WITHDRAWAL to compensate
+        val apartment =
+            Asset(
+                code = "APARTMENT",
+                id = "apartment-id",
+                name = "Test Apartment",
+                market = Market("PRIVATE")
+            )
+        val income =
+            Trn(
+                id = "trn-income",
+                trnType = TrnType.INCOME,
+                asset = apartment,
+                quantity = BigDecimal.ONE,
+                tradeAmount = BigDecimal("200"),
+                tradeCurrency = NZD,
+                cashAsset = nzdCashBalance,
+                cashCurrency = NZD,
+                cashAmount = BigDecimal("200"),
+                portfolio = sourcePortfolio,
+                tradeDate = LocalDate.now().minusDays(10),
+                status = TrnStatus.SETTLED
+            )
+        val expense =
+            Trn(
+                id = "trn-expense",
+                trnType = TrnType.EXPENSE,
+                asset = apartment,
+                quantity = BigDecimal.ONE,
+                tradeAmount = BigDecimal("100"),
+                tradeCurrency = NZD,
+                cashAsset = nzdCashBalance,
+                cashCurrency = NZD,
+                cashAmount = BigDecimal("-100"),
+                portfolio = sourcePortfolio,
+                tradeDate = LocalDate.now().minusDays(5),
+                status = TrnStatus.SETTLED
+            )
+        whenever(trnRepository.findByPortfolioIdAndAssetId(sourcePortfolio.id, apartment.id))
+            .thenReturn(listOf(income, expense))
+
+        val result =
+            positionMoveService.movePosition(
+                PositionMoveRequest(
+                    sourcePortfolioId = sourcePortfolio.id,
+                    targetPortfolioId = targetPortfolio.id,
+                    assetId = apartment.id,
+                    maintainCashBalances = true
+                )
+            )
+
+        assertThat(result.movedCount).isEqualTo(2)
+        assertThat(result.compensatingTransactions).isEqualTo(2)
+
+        val requestCaptor = argumentCaptor<TrnRequest>()
+        verify(trnService).save(eq(sourcePortfolio), requestCaptor.capture())
+        verify(trnService).save(eq(targetPortfolio), requestCaptor.capture())
+
+        // Net = +200 -100 = +100 (credits moved out → source cash falls → DEPOSIT)
+        val sourceRequest = requestCaptor.firstValue
+        assertThat(sourceRequest.data).hasSize(1)
+        assertThat(sourceRequest.data[0].trnType).isEqualTo(TrnType.DEPOSIT)
+        assertThat(sourceRequest.data[0].tradeAmount).isEqualByComparingTo(BigDecimal("100"))
+
+        // Target gains credits → WITHDRAWAL to compensate
+        val targetRequest = requestCaptor.secondValue
+        assertThat(targetRequest.data).hasSize(1)
+        assertThat(targetRequest.data[0].trnType).isEqualTo(TrnType.WITHDRAWAL)
+        assertThat(targetRequest.data[0].tradeAmount).isEqualByComparingTo(BigDecimal("100"))
+    }
+
+    @Test
+    fun `should handle BALANCE transactions mixed with INCOME when moving RE asset`() {
+        // BALANCE has no cash impact — only INCOME should be compensated
+        val apartment =
+            Asset(
+                code = "APARTMENT",
+                id = "apartment-id",
+                name = "Test Apartment",
+                market = Market("PRIVATE")
+            )
+        val balance =
+            Trn(
+                id = "trn-balance",
+                trnType = TrnType.BALANCE,
+                asset = apartment,
+                quantity = BigDecimal("500000"),
+                tradeAmount = BigDecimal("500000"),
+                tradeCurrency = NZD,
+                portfolio = sourcePortfolio,
+                tradeDate = LocalDate.now().minusDays(30),
+                status = TrnStatus.SETTLED
+            )
+        val income =
+            Trn(
+                id = "trn-income",
+                trnType = TrnType.INCOME,
+                asset = apartment,
+                quantity = BigDecimal.ONE,
+                tradeAmount = BigDecimal("1400"),
+                tradeCurrency = NZD,
+                cashAsset = nzdCashBalance,
+                cashCurrency = NZD,
+                cashAmount = BigDecimal("1400"),
+                portfolio = sourcePortfolio,
+                tradeDate = LocalDate.now().minusDays(5),
+                status = TrnStatus.SETTLED
+            )
+        whenever(trnRepository.findByPortfolioIdAndAssetId(sourcePortfolio.id, apartment.id))
+            .thenReturn(listOf(balance, income))
+
+        val result =
+            positionMoveService.movePosition(
+                PositionMoveRequest(
+                    sourcePortfolioId = sourcePortfolio.id,
+                    targetPortfolioId = targetPortfolio.id,
+                    assetId = apartment.id,
+                    maintainCashBalances = true
+                )
+            )
+
+        assertThat(result.movedCount).isEqualTo(2)
+        assertThat(result.compensatingTransactions).isEqualTo(2)
+
+        val requestCaptor = argumentCaptor<TrnRequest>()
+        verify(trnService).save(eq(sourcePortfolio), requestCaptor.capture())
+        verify(trnService).save(eq(targetPortfolio), requestCaptor.capture())
+
+        // Only INCOME is cash-impacted: +1400 → DEPOSIT to source, WITHDRAWAL from target
+        val sourceRequest = requestCaptor.firstValue
+        assertThat(sourceRequest.data).hasSize(1)
+        assertThat(sourceRequest.data[0].trnType).isEqualTo(TrnType.DEPOSIT)
+        assertThat(sourceRequest.data[0].tradeAmount).isEqualByComparingTo(BigDecimal("1400"))
+
+        val targetRequest = requestCaptor.secondValue
+        assertThat(targetRequest.data).hasSize(1)
+        assertThat(targetRequest.data[0].trnType).isEqualTo(TrnType.WITHDRAWAL)
+        assertThat(targetRequest.data[0].tradeAmount).isEqualByComparingTo(BigDecimal("1400"))
+    }
+
+    private fun createBuyTransaction(
+        id: String,
+        portfolio: Portfolio
+    ): Trn =
+        Trn(
+            id = id,
+            trnType = TrnType.BUY,
+            asset = MSFT,
+            quantity = BigDecimal("100"),
+            tradeAmount = BigDecimal("5000"),
+            tradeCurrency = USD,
+            cashAsset = usdCashBalance,
+            cashCurrency = USD,
+            cashAmount = BigDecimal("-5000"),
+            portfolio = portfolio,
+            tradeDate = LocalDate.now().minusDays(10),
+            status = TrnStatus.SETTLED
+        )
+
+    private fun createSellTransaction(
+        id: String,
+        portfolio: Portfolio
+    ): Trn =
+        Trn(
+            id = id,
+            trnType = TrnType.SELL,
+            asset = MSFT,
+            quantity = BigDecimal("50"),
+            tradeAmount = BigDecimal("3000"),
+            tradeCurrency = USD,
+            cashAsset = usdCashBalance,
+            cashCurrency = USD,
+            cashAmount = BigDecimal("3000"),
+            portfolio = portfolio,
+            tradeDate = LocalDate.now().minusDays(5),
+            status = TrnStatus.SETTLED
+        )
+}

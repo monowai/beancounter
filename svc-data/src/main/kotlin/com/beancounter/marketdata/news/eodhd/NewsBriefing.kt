@@ -1,9 +1,9 @@
 package com.beancounter.marketdata.news.eodhd
 
-import com.beancounter.marketdata.news.EmbeddingCodec
 import com.beancounter.marketdata.news.NewsArticle
-import com.beancounter.marketdata.news.NewsEmbeddingProperties
-import com.beancounter.marketdata.news.VectorMath
+import com.beancounter.marketdata.news.embedding.EmbeddingCodec
+import com.beancounter.marketdata.news.embedding.NewsEmbeddingProperties
+import com.beancounter.marketdata.news.embedding.VectorMath
 import java.math.BigDecimal
 import java.math.RoundingMode
 import kotlin.math.abs

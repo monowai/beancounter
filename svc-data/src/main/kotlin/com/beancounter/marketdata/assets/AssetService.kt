@@ -9,8 +9,10 @@ import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.utils.KeyGenUtils
+import com.beancounter.marketdata.assets.enrichment.DefaultEnricher
+import com.beancounter.marketdata.assets.enrichment.EnrichmentFactory
 import com.beancounter.marketdata.markets.MarketService
-import com.beancounter.marketdata.providers.MarketDataService
+import com.beancounter.marketdata.price.MarketDataService
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.context.annotation.Import

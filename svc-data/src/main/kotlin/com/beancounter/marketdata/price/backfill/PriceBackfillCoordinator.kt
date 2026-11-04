@@ -1,0 +1,172 @@
+package com.beancounter.marketdata.price.backfill
+
+import io.opentelemetry.context.Context
+import io.opentelemetry.extension.kotlin.asContextElement
+import jakarta.annotation.PreDestroy
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import org.slf4j.LoggerFactory
+import org.springframework.beans.factory.annotation.Qualifier
+import org.springframework.beans.factory.annotation.Value
+import org.springframework.scheduling.annotation.Scheduled
+import org.springframework.stereotype.Service
+import java.time.Duration
+import java.time.Instant
+import java.time.LocalDate
+import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.Semaphore
+
+/**
+ * Schedules deep price-history backfills outside the request thread.
+ *
+ * `PriceController.getPriceHistory` returns whatever is in the DB straight
+ * away. When the cached range doesn't cover what the chart asked for, we
+ * trigger an async backfill here so the next request gets the extended
+ * history without blocking the current one on a multi-year provider call.
+ *
+ * In-flight guard prevents two concurrent backfills for the same asset.
+ * Cooldown prevents retry storms when the provider call keeps failing.
+ *
+ * The `lastAttempt` map is pruned hourly so it can't grow without bound
+ * across the lifetime of the process — every distinct assetId ever queried
+ * would otherwise stick around forever.
+ *
+ * Backpressure model: prefilter (blank / cooldown / in-flight) runs on
+ * the caller's thread, then a non-blocking `Semaphore.tryAcquire` reserves
+ * a slot before the work is launched on the dedicated coroutine scope.
+ * Exhausted permits = silent drop; the cooldown lets the asset retry on
+ * the next chart load. Doing the check inline (rather than letting an
+ * unbounded `launch` queue grow) is what stops chart-load bursts from
+ * piling up work the system can't actually process.
+ */
+@Service
+class PriceBackfillCoordinator(
+    private val backfillService: MarketDataBackfillService,
+    @Qualifier("priceBackfillScope") private val scope: CoroutineScope,
+    @Value("\${price.backfill.max-permits:68}") maxPermits: Int
+) {
+    private val log = LoggerFactory.getLogger(PriceBackfillCoordinator::class.java)
+    private val inFlight = ConcurrentHashMap.newKeySet<String>()
+    private val lastAttempt = ConcurrentHashMap<String, Instant>()
+    private val permits = Semaphore(maxPermits)
+
+    /**
+     * Queue a deep backfill for [assetId] reaching back to [fromDate]. Returns
+     * `true` when the work was accepted, `false` when it was filtered out
+     * (blank id, cooldown, in-flight) or no permit was available. Callers can
+     * use the return value to report what was actually scheduled; saturation
+     * drops are silent here so the calling request isn't broken by a
+     * backpressure signal that's irrelevant to it.
+     */
+    fun scheduleBackfill(
+        assetId: String,
+        fromDate: LocalDate
+    ): Boolean {
+        if (assetId.isBlank()) {
+            log.debug("Backfill skipped — blank assetId")
+            return false
+        }
+        return claim(assetId) && launchBackfill(assetId, fromDate)
+    }
+
+    /**
+     * Claim [assetId] for a backfill: false when it is cooling down or already in
+     * flight. A successful claim marks it in flight and stamps the attempt time.
+     */
+    private fun claim(assetId: String): Boolean {
+        val now = Instant.now()
+        val previous = lastAttempt[assetId]
+        return when {
+            previous != null && Duration.between(previous, now) < ATTEMPT_COOLDOWN -> {
+                log.debug("Backfill cooldown active for {}, skipping", assetId)
+                false
+            }
+            !inFlight.add(assetId) -> {
+                log.debug("Backfill already running for {}", assetId)
+                false
+            }
+            else -> {
+                lastAttempt[assetId] = now
+                true
+            }
+        }
+    }
+
+    private fun launchBackfill(
+        assetId: String,
+        fromDate: LocalDate
+    ): Boolean {
+        if (!permits.tryAcquire()) {
+            // Release the slot so the cooldown window — not a stuck in-flight
+            // flag — governs the next retry attempt.
+            inFlight.remove(assetId)
+            log.warn("Backfill capacity saturated; dropping submission for {}", assetId)
+            return false
+        }
+        // Launch with a DETACHED root OTel context rather than inheriting the
+        // caller's. A plain `scope.launch { ... }` would propagate the inbound
+        // HTTP request's Context (and therefore its trace), so every span from
+        // every backfill in a storm landed on ONE trace — an unbounded
+        // SpanNode tree in the Sentry exporter, whose copy-on-write child list
+        // is quadratic in children-per-node. That was the OOM allocation site
+        // during the 116-backfill storm (#1096). Each backfill gets its own
+        // root trace instead, bounding every span tree to one backfill's work.
+        scope.launch(Context.root().asContextElement()) {
+            try {
+                runBackfill(assetId, fromDate)
+            } finally {
+                permits.release()
+            }
+        }
+        return true
+    }
+
+    private fun runBackfill(
+        assetId: String,
+        fromDate: LocalDate
+    ) {
+        try {
+            log.info("Async backfill starting for asset={} fromDate={}", assetId, fromDate)
+            // MarketDataBackfillService now owns the svc-position cache
+            // invalidation decision — it has the pre/post DB price range
+            // and can scope the event to dates that actually overlap
+            // existing snapshots. Sending it from here with the raw
+            // anchored fromDate wiped years of snapshots and caused OOM
+            // cascades on bc-position (POSITION-3T..3V, 2026-05-18).
+            backfillService.backFill(assetId, fromDate)
+            log.info("Async backfill completed for asset={}", assetId)
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            log.warn("Async backfill failed for asset {}", assetId, e)
+        } finally {
+            inFlight.remove(assetId)
+        }
+    }
+
+    /**
+     * Drop cooldown entries older than the cooldown window — they no longer
+     * block any caller, so retaining them just leaks memory in long-running
+     * processes that see a steady stream of distinct assets.
+     */
+    @Scheduled(fixedDelayString = "PT1H")
+    fun pruneStaleCooldowns() {
+        val threshold = Instant.now().minus(ATTEMPT_COOLDOWN)
+        val sizeBefore = lastAttempt.size
+        lastAttempt.entries.removeIf { it.value.isBefore(threshold) }
+        if (sizeBefore != lastAttempt.size) {
+            log.debug("Pruned cooldown entries: {} -> {}", sizeBefore, lastAttempt.size)
+        }
+    }
+
+    @PreDestroy
+    fun shutdown() {
+        scope.cancel("PriceBackfillCoordinator shutting down")
+    }
+
+    private companion object {
+        val ATTEMPT_COOLDOWN: Duration = Duration.ofHours(1)
+    }
+}

@@ -4,6 +4,7 @@ import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.SystemUser
+import com.beancounter.marketdata.assets.enrichment.PrivateMarketEnricher
 import com.beancounter.marketdata.markets.MarketService
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory

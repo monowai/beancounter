@@ -3,8 +3,8 @@ package com.beancounter.marketdata.assets.figi
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
-import com.beancounter.marketdata.assets.AssetEnricher
-import com.beancounter.marketdata.assets.DefaultEnricher
+import com.beancounter.marketdata.assets.enrichment.AssetEnricher
+import com.beancounter.marketdata.assets.enrichment.DefaultEnricher
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service

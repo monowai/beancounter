@@ -7,11 +7,11 @@ import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.WatchlistItem
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.DateUtils.Companion.TODAY
-import com.beancounter.marketdata.providers.DayChange
-import com.beancounter.marketdata.providers.LiveQuoteService
-import com.beancounter.marketdata.providers.MarketDataService
-import com.beancounter.marketdata.providers.PriceService
-import com.beancounter.marketdata.providers.PriceSplits
+import com.beancounter.marketdata.price.DayChange
+import com.beancounter.marketdata.price.LiveQuoteService
+import com.beancounter.marketdata.price.MarketDataService
+import com.beancounter.marketdata.price.PriceService
+import com.beancounter.marketdata.price.history.PriceSplits
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
 import java.time.LocalDate

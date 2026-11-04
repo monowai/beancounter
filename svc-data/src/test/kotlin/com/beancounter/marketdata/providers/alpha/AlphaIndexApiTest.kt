@@ -6,11 +6,11 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.AssetCategory
 import com.beancounter.marketdata.MarketDataBoot
 import com.beancounter.marketdata.assets.AssetService
-import com.beancounter.marketdata.assets.INDEX_MARKET_CODE
-import com.beancounter.marketdata.assets.IndexConfig
-import com.beancounter.marketdata.assets.IndexSeedRunner
-import com.beancounter.marketdata.providers.MarketDataService
-import com.beancounter.marketdata.providers.PriceHistoryReader
+import com.beancounter.marketdata.assets.index.INDEX_MARKET_CODE
+import com.beancounter.marketdata.assets.index.IndexConfig
+import com.beancounter.marketdata.assets.index.IndexSeedRunner
+import com.beancounter.marketdata.price.MarketDataService
+import com.beancounter.marketdata.price.history.PriceHistoryReader
 import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.ALPHA_MOCK
 import com.beancounter.marketdata.providers.alpha.AlphaMockUtils.mockHistoricResponse
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration

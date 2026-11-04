@@ -1,0 +1,48 @@
+package com.beancounter.marketdata.assets.admin
+
+import com.beancounter.marketdata.assets.privateasset.PrivateAssetConfigRepository
+import com.beancounter.marketdata.broker.BrokerSettlementAccountRepository
+import com.beancounter.marketdata.classification.AssetClassificationRepository
+import com.beancounter.marketdata.classification.AssetExposureRepository
+import com.beancounter.marketdata.classification.AssetFundamentalsRepository
+import com.beancounter.marketdata.classification.AssetHoldingRepository
+import com.beancounter.marketdata.price.MarketDataRepo
+import com.beancounter.marketdata.trn.TrnRepository
+import com.beancounter.marketdata.watchlist.WatchlistAlertRepository
+import com.beancounter.marketdata.watchlist.WatchlistItemRepository
+import org.springframework.stereotype.Service
+
+/**
+ * Handles cascade deletion of all dependent data for an asset.
+ * Deletes in FK dependency order to avoid constraint violations.
+ */
+@Service
+class AssetCascadeDeleter(
+    private val trnRepository: TrnRepository,
+    private val marketDataRepo: MarketDataRepo,
+    private val assetClassificationRepository: AssetClassificationRepository,
+    private val assetExposureRepository: AssetExposureRepository,
+    private val assetFundamentalsRepository: AssetFundamentalsRepository,
+    private val assetHoldingRepository: AssetHoldingRepository,
+    private val privateAssetConfigRepository: PrivateAssetConfigRepository,
+    private val brokerSettlementAccountRepository: BrokerSettlementAccountRepository,
+    private val watchlistItemRepository: WatchlistItemRepository,
+    private val watchlistAlertRepository: WatchlistAlertRepository
+) {
+    /**
+     * Delete all dependent data for an asset in FK dependency order.
+     */
+    fun deleteDependents(assetId: String) {
+        trnRepository.clearCashAssetReferences(assetId)
+        trnRepository.deleteByAssetId(assetId)
+        marketDataRepo.deleteByAssetId(assetId)
+        assetClassificationRepository.deleteByAssetId(assetId)
+        assetExposureRepository.deleteByAssetId(assetId)
+        assetFundamentalsRepository.deleteByAssetId(assetId)
+        assetHoldingRepository.deleteByAssetId(assetId)
+        brokerSettlementAccountRepository.deleteByAccountId(assetId)
+        watchlistAlertRepository.deleteByAssetId(assetId)
+        watchlistItemRepository.deleteByAssetId(assetId)
+        privateAssetConfigRepository.deleteById(assetId)
+    }
+}

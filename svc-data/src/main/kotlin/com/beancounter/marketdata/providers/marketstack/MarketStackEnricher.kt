@@ -3,9 +3,9 @@ package com.beancounter.marketdata.providers.marketstack
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
-import com.beancounter.marketdata.assets.AccountingTypeService
-import com.beancounter.marketdata.assets.AssetEnricher
-import com.beancounter.marketdata.assets.DefaultEnricher
+import com.beancounter.marketdata.assets.accounting.AccountingTypeService
+import com.beancounter.marketdata.assets.enrichment.AssetEnricher
+import com.beancounter.marketdata.assets.enrichment.DefaultEnricher
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.providers.marketstack.model.MarketStackTicker
 import org.slf4j.LoggerFactory

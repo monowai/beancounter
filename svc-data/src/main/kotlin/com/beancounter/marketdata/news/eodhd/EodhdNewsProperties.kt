@@ -39,7 +39,7 @@ data class EodhdNewsProperties(
     val topicWindowDays: Long = 14,
     /**
      * Symbols per `/api/sentiments` call made by
-     * [com.beancounter.marketdata.news.NewsSentimentService.refresh]. EODHD accepts a
+     * [com.beancounter.marketdata.news.sentiment.NewsSentimentService.refresh]. EODHD accepts a
      * comma-separated `s=` list; 20 keeps the URL short and bounds the blast radius of one failed
      * batch.
      */

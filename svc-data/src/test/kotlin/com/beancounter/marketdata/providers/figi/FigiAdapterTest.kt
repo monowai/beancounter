@@ -3,7 +3,7 @@ package com.beancounter.marketdata.providers.figi
 import com.beancounter.common.model.AccountingType
 import com.beancounter.common.model.Market
 import com.beancounter.marketdata.Constants.Companion.USD
-import com.beancounter.marketdata.assets.AccountingTypeService
+import com.beancounter.marketdata.assets.accounting.AccountingTypeService
 import com.beancounter.marketdata.assets.figi.FigiAdapter
 import com.beancounter.marketdata.assets.figi.FigiAsset
 import com.beancounter.marketdata.currency.CurrencyService

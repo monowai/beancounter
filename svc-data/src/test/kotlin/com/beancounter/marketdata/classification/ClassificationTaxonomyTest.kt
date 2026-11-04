@@ -4,6 +4,7 @@ import com.beancounter.common.model.ClassificationItem
 import com.beancounter.common.model.ClassificationLevel
 import com.beancounter.common.model.ClassificationStandard
 import com.beancounter.common.utils.KeyGenUtils
+import com.beancounter.marketdata.classification.enricher.SectorNormalizer
 import com.beancounter.marketdata.providers.alpha.AlphaPriceService
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy

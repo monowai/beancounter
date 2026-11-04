@@ -8,7 +8,7 @@ import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetRepository
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.fx.FxRateRepository
-import com.beancounter.marketdata.providers.MarketDataRepo
+import com.beancounter.marketdata.price.MarketDataRepo
 import jakarta.persistence.PersistenceException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatCode

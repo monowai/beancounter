@@ -17,7 +17,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.SpringMvcDbTest
-import com.beancounter.marketdata.portfolio.PortfolioService
+import com.beancounter.marketdata.portfolio.PortfolioHolders
 import com.beancounter.marketdata.utils.BcMvcHelper
 import com.beancounter.marketdata.utils.PORTFOLIO_ROOT
 import com.beancounter.marketdata.utils.RegistrationUtils.registerUser
@@ -43,7 +43,7 @@ import java.math.BigDecimal
 class TrnPortfolioControllerTest(
     @Autowired private val mockMvc: MockMvc,
     @Autowired private val dateUtils: DateUtils,
-    @Autowired private val portfolioService: PortfolioService,
+    @Autowired private val portfolioHolders: PortfolioHolders,
     @Autowired private val mockAuthConfig: MockAuthConfig
 ) {
     @MockitoBean
@@ -127,9 +127,9 @@ class TrnPortfolioControllerTest(
         assertThat(portfolios.data).hasSize(2)
 
         // Find portfolios as of early date (only one portfolio had transactions by then)
-        assertThat(portfolioService.findWhereHeld(msftId, dateUtils.getFormattedDate("2016-01-01")).data).hasSize(1)
+        assertThat(portfolioHolders.findWhereHeld(msftId, dateUtils.getFormattedDate("2016-01-01")).data).hasSize(1)
 
         // Find all portfolios holding the asset (no date filter)
-        assertThat(portfolioService.findWhereHeld(msftId, null).data).hasSize(2)
+        assertThat(portfolioHolders.findWhereHeld(msftId, null).data).hasSize(2)
     }
 }

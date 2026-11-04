@@ -1,18 +1,15 @@
 package com.beancounter.marketdata.portfolio
 
 import com.beancounter.auth.model.AuthConstants
-import com.beancounter.common.contracts.PortfoliosResponse
 import com.beancounter.common.exception.ForbiddenException
 import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.Portfolio
-import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.trn.TrnRepository
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import java.time.LocalDate
 import java.util.Locale
 import java.util.function.Consumer
 
@@ -26,7 +23,6 @@ class PortfolioService(
     private val portfolioRepository: PortfolioRepository,
     private val trnRepository: TrnRepository,
     private val systemUserService: SystemUserService,
-    private val dateUtils: DateUtils,
     private val accessControl: PortfolioAccessControl
 ) {
     fun save(portfolios: Collection<PortfolioInput>): Collection<Portfolio> {
@@ -97,17 +93,6 @@ class PortfolioService(
         }
 
     /**
-     * Confirms if the requested portfolio is known. Service side call.
-     *
-     * @param id pk
-     * @return exists or not
-     */
-    fun verify(id: String): Boolean {
-        val found = portfolioRepository.findById(id)
-        return found.isPresent
-    }
-
-    /**
      * Whether the authenticated caller may view [portfolio]. Request threads
      * only: stream consumers have no caller and use [findOrNull].
      */
@@ -169,46 +154,6 @@ class PortfolioService(
         val portfolio = find(id)
         trnRepository.deleteByPortfolioId(portfolio.id)
         portfolioRepository.delete(portfolio)
-    }
-
-    fun findWhereHeld(
-        assetId: String?,
-        tradeDate: LocalDate?
-    ): PortfoliosResponse {
-        val recordDate = tradeDate ?: dateUtils.getFormattedDate(dateUtils.today())
-        val portfolios =
-            portfolioRepository.findDistinctPortfolioByAssetIdAndTradeDate(
-                assetId!!,
-                recordDate
-            )
-        log.trace(
-            "Found {} notional holders for assetId: {}",
-            portfolios.size,
-            assetId
-        )
-        return PortfoliosResponse(portfolios)
-    }
-
-    /**
-     * Same as [findWhereHeld] but restricted to portfolios the current caller
-     * can view (owner or active share). Use this for user-scoped lookups
-     * (e.g. Asset Lookup); service-to-service callers should use [findWhereHeld].
-     */
-    fun findWhereHeldForCaller(
-        assetId: String?,
-        tradeDate: LocalDate?
-    ): PortfoliosResponse {
-        val all = findWhereHeld(assetId, tradeDate).data
-        val systemUser = systemUserService.getOrThrow()
-        val viewable = all.filter { accessControl.isViewable(systemUser, it) }
-        log.trace(
-            "Filtered {} -> {} viewable holders for assetId: {} on behalf of {}",
-            all.size,
-            viewable.size,
-            assetId,
-            systemUser.id
-        )
-        return PortfoliosResponse(viewable)
     }
 
     companion object {

@@ -81,7 +81,7 @@ class NetWorthServiceTest {
                 assetConfigClient,
                 fxService,
                 tokenService,
-                WeekChange(priceService, tokenService, DateUtils())
+                WeekChange(priceService, fxService, tokenService, DateUtils())
             )
     }
 
@@ -286,17 +286,33 @@ class NetWorthServiceTest {
         assertThat(result.gainOnDayPercent).isEqualByComparingTo("2.50")
     }
 
-    /** A held position priced now at [closeNow] in its own currency, worth [marketValue] in SGD. */
+    /**
+     * A held position priced now at [closeNow] in its own currency (USD), worth [marketValue]
+     * in SGD at today's [fxNow].
+     */
     private fun held(
         code: String,
         portfolio: Portfolio,
         marketValue: String,
-        closeNow: String
+        closeNow: String,
+        fxNow: String = "1"
     ): Position =
         position(TestHelpers.createTestAsset(code), portfolio, "SGD", marketValue).apply {
             moneyValues[Position.In.TRADE] =
                 MoneyValues(usd).apply { priceData = PriceData().apply { close = BigDecimal(closeNow) } }
+            moneyValues[Position.In.PORTFOLIO]!!.priceData =
+                PriceData().apply { close = BigDecimal(closeNow).multiply(BigDecimal(fxNow)) }
         }
+
+    private fun stubWeekAgoRate(rate: String) {
+        whenever(fxService.getRates(argThat<FxRequest> { rateDate == "2024-01-08" }, eq(token))).thenReturn(
+            FxResponse(
+                FxPairResults(
+                    rates = mapOf(IsoCurrencyPair("USD", "SGD") to FxRate(usd, Currency("SGD"), BigDecimal(rate)))
+                )
+            )
+        )
+    }
 
     private fun stubWeekAgoCloses(vararg closes: Pair<Position, String>) {
         whenever(tokenService.bearerToken).thenReturn(token)
@@ -317,6 +333,7 @@ class NetWorthServiceTest {
         whenever(assetConfigClient.findAll()).thenReturn(emptyList())
         stubWeekAgoCloses(position to "100")
 
+        stubWeekAgoRate("1")
         val result = netWorthService.calculate(listOf(portfolio), asAt, "SGD")
 
         // Worth 1100 now at 110, so 1000 at last week's 100: up 100 on 1000.
@@ -337,6 +354,7 @@ class NetWorthServiceTest {
         whenever(assetConfigClient.findAll()).thenReturn(emptyList())
         stubWeekAgoCloses(priced to "100")
 
+        stubWeekAgoRate("1")
         val result = netWorthService.calculate(listOf(portfolio), asAt, "SGD")
 
         assertThat(result.weekChange).isEqualByComparingTo("100.00")
@@ -381,8 +399,59 @@ class NetWorthServiceTest {
 
         val result = netWorthService.calculate(listOf(portfolio), asAt, "SGD")
 
-        assertThat(result.weekChangePercent).isEqualByComparingTo("0")
+        assertThat(result.weekChange).isNull()
+        assertThat(result.weekChangePercent).isNull()
         verify(priceService, never()).getPrices(any(), any())
+    }
+
+    @Test
+    fun `should include the week's FX move in the 7 day change of a foreign holding`() {
+        val portfolio = portfolio("p1", "SGD", marketValue = "1100")
+        // 8 units at 110 USD, 1.25 SGD to the USD today: 1100 SGD.
+        val position = held("fx-week", portfolio, marketValue = "1100", closeNow = "110", fxNow = "1.25")
+        stubAggregated(listOf(portfolio), positions(portfolio, "SGD", totalMarketValue = "1100", position), "SGD")
+        whenever(assetConfigClient.findAll()).thenReturn(emptyList())
+        stubWeekAgoCloses(position to "100")
+        stubWeekAgoRate("1.20")
+
+        val result = netWorthService.calculate(listOf(portfolio), asAt, "SGD")
+
+        // A week ago: 8 x 100 USD x 1.20 = 960 SGD. Up 140, not the 100 the price alone gives.
+        assertThat(result.weekChange).isEqualByComparingTo("140.00")
+    }
+
+    @Test
+    fun `should report the 7 day change as unknown when the week ago FX rate cannot be read`() {
+        val portfolio = portfolio("p1", "SGD", marketValue = "1100")
+        val position = held("fx-outage", portfolio, marketValue = "1100", closeNow = "110", fxNow = "1.25")
+        stubAggregated(listOf(portfolio), positions(portfolio, "SGD", totalMarketValue = "1100", position), "SGD")
+        whenever(assetConfigClient.findAll()).thenReturn(emptyList())
+        stubWeekAgoCloses(position to "100")
+        whenever(fxService.getRates(any<FxRequest>(), eq(token))).thenThrow(BusinessException("svc-data unavailable"))
+
+        val result = netWorthService.calculate(listOf(portfolio), asAt, "SGD")
+
+        assertThat(result.holdingsValue).isEqualByComparingTo("1100")
+        assertThat(result.weekChange).isNull()
+    }
+
+    @Test
+    fun `should leave the 7 day change unknown, not fail the headline, when asAt cannot be parsed`() {
+        val badAsAt = "not-a-date"
+        val portfolio = portfolio("p1", "SGD", marketValue = "1100")
+        val position = held("bad-date", portfolio, marketValue = "1100", closeNow = "110")
+        stubAggregated(
+            listOf(portfolio),
+            positions(portfolio, "SGD", totalMarketValue = "1100", position),
+            "SGD",
+            badAsAt
+        )
+        whenever(assetConfigClient.findAll()).thenReturn(emptyList())
+
+        val result = netWorthService.calculate(listOf(portfolio), badAsAt, "SGD")
+
+        assertThat(result.holdingsValue).isEqualByComparingTo("1100")
+        assertThat(result.weekChange).isNull()
     }
 
     @Test
@@ -603,11 +672,12 @@ class NetWorthServiceTest {
     private fun stubAggregated(
         portfolios: List<Portfolio>,
         positions: Positions,
-        currency: String
+        currency: String,
+        valuationDate: String = asAt
     ) {
         whenever(
             valuationService.getAggregatedPositions(
-                eq(AggregateValuationRequest(portfolios, asAt, true, currency, false))
+                eq(AggregateValuationRequest(portfolios, valuationDate, true, currency, false))
             )
         ).thenReturn(PositionResponse(positions))
     }

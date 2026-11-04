@@ -24,9 +24,10 @@ import java.util.concurrent.atomic.AtomicInteger
 class PriceRefresh(
     private val assetFinder: AssetFinder,
     private val marketDataService: MarketDataService,
+    private val utilityService: MarketDataUtilityService,
     private val priceService: PriceService,
     private val dateUtils: DateUtils,
-    @Value("\${price.refresh.benchmarks:}") private val benchmarkSpecs: List<String> = emptyList()
+    @Value($$"${price.refresh.benchmarks:}") private val benchmarkSpecs: List<String> = emptyList()
 ) {
     private val log = LoggerFactory.getLogger(PriceRefresh::class.java)
 
@@ -162,7 +163,7 @@ class PriceRefresh(
                 asset,
                 date
             )
-        marketDataService.refresh(
+        utilityService.refresh(
             asset,
             date
         )

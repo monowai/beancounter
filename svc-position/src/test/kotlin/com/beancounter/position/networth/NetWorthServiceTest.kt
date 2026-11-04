@@ -388,6 +388,7 @@ class NetWorthServiceTest {
         val result = netWorthService.calculate(listOf(portfolio), asAt, "SGD")
 
         assertThat(result.weekChangePercent).isNull()
+        verify(fxService, never()).getRates(any(), any())
     }
 
     @Test

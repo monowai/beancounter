@@ -33,7 +33,7 @@ data class ValuationCacheKey(
         ): ValuationCacheKey =
             ValuationCacheKey(
                 subject = subject,
-                portfolioIds = request.portfolios.map { it.id },
+                portfolioIds = request.portfolios.map { it.id }.distinct(),
                 valuationDate = request.valuationDate,
                 value = request.value,
                 targetCurrencyCode = request.targetCurrency,

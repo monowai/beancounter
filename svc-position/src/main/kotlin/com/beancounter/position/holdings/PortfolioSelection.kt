@@ -2,6 +2,7 @@ package com.beancounter.position.holdings
 
 import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.model.Portfolio
 import io.swagger.v3.oas.annotations.Parameter
 import org.slf4j.LoggerFactory
@@ -38,14 +39,14 @@ data class PortfolioSelection(
         if (!ids.isNullOrBlank()) {
             return entries(ids)
                 .mapNotNull { id ->
-                    try {
-                        portfolioServiceClient.getPortfolioById(id)
-                    } catch (e: BusinessException) {
-                        // Only "not visible / not found" is swallowed; network and auth
-                        // failures propagate rather than read as missing ids.
-                        log.debug("Skipping portfolio {} (not visible to caller): {}", id, e.message)
-                        null
-                    }
+                    // svc-data answers 404 (NotFoundException) for a missing id or one the caller
+                    // may not see, and another 4xx (BusinessException) for a rejected one; only
+                    // those are swallowed. Network and auth failures propagate.
+                    runCatching { portfolioServiceClient.getPortfolioById(id) }
+                        .onFailure { e ->
+                            if (e !is NotFoundException && e !is BusinessException) throw e
+                            log.debug("Skipping portfolio {} (not visible to caller): {}", id, e.message)
+                        }.getOrNull()
                 }
         }
         val allPortfolios = portfolioServiceClient.portfolios.data

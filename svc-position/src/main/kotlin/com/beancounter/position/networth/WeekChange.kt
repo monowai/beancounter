@@ -60,14 +60,14 @@ class WeekChange(
         priced: List<PricedHolding>,
         weekAgo: LocalDate
     ): BigDecimal? {
-        val then = weekAgoCloses(priced, weekAgo)
+        val then = weekAgoCloses(priced, weekAgo) ?: return null
+        if (then.isEmpty()) {
+            log.debug("7-day change unknown: no week-ago close for {} holdings at {}", priced.size, weekAgo)
+            return null
+        }
         val rates = weekAgoRates(priced, weekAgo)
-        return when {
-            then == null || rates == null -> {
-                null
-            }
-            then.isEmpty() -> {
-                log.debug("7-day change unknown: no week-ago close for {} holdings at {}", priced.size, weekAgo)
+        return when (rates) {
+            null -> {
                 null
             }
             else -> {

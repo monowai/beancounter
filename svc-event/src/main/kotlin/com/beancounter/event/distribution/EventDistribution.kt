@@ -9,10 +9,12 @@ import com.beancounter.event.metrics.EventMetrics
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import org.springframework.transaction.support.TransactionSynchronization
+import org.springframework.transaction.support.TransactionSynchronizationManager
 
 /**
  * Distributes a corporate event to the portfolios that held the asset on its record date,
- * publishing one proposed transaction per holder.
+ * publishing one proposed transaction per holder after the transaction commits.
  */
 @Service
 @Transactional
@@ -72,7 +74,6 @@ class EventDistribution(
                         "Processed event: ${event.id}, asset: ${event.assetId}, " +
                             "portfolio: ${trnEvent.portfolio.code}, tradeDate: ${trnEvent.trnInput.tradeDate}"
                     )
-                    eventPublisher.send(trnEvent)
                     trnEvent
                 }
             }
@@ -85,6 +86,25 @@ class EventDistribution(
             eventMetrics.recordEventIgnored("unsupported_event_type")
         }
 
+        publishAfterCommit(results)
         return results
+    }
+
+    /**
+     * Sends once the surrounding transaction commits, so a rollback part way through the
+     * holders leaves nothing on the wire. Without a transaction, sends at once.
+     */
+    private fun publishAfterCommit(trnEvents: Collection<TrustedTrnEvent>) {
+        if (!TransactionSynchronizationManager.isSynchronizationActive()) {
+            trnEvents.forEach { eventPublisher.send(it) }
+            return
+        }
+        TransactionSynchronizationManager.registerSynchronization(
+            object : TransactionSynchronization {
+                override fun afterCommit() {
+                    trnEvents.forEach { eventPublisher.send(it) }
+                }
+            }
+        )
     }
 }

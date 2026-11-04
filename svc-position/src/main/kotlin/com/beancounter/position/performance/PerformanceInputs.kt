@@ -170,7 +170,11 @@ class PerformanceInputs(
     private fun collectFxPairs(
         transactions: List<Trn>,
         portfolio: Portfolio
-    ): Set<IsoCurrencyPair> = transactions.mapNotNull { trn -> toPair(trn.tradeCurrency, portfolio.currency) }.toSet()
+    ): Set<IsoCurrencyPair> =
+        transactions
+            .flatMap { trn -> listOfNotNull(trn.tradeCurrency, trn.cashCurrency) }
+            .mapNotNull { currency -> toPair(currency, portfolio.currency) }
+            .toSet()
 
     private fun prefetchPrices(
         assets: List<PriceAsset>,

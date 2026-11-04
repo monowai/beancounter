@@ -1,6 +1,7 @@
 package com.beancounter.position.performance
 
 import com.beancounter.common.contracts.FxPairResults
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.MarketData
@@ -112,26 +113,22 @@ class PricesOnDate internal constructor(
         return if (tradeCcy.code == currency.code) {
             price
         } else {
-            converted(price, IsoCurrencyPair(tradeCcy.code, currency.code), isCash)
+            converted(price, IsoCurrencyPair(tradeCcy.code, currency.code))
         }
     }
 
-    /** [price] converted at the [fxPair] rate, 1.0 when the rate is missing. */
+    /**
+     * [price] converted at the [fxPair] rate. A missing rate fails the pass: valuing the
+     * holding unconverted would report a wrong figure as a measured one.
+     */
     private fun converted(
         price: BigDecimal,
-        fxPair: IsoCurrencyPair,
-        isCash: Boolean
+        fxPair: IsoCurrencyPair
     ): BigDecimal {
-        val rate = fxRates?.rates?.get(fxPair)?.rate
-        if (rate == null) {
-            log.warn(
-                "Missing FX rate for {} {} on {}, defaulting to 1.0",
-                if (isCash) "cash position" else "position",
-                fxPair,
-                dateStr
-            )
-        }
-        return price.multiply(rate ?: BigDecimal.ONE)
+        val rate =
+            fxRates?.rates?.get(fxPair)?.rate
+                ?: throw BusinessException("No FX rate for $fxPair as at $dateStr")
+        return price.multiply(rate)
     }
 
     /**

@@ -1,13 +1,16 @@
 package com.beancounter.position.performance
 
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
+import com.beancounter.position.Constants.Companion.SGD
 import com.beancounter.position.Constants.Companion.USD
 import com.beancounter.position.Constants.Companion.owner
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -54,6 +57,28 @@ class HistoricalPricesTest {
         val unitValue = prices.on(valuationDate).unitValue(position(property, averageCost = "20"), USD)
 
         assertThat(unitValue).isEqualByComparingTo("500")
+    }
+
+    @Test
+    fun `should fail naming the pair and date when an FX rate is missing`() {
+        val sgdListed =
+            Asset(
+                code = "SGLISTED",
+                id = "SGLISTED-id",
+                name = "SG listed",
+                market = Market("SGX", currencyId = SGD.code)
+            )
+        val prices =
+            HistoricalPrices(
+                mapOf(valuationDate.toString() to listOf(MarketData(sgdListed, valuationDate, close = BigDecimal.TEN))),
+                emptyMap(),
+                TwrBoundary()
+            )
+
+        assertThatThrownBy { prices.on(valuationDate).unitValue(position(sgdListed, averageCost = "20"), USD) }
+            .isInstanceOf(BusinessException::class.java)
+            .hasMessageContaining("SGD:USD")
+            .hasMessageContaining(valuationDate.toString())
     }
 
     private fun position(

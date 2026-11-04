@@ -52,7 +52,7 @@ class ConversationAdmin(
                 )
             } catch (_: DataIntegrityViolationException) {
                 conversations.findByOwnerIdAndSubject(ownerId, subject)
-                    ?: throw IllegalStateException("Conversation for subject vanished after a duplicate insert")
+                    ?: error("Conversation for subject vanished after a duplicate insert")
             }
 
     @Transactional(readOnly = true)

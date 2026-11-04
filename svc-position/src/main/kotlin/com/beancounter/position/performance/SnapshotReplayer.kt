@@ -177,9 +177,18 @@ private class SnapshotReplay(
         val after = inKindState(trn) ?: return null
         val unitsMoved = after.units.subtract(before.units)
         val unitValue = after.unitValue ?: before.unitValue
-        if (unitValue != null) {
-            return unitsMoved.multiply(unitValue).setScale(2, RoundingMode.HALF_UP)
+        return if (unitValue != null) {
+            unitsMoved.multiply(unitValue).setScale(2, RoundingMode.HALF_UP)
+        } else {
+            tradeAmountFlow(trn, unitsMoved)
         }
+    }
+
+    /** [trn]'s own amount in portfolio currency, signed by [unitsMoved]; null when it is zero. */
+    private fun tradeAmountFlow(
+        trn: Trn,
+        unitsMoved: BigDecimal
+    ): BigDecimal? {
         val tradeAmount = trn.tradeAmountIn(portfolio)
         if (tradeAmount.signum() == 0) {
             log.warn(

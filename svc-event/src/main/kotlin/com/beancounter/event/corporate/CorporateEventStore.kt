@@ -78,6 +78,17 @@ class CorporateEventStore(
             end
         )
 
+    fun findInRange(
+        assetId: String,
+        start: LocalDate,
+        end: LocalDate
+    ): Collection<CorporateEvent> =
+        eventRepository.findByAssetIdAndRecordDateBetweenOrderByRecordDateAsc(
+            assetId,
+            start,
+            end
+        )
+
     fun getScheduledEvents(start: LocalDate): CorporateEventResponses =
         CorporateEventResponses(eventRepository.findByStartDate(start))
 

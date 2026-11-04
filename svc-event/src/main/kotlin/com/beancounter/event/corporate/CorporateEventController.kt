@@ -2,6 +2,7 @@ package com.beancounter.event.corporate
 
 import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.event.CorporateEvent
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.event.distribution.EventDistribution
 import io.swagger.v3.oas.annotations.Operation
@@ -239,7 +240,8 @@ class CorporateEventController(
         summary = "Get corporate events for an asset",
         description = """
             Retrieves corporate events for a specific asset, optionally filtered by date range.
-            If fromDate and toDate are not provided, returns all events for the asset.
+            Supply both fromDate and toDate to filter by record date, or neither to return
+            all events for the asset. Supplying only one is rejected with 400.
 
             Use this for:
             * Analyzing events in a specific time period
@@ -279,7 +281,7 @@ class CorporateEventController(
             ),
             ApiResponse(
                 responseCode = "400",
-                description = "Invalid date format"
+                description = "Invalid date format, or only one of fromDate and toDate supplied"
             )
         ]
     )
@@ -300,15 +302,14 @@ class CorporateEventController(
         )
         @RequestParam(required = false) toDate: String? = null
     ): CorporateEventResponses {
-        if (fromDate == null || toDate == null) {
+        if (fromDate == null && toDate == null) {
             return eventStore.getAssetEvents(assetId)
         }
-        val startDate = dateUtils.getDate(fromDate)
-        val endDate = dateUtils.getDate(toDate)
-        val events =
-            eventStore
-                .findInRange(startDate, endDate)
-                .filter { it.assetId == assetId }
-        return CorporateEventResponses(events)
+        if (fromDate == null || toDate == null) {
+            throw BusinessException("fromDate and toDate must be supplied together")
+        }
+        return CorporateEventResponses(
+            eventStore.findInRange(assetId, dateUtils.getDate(fromDate), dateUtils.getDate(toDate))
+        )
     }
 }

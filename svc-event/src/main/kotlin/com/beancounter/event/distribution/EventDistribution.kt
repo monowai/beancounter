@@ -71,7 +71,7 @@ class EventDistribution(
                 } else {
                     transactionCount++
                     log.info(
-                        "Processed event: ${event.id}, asset: ${event.assetId}, " +
+                        "Prepared trn event: ${event.id}, asset: ${event.assetId}, " +
                             "portfolio: ${trnEvent.portfolio.code}, tradeDate: ${trnEvent.trnInput.tradeDate}"
                     )
                     trnEvent
@@ -96,15 +96,24 @@ class EventDistribution(
      */
     private fun publishAfterCommit(trnEvents: Collection<TrustedTrnEvent>) {
         if (!TransactionSynchronizationManager.isSynchronizationActive()) {
-            trnEvents.forEach { eventPublisher.send(it) }
+            sendEach(trnEvents)
             return
         }
         TransactionSynchronizationManager.registerSynchronization(
             object : TransactionSynchronization {
-                override fun afterCommit() {
-                    trnEvents.forEach { eventPublisher.send(it) }
-                }
+                override fun afterCommit() = sendEach(trnEvents)
             }
         )
+    }
+
+    /** One failed send is logged and counted; the other holders' events still go out. */
+    private fun sendEach(trnEvents: Collection<TrustedTrnEvent>) {
+        trnEvents.forEach { trnEvent ->
+            runCatching { eventPublisher.send(trnEvent) }
+                .onFailure {
+                    log.error("Send failed, portfolio: ${trnEvent.portfolio.id}", it)
+                    eventMetrics.recordEventError("send_failed")
+                }
+        }
     }
 }

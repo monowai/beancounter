@@ -92,6 +92,50 @@ class CorporateEventEndpointTest {
     }
 
     @Test
+    fun `should return 404 for an unknown event even when payDate is malformed`() {
+        mockMvc
+            .perform(
+                post("/{eventId}", "no-such-event")
+                    .param("payDate", "not-a-date")
+                    .with(jwt().jwt(mockAuthConfig.getUserToken()))
+            ).andExpect(status().isNotFound)
+
+        verifyNoInteractions(eventDistribution)
+    }
+
+    @Test
+    fun `should treat a blank date bound as missing`() {
+        val response =
+            mockMvc
+                .perform(
+                    get("/events/{assetId}", "blank-bound-asset")
+                        .param("fromDate", "2024-01-01")
+                        .param("toDate", "")
+                        .with(jwt().jwt(mockAuthConfig.getUserToken()))
+                ).andExpect(status().isBadRequest)
+                .andReturn()
+                .response
+
+        assertThat(response.contentAsString).contains("together")
+    }
+
+    @Test
+    fun `should return 400 when the range is reversed`() {
+        val response =
+            mockMvc
+                .perform(
+                    get("/events/{assetId}", "reversed-range-asset")
+                        .param("fromDate", "2024-02-01")
+                        .param("toDate", "2024-01-01")
+                        .with(jwt().jwt(mockAuthConfig.getUserToken()))
+                ).andExpect(status().isBadRequest)
+                .andReturn()
+                .response
+
+        assertThat(response.contentAsString).contains("after")
+    }
+
+    @Test
     fun `should return only the asset's events inside the range`() {
         val assetId = "ranged-asset"
         val inside = eventStore.save(rangeEvent(assetId, "2024-01-15"))

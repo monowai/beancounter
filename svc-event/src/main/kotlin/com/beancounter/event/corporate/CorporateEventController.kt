@@ -128,8 +128,8 @@ class CorporateEventController(
         )
         @RequestParam(required = false) payDate: String? = null
     ): CorporateEventResponse {
-        val overridePayDate = payDate?.let { dateUtils.getDate(it).toString() }
         val event = eventStore[eventId]
+        val overridePayDate = payDate?.let { dateUtils.getDate(it).toString() }
         eventDistribution.processEvent(event.data, overridePayDate)
         return event
     }
@@ -301,14 +301,17 @@ class CorporateEventController(
         )
         @RequestParam(required = false) toDate: String? = null
     ): CorporateEventResponses {
-        if (fromDate == null && toDate == null) {
+        if (fromDate.isNullOrBlank() && toDate.isNullOrBlank()) {
             return eventStore.getAssetEvents(assetId)
         }
-        if (fromDate == null || toDate == null) {
+        if (fromDate.isNullOrBlank() || toDate.isNullOrBlank()) {
             throw BusinessException("fromDate and toDate must be supplied together")
         }
-        return CorporateEventResponses(
-            eventStore.findInRange(assetId, dateUtils.getDate(fromDate), dateUtils.getDate(toDate))
-        )
+        val start = dateUtils.getDate(fromDate)
+        val end = dateUtils.getDate(toDate)
+        if (start.isAfter(end)) {
+            throw BusinessException("fromDate $fromDate is after toDate $toDate")
+        }
+        return CorporateEventResponses(eventStore.findInRange(assetId, start, end))
     }
 }

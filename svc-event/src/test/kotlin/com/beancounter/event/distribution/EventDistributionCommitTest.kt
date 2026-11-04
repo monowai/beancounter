@@ -71,4 +71,17 @@ class EventDistributionCommitTest {
         verify(eventPublisher, times(1)).send(firstTrnEvent)
         verify(eventPublisher, times(1)).send(secondTrnEvent)
     }
+
+    @Test
+    fun `should still send the other events when one send fails`() {
+        whenever(positionService.findWhereHeld(any(), any()))
+            .thenReturn(PortfoliosResponse(listOf(firstPortfolio, secondPortfolio)))
+        whenever(positionService.process(eq(firstPortfolio), any(), anyOrNull())).thenReturn(firstTrnEvent)
+        whenever(positionService.process(eq(secondPortfolio), any(), anyOrNull())).thenReturn(secondTrnEvent)
+        whenever(eventPublisher.send(firstTrnEvent)).thenThrow(IllegalStateException("broker down"))
+
+        eventDistribution.processEvent(event)
+
+        verify(eventPublisher, times(1)).send(secondTrnEvent)
+    }
 }

@@ -28,7 +28,7 @@
 #   the content.
 # - TooManyFunctions: excludes MathUtils, a cohesive BigDecimal facade, and
 #   EodhdProxy / EodhdGateway, which hold one method per EODHD endpoint (the
-#   provider pattern PROVIDER.md documents).
+#   provider pattern in bc-claude PROVIDER.md).
 #
 # The defaults already exclude tests from TooManyFunctions, MagicNumber,
 # FunctionNaming and UnsafeCallOnNullableType. Unused-code, empty-block and

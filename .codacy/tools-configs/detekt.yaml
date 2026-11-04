@@ -10,11 +10,15 @@
 
 complexity:
   TooManyFunctions:
+    ignoreAnnotatedFunctions: ['Query', 'Bean', 'Tool']
     excludes:
       - "**/test/**"
       - "**/*Test.kt"
       - "**/*Tests.kt"
       - "**/*Spec.kt"
+      - "**/common/utils/MathUtils.kt"
+      - "**/providers/eodhd/EodhdProxy.kt"
+      - "**/providers/eodhd/EodhdGateway.kt"
   LongMethod:
     excludes:
       - "**/test/**"

@@ -11,7 +11,7 @@ import com.beancounter.marketdata.assets.figi.FigiFilterResult
 import com.beancounter.marketdata.assets.figi.FigiGateway
 import com.beancounter.marketdata.assets.figi.FigiResponse
 import com.beancounter.marketdata.markets.MarketService
-import com.beancounter.marketdata.providers.MarketDataPriceProvider
+import com.beancounter.marketdata.providers.AssetSearchProvider
 import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.alpha.AlphaConfig
 import com.beancounter.marketdata.providers.alpha.AlphaProxy
@@ -52,9 +52,9 @@ class AssetSearchPublicFallbackTest {
         figiFilterHits: FigiFilterResponse = FigiFilterResponse(),
         alphaResponse: String = alphaJson,
         alphaProxy: AlphaProxy = mock { on { search(any(), any()) } doReturn alphaResponse },
-        marketProvider: MarketDataPriceProvider =
+        marketProvider: AssetSearchProvider =
             mock { on { searchAssets(any(), anyOrNull()) } doReturn emptyList() },
-        allProviders: Collection<MarketDataPriceProvider> = listOf(marketProvider),
+        allProviders: Collection<AssetSearchProvider> = listOf(marketProvider),
         dbAssets: List<com.beancounter.common.model.Asset> = emptyList(),
         // onSupportedMarket / toLocalSearchResult resolve via getMarketOrNull, not getMarket —
         // see its KDoc on MarketService (#1088). getMarket is still stubbed for the unrelated
@@ -89,8 +89,8 @@ class AssetSearchPublicFallbackTest {
             }
         val mdFactory =
             mock<MdFactory> {
-                on { getMarketDataProvider(any<Market>()) } doReturn marketProvider
-                on { getAllProviders() } doReturn allProviders
+                on { getSearchProvider(any()) } doReturn marketProvider
+                on { getSearchProviders() } doReturn allProviders.toList()
             }
         val figiAssetSearch = FigiAssetSearch(figiGateway, figiConfig, marketService)
         val service =
@@ -145,7 +145,7 @@ class AssetSearchPublicFallbackTest {
                 market = unsupported
             )
         val provider =
-            mock<MarketDataPriceProvider> {
+            mock<AssetSearchProvider> {
                 on { searchAssets(any(), anyOrNull()) } doReturn listOf(onXetra)
             }
         val strictMarkets =
@@ -233,7 +233,7 @@ class AssetSearchPublicFallbackTest {
     @Test
     fun `market search routes through configured price provider before legacy chain`() {
         val provider =
-            mock<MarketDataPriceProvider> {
+            mock<AssetSearchProvider> {
                 on { searchAssets(any(), anyOrNull()) } doReturn
                     listOf(
                         AssetSearchResult(
@@ -261,7 +261,7 @@ class AssetSearchPublicFallbackTest {
     @Test
     fun `null-market search fans out across all registered providers`() {
         val provider =
-            mock<MarketDataPriceProvider> {
+            mock<AssetSearchProvider> {
                 on { searchAssets(any(), anyOrNull()) } doReturn
                     listOf(
                         AssetSearchResult(
@@ -311,7 +311,7 @@ class AssetSearchPublicFallbackTest {
                 category = "Equity"
             )
         val provider =
-            mock<MarketDataPriceProvider> {
+            mock<AssetSearchProvider> {
                 on { searchAssets(any(), anyOrNull()) } doReturn
                     listOf(
                         AssetSearchResult(
@@ -355,7 +355,7 @@ class AssetSearchPublicFallbackTest {
                 marketCode = "NYSE",
                 category = "Equity"
             )
-        val provider = mock<MarketDataPriceProvider>()
+        val provider = mock<AssetSearchProvider>()
         val (service, _) =
             buildService(
                 marketProvider =
@@ -375,7 +375,7 @@ class AssetSearchPublicFallbackTest {
     @Test
     fun `null-market fan-out returns US-market hits before non-US`() {
         val provider =
-            mock<MarketDataPriceProvider> {
+            mock<AssetSearchProvider> {
                 on { searchAssets(any(), anyOrNull()) } doReturn
                     listOf(
                         AssetSearchResult(
@@ -416,7 +416,7 @@ class AssetSearchPublicFallbackTest {
         // cancel siblings or propagate up. Real-world trigger: EODHD connect-timeout while
         // FIGI/Alpha are healthy.
         val healthy =
-            mock<MarketDataPriceProvider> {
+            mock<AssetSearchProvider> {
                 on { searchAssets(any(), anyOrNull()) } doReturn
                     listOf(
                         AssetSearchResult(
@@ -430,7 +430,7 @@ class AssetSearchPublicFallbackTest {
                     )
             }
         val broken =
-            mock<MarketDataPriceProvider> {
+            mock<AssetSearchProvider> {
                 on { searchAssets(any(), anyOrNull()) } doThrow RuntimeException("upstream down")
                 on { getId() } doReturn "BROKEN"
             }

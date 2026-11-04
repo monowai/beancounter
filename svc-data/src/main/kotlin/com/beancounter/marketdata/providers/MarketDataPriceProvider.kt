@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.providers
 
-import com.beancounter.common.contracts.AssetSearchResult
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
@@ -70,20 +69,6 @@ interface MarketDataPriceProvider {
      */
     fun getQuotes(assets: Collection<Asset>): Map<String, MarketData> =
         assets.mapNotNull { asset -> getQuote(asset)?.let { asset.id to it } }.toMap()
-
-    /**
-     * Search the provider for assets matching `keyword`. Providers that have no search surface
-     * (cash, custom, morningstar) return the empty default; price providers wired to a real
-     * search endpoint (EODHD, AlphaVantage, MarketStack) override.
-     *
-     * `market` is the BC market code the caller is scoping to, or `null` for an unscoped search
-     * (e.g. the global header bar). Providers that require a market — like MarketStack, which
-     * needs an exchange MIC — return empty for `null` rather than fabricating a default.
-     */
-    fun searchAssets(
-        keyword: String,
-        market: String?
-    ): List<AssetSearchResult> = emptyList()
 
     companion object {
         // Default window when no caller-supplied `fromDate`. Matches the

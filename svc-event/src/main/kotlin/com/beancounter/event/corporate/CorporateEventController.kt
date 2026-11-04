@@ -105,6 +105,10 @@ class CorporateEventController(
                 description = "Event reprocessing accepted and started"
             ),
             ApiResponse(
+                responseCode = "400",
+                description = "Malformed payDate"
+            ),
+            ApiResponse(
                 responseCode = "404",
                 description = "Event not found"
             )
@@ -124,8 +128,9 @@ class CorporateEventController(
         )
         @RequestParam(required = false) payDate: String? = null
     ): CorporateEventResponse {
+        val overridePayDate = payDate?.let { dateUtils.getDate(it).toString() }
         val event = eventStore[eventId]
-        eventDistribution.processEvent(event.data, payDate)
+        eventDistribution.processEvent(event.data, overridePayDate)
         return event
     }
 

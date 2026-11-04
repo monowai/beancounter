@@ -38,11 +38,7 @@ class Constants {
                 code = "${NZD.code} $BALANCE",
                 id = "${NZD.code} $BALANCE",
                 name = "${NZD.code} Balance",
-                market =
-                    Market(
-                        CASH.code,
-                        NZD.code
-                    ),
+                market = Market(CASH.code, currencyId = NZD.code),
                 priceSymbol = NZD.code,
                 category = CASH.code
             )
@@ -50,8 +46,8 @@ class Constants {
             Asset(
                 code = "${USD.code} $BALANCE",
                 id = "${USD.code} $BALANCE",
-                name = "${NZD.code} Balance",
-                market = Market(CASH.code),
+                name = "${USD.code} Balance",
+                market = Market(CASH.code, currencyId = USD.code),
                 priceSymbol = USD.code,
                 category = CASH.code
             )

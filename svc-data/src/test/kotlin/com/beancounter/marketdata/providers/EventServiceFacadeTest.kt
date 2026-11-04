@@ -4,7 +4,6 @@ import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.marketdata.assets.AssetFinder
-import com.beancounter.marketdata.price.PriceService
 import com.beancounter.marketdata.providers.alpha.AlphaEventService
 import com.beancounter.marketdata.providers.eodhd.EodhdConfig
 import com.beancounter.marketdata.providers.eodhd.EodhdEventService

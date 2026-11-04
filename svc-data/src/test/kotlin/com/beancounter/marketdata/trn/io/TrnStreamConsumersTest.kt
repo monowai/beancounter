@@ -7,7 +7,6 @@ import com.beancounter.auth.model.AuthConstants
 import com.beancounter.auth.model.OpenIdResponse
 import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.input.TrustedTrnImportRequest
-import com.beancounter.marketdata.trn.getOrThrow
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test

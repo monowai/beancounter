@@ -9,7 +9,6 @@ import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.trn.AssetMetaData
 import com.beancounter.marketdata.trn.MonthlyIncomeResponse
 import com.beancounter.marketdata.trn.TrnRepository
-import com.beancounter.marketdata.trn.getOrThrow
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service

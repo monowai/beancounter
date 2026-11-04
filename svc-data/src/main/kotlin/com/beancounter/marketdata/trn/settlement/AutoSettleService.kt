@@ -5,7 +5,6 @@ import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.registration.UserPreferencesService
 import com.beancounter.marketdata.trn.TrnRepository
-import com.beancounter.marketdata.trn.TrnService
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service

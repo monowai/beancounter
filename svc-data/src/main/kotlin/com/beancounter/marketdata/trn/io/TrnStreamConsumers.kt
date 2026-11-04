@@ -3,7 +3,6 @@ package com.beancounter.marketdata.trn.io
 import com.beancounter.auth.client.LoginService
 import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.input.TrustedTrnImportRequest
-import com.beancounter.marketdata.trn.getOrThrow
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.context.annotation.Bean

@@ -24,7 +24,6 @@ import com.beancounter.marketdata.broker.BrokerSettlementAccount
 import com.beancounter.marketdata.broker.BrokerSettlementAccountRepository
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.trn.BrokerProposalRequest
-import com.beancounter.marketdata.trn.TrnInputMapper
 import com.beancounter.marketdata.trn.TrnRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy

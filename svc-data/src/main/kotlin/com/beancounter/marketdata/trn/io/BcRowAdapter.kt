@@ -15,7 +15,6 @@ import com.beancounter.common.utils.CashUtils
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils
 import com.beancounter.marketdata.trn.CashTrnServices
-import com.beancounter.marketdata.trn.TrnInputMapper
 import com.beancounter.marketdata.trn.io.TrnIoDefinition.Columns
 import org.springframework.stereotype.Service
 import tools.jackson.core.type.TypeReference

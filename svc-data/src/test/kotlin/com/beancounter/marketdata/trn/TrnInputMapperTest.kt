@@ -31,7 +31,6 @@ import com.beancounter.marketdata.broker.BrokerSettlementAccount
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.markets.MarketConfig
 import com.beancounter.marketdata.portfolio.PortfolioService
-import com.beancounter.marketdata.trn.io.BcRowAdapter
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test

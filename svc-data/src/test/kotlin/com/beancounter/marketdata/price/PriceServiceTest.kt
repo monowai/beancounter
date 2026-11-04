@@ -10,7 +10,6 @@ import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.event.EventProducer
 import com.beancounter.marketdata.persistence.ConflictTolerantWriter
 import com.beancounter.marketdata.price.history.PriceSplits
-import com.beancounter.marketdata.price.history.SplitAdjuster
 import com.beancounter.marketdata.providers.EventServiceFacade
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Assertions.assertEquals

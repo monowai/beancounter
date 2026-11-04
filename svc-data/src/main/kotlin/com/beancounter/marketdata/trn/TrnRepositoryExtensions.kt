@@ -2,7 +2,6 @@ package com.beancounter.marketdata.trn
 
 import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.model.Trn
-import com.beancounter.marketdata.trn.settlement.TrnSettlementService
 
 /**
  * Retrieve a [Trn] by id or throw [NotFoundException] with a consistent message.

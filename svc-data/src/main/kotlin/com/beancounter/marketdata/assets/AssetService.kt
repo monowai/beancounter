@@ -11,7 +11,6 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.assets.enrichment.DefaultEnricher
 import com.beancounter.marketdata.assets.enrichment.EnrichmentFactory
-import com.beancounter.marketdata.assets.search.AssetSearchService
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.price.MarketDataService
 import jakarta.transaction.Transactional

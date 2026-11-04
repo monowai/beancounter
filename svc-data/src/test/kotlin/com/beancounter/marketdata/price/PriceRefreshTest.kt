@@ -16,7 +16,6 @@ import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetRepository
 import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.portfolio.PortfolioRepository
-import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.alpha.AlphaPriceService
 import com.beancounter.marketdata.registration.SystemUserRepository
 import com.beancounter.marketdata.trn.TrnRepository

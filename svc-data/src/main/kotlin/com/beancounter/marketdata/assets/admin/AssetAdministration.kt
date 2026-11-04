@@ -6,7 +6,6 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Status
 import com.beancounter.marketdata.assets.AssetCategoryConfig
-import com.beancounter.marketdata.assets.AssetEntityListener
 import com.beancounter.marketdata.assets.AssetRepository
 import com.beancounter.marketdata.assets.accounting.AccountingTypeService
 import com.beancounter.marketdata.trn.TrnRepository

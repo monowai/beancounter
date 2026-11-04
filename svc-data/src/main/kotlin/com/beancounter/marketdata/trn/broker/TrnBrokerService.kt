@@ -24,8 +24,6 @@ import com.beancounter.marketdata.trn.BrokerProposalRequest
 import com.beancounter.marketdata.trn.TrnMigrator
 import com.beancounter.marketdata.trn.TrnRepository
 import com.beancounter.marketdata.trn.TrnService
-import com.beancounter.marketdata.trn.getOrThrow
-import com.beancounter.marketdata.trn.io.BcRowAdapter
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service

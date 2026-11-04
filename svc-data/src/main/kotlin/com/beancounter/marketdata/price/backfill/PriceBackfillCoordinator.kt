@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.price.backfill
 
-import com.beancounter.marketdata.price.PriceController
 import io.opentelemetry.context.Context
 import io.opentelemetry.extension.kotlin.asContextElement
 import jakarta.annotation.PreDestroy

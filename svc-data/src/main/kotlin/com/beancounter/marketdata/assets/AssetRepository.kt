@@ -149,11 +149,13 @@ interface AssetRepository : JpaRepository<Asset, String> {
     /**
      * Active, coded assets in [categories] with no classification data yet: a fund (category in
      * [fundCategories]) has no exposures, anything else has no classifications. Candidates for
-     * the classification backfill; see `ClassificationRefreshService.backfill`.
+     * the classification backfill; see `ClassificationRefreshService.backfill`. A user-owned
+     * (private) asset is never a candidate: its code is not a listed symbol.
      */
     @Query(
-        "SELECT a FROM Asset a LEFT JOIN FETCH a.systemUser LEFT JOIN FETCH a.accountingType " +
+        "SELECT a FROM Asset a LEFT JOIN FETCH a.accountingType " +
             "WHERE a.status = com.beancounter.common.model.Status.Active " +
+            "AND a.systemUser IS NULL " +
             "AND a.code IS NOT NULL AND a.code <> '' " +
             "AND UPPER(a.category) IN :categories " +
             "AND ((UPPER(a.category) IN :fundCategories " +

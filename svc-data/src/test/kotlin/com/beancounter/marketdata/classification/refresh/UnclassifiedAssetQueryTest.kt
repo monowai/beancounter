@@ -4,6 +4,7 @@ import com.beancounter.common.model.Asset
 import com.beancounter.common.model.ClassificationLevel
 import com.beancounter.common.model.ClassificationStandard
 import com.beancounter.common.model.Status
+import com.beancounter.common.model.SystemUser
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetRepository
@@ -11,6 +12,7 @@ import com.beancounter.marketdata.classification.ClassificationService
 import com.beancounter.marketdata.classification.ClassificationTaxonomy
 import com.beancounter.marketdata.classification.FundLookThrough
 import com.beancounter.marketdata.classification.enricher.ClassificationEnricher
+import com.beancounter.marketdata.registration.SystemUserRepository
 import jakarta.transaction.Transactional
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -41,6 +43,9 @@ class UnclassifiedAssetQueryTest {
 
     @Autowired
     private lateinit var taxonomy: ClassificationTaxonomy
+
+    @Autowired
+    private lateinit var systemUserRepository: SystemUserRepository
 
     private val allCategories =
         ClassificationEnricher.EQUITY_CATEGORIES + ClassificationEnricher.ETF_CATEGORIES
@@ -89,6 +94,20 @@ class UnclassifiedAssetQueryTest {
     }
 
     @Test
+    fun `should leave out an asset a user owns`() {
+        val owner = systemUserRepository.save(SystemUser(id = "uq-owner", email = "uq-owner@test.com"))
+        val listed = save("uq-listed-eq", "Equity")
+        val owned = save("uq-owned-eq", "Equity", owner = owner)
+
+        val ids =
+            assetRepository
+                .findUnclassified(allCategories, ClassificationEnricher.ETF_CATEGORIES)
+                .map { it.id }
+
+        assertThat(ids).contains(listed.id).doesNotContain(owned.id)
+    }
+
+    @Test
     fun `should return only the requested category`() {
         val bareEquity = save("uq-cat-eq", "Equity")
         val bareEtf = save("uq-cat-etf", "ETF")
@@ -105,7 +124,8 @@ class UnclassifiedAssetQueryTest {
         id: String,
         category: String,
         status: Status = Status.Active,
-        code: String = id.uppercase()
+        code: String = id.uppercase(),
+        owner: SystemUser? = null
     ): Asset =
         assetRepository.save(
             Asset(
@@ -115,7 +135,8 @@ class UnclassifiedAssetQueryTest {
                 name = id,
                 market = NASDAQ,
                 marketCode = NASDAQ.code,
-                category = category
+                category = category,
+                systemUser = owner
             )
         )
 }

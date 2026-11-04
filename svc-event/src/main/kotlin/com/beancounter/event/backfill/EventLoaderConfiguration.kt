@@ -4,6 +4,7 @@ import com.beancounter.auth.client.LoginService
 import com.beancounter.client.services.PriceService
 import com.beancounter.event.config.SharedConfig
 import com.beancounter.event.corporate.CorporateEventStore
+import com.beancounter.event.distribution.PositionService
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
 
@@ -20,7 +21,7 @@ data class EventLoaderServiceConfig(
     val eventStore: CorporateEventStore,
     val priceService: PriceService,
     val backFillService: BackFillService,
-    val positionService: com.beancounter.event.distribution.PositionService
+    val positionService: PositionService
 )
 
 data class AuthConfig(
@@ -35,7 +36,7 @@ class EventLoaderConfiguration {
         eventStore: CorporateEventStore,
         priceService: PriceService,
         backFillService: BackFillService,
-        positionService: com.beancounter.event.distribution.PositionService
+        positionService: PositionService
     ): EventLoaderServiceConfig =
         EventLoaderServiceConfig(
             eventStore = eventStore,

@@ -49,6 +49,12 @@ class ConversationAdminTest {
     @Autowired
     private lateinit var inFlight: InFlightTurns
 
+    @Autowired
+    private lateinit var conversations: ConversationRepository
+
+    @Autowired
+    private lateinit var messages: ConversationMessageRepository
+
     private val owner = "owner-a"
     private val stranger = "owner-b"
 
@@ -196,5 +202,16 @@ class ConversationAdminTest {
 
         inFlight.end(id)
         assertThat(admin.get(owner, id).pending).isFalse()
+    }
+
+    @Test
+    fun `should delete nothing of a conversation when the statement names another owner`() {
+        val id = admin.create(owner).id
+        turnLog.appendUser(owner, id, Question("q"))
+
+        assertThat(messages.deleteOfConversation(id, stranger)).isZero()
+        assertThat(conversations.deleteByIdAndOwnerId(id, stranger)).isZero()
+
+        assertThat(admin.get(owner, id).messages.map { it.content }).containsExactly("q")
     }
 }

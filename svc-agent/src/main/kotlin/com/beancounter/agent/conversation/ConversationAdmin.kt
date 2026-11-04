@@ -99,8 +99,8 @@ class ConversationAdmin(
         id: String
     ) {
         conversations.owned(ownerId, id)
-        messages.deleteOfConversation(id)
-        conversations.deleteOne(id)
+        messages.deleteOfConversation(id, ownerId)
+        conversations.deleteByIdAndOwnerId(id, ownerId)
     }
 
     /** Remove every conversation [ownerId] has — the offboarding path. */

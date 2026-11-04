@@ -107,7 +107,7 @@ class TrnSettlementServiceTest {
 
         val removed = service.unsettle(trn)
 
-        assertThat(removed).containsExactly("w", "d")
+        assertThat(removed.map { it.id }).containsExactly("w", "d")
         assertThat(trn.status).isEqualTo(TrnStatus.PROPOSED)
         // Legs move in sync — reverted to PROPOSED and persisted, not deleted.
         assertThat(legs.map { it.status }).containsOnly(TrnStatus.PROPOSED)

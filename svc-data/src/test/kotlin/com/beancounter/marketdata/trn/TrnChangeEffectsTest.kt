@@ -16,6 +16,7 @@ import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.mockito.kotlin.whenever
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -39,15 +40,19 @@ class TrnChangeEffectsTest {
             owner = SystemUser("u", "u@example.com")
         )
 
+    private val funding = portfolio.copy(id = "pf-funding", code = "FUND")
+
     private fun trn(
         id: String,
-        tradeDate: LocalDate
+        tradeDate: LocalDate,
+        trnPortfolio: Portfolio = portfolio,
+        trnType: TrnType = TrnType.BUY
     ) = Trn(
         id = id,
-        trnType = TrnType.BUY,
+        trnType = trnType,
         asset = MSFT,
         quantity = BigDecimal.ONE,
-        portfolio = portfolio,
+        portfolio = trnPortfolio,
         tradeDate = tradeDate
     )
 
@@ -76,5 +81,55 @@ class TrnChangeEffectsTest {
         assertThat(effects.afterChange(portfolio.id, emptyList())).isEmpty()
 
         verify(cacheInvalidationProducer, never()).sendTransactionEvent(any(), any())
+    }
+
+    @Test
+    fun `should invalidate each funding portfolio once from the earliest cash leg it touched`() {
+        val later = trn("later", LocalDate.of(2026, 3, 5))
+        val earlier = trn("earlier", LocalDate.of(2026, 3, 4))
+        // The edit moved the trade later; the replaced legs held the earlier date.
+        val replacedLeg = trn("old-w", LocalDate.of(2026, 3, 1), funding, TrnType.WITHDRAWAL)
+        whenever(cashAutoSettleService.emitCompensatingTransfer(later)).thenReturn(
+            AutoSettleResult(
+                transactions =
+                    listOf(
+                        trn("w", LocalDate.of(2026, 3, 5), funding, TrnType.WITHDRAWAL),
+                        trn("d", LocalDate.of(2026, 3, 5), portfolio, TrnType.DEPOSIT)
+                    ),
+                replaced = listOf(replacedLeg, trn("old-d", LocalDate.of(2026, 3, 1), portfolio, TrnType.DEPOSIT))
+            )
+        )
+        whenever(cashAutoSettleService.emitCompensatingTransfer(earlier)).thenReturn(
+            AutoSettleResult(
+                transactions =
+                    listOf(
+                        trn("w2", LocalDate.of(2026, 3, 4), funding, TrnType.WITHDRAWAL),
+                        trn("d2", LocalDate.of(2026, 3, 4), portfolio, TrnType.DEPOSIT)
+                    )
+            )
+        )
+
+        effects.afterChange(portfolio.id, listOf(later, earlier))
+
+        inOrder(cacheInvalidationProducer) {
+            verify(cacheInvalidationProducer).sendTransactionEvent(portfolio.id, earlier.tradeDate)
+            verify(cacheInvalidationProducer).sendTransactionEvent(funding.id, replacedLeg.tradeDate)
+            verifyNoMoreInteractions()
+        }
+    }
+
+    @Test
+    fun `should not invalidate a second time when the cash legs stay in the trade portfolio`() {
+        val trade = trn("t", LocalDate.of(2026, 3, 2))
+        whenever(cashAutoSettleService.emitCompensatingTransfer(trade)).thenReturn(
+            AutoSettleResult(
+                transactions = listOf(trn("d", LocalDate.of(2026, 3, 1), portfolio, TrnType.DEPOSIT))
+            )
+        )
+
+        effects.afterChange(portfolio.id, listOf(trade))
+
+        verify(cacheInvalidationProducer).sendTransactionEvent(portfolio.id, trade.tradeDate)
+        verifyNoMoreInteractions(cacheInvalidationProducer)
     }
 }

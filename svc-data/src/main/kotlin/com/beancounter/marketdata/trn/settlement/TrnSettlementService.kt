@@ -56,19 +56,20 @@ class TrnSettlementService(
         val portfolio = portfolioService.find(portfolioId)
         val settled = trnIds.mapNotNull { settleOne(portfolio, it) }
         log.info("Settled {} transactions for portfolio {}", settled.size, portfolio.code)
-        trnChangeEffects.invalidate(portfolio.id, settled)
-        return trnPostProcessor.postProcess(settled)
+        val trns = settled.map { it.trn }
+        trnChangeEffects.invalidate(portfolio.id, trns, settled.flatMap { it.cashLegs })
+        return trnPostProcessor.postProcess(trns)
     }
 
     /**
-     * Settle a single PROPOSED transaction. Returns the settled Trn, or null
+     * Settle a single PROPOSED transaction. Returns it with the cash legs it moved, or null
      * (with a warning) when it is missing, not PROPOSED, future-dated, or FX
      * can't resolve yet (leaving it PROPOSED for retry).
      */
     private fun settleOne(
         portfolio: Portfolio,
         trnId: String
-    ): Trn? {
+    ): Settled? {
         val trn = trnRepository.findByPortfolioIdAndId(portfolio.id, trnId).orElse(null)
         return when {
             trn == null -> {
@@ -86,7 +87,7 @@ class TrnSettlementService(
             // Shared settle core: FX + status flip + cash emit. Returns null when FX
             // can't resolve yet (leaves it PROPOSED for retry).
             else -> {
-                settle(portfolio, trn)?.also {
+                settleWithCash(portfolio, trn)?.also {
                     log.debug("Settled transaction {} for portfolio {}", trnId, portfolio.code)
                 }
             }
@@ -110,8 +111,8 @@ class TrnSettlementService(
             "Cannot unsettle trn $trnId: status is ${parent.status}, expected SETTLED"
         }
         val siblings = unsettle(parent)
-        trnChangeEffects.invalidate(parent.portfolio.id, parent.tradeDate)
-        return TrnStatusUpdateResponse(updated = parent, siblings = siblings)
+        trnChangeEffects.invalidate(parent.portfolio.id, listOf(parent), siblings)
+        return TrnStatusUpdateResponse(updated = parent, siblings = siblings.map { it.id })
     }
 
     /**
@@ -127,6 +128,7 @@ class TrnSettlementService(
     ): Collection<Trn> {
         val portfolio = portfolioService.find(portfolioId)
         val unsettled = mutableListOf<Trn>()
+        val cashLegs = mutableListOf<Trn>()
         for (trnId in trnIds) {
             val trn = trnRepository.findByPortfolioIdAndId(portfolio.id, trnId).orElse(null)
             when {
@@ -137,13 +139,13 @@ class TrnSettlementService(
                     log.warn("Cannot unsettle {} - status is {} not SETTLED", trnId, trn.status)
                 }
                 else -> {
-                    unsettle(trn)
+                    cashLegs += unsettle(trn)
                     unsettled.add(trn)
                 }
             }
         }
         log.info("Unsettled {} transactions for portfolio {}", unsettled.size, portfolio.code)
-        trnChangeEffects.invalidate(portfolio.id, unsettled)
+        trnChangeEffects.invalidate(portfolio.id, unsettled, cashLegs)
         return trnPostProcessor.postProcess(unsettled)
     }
 
@@ -156,7 +158,12 @@ class TrnSettlementService(
     fun settle(
         portfolio: Portfolio,
         trn: Trn
-    ): Trn? {
+    ): Trn? = settleWithCash(portfolio, trn)?.trn
+
+    private fun settleWithCash(
+        portfolio: Portfolio,
+        trn: Trn
+    ): Settled? {
         try {
             // Resolve FX now that settlement is confirmed. Ingest of forward-dated
             // event trns (DIVI payDate) defers FX; providers reject future dates.
@@ -182,19 +189,18 @@ class TrnSettlementService(
         }
         trn.status = TrnStatus.SETTLED
         trnRepository.save(trn)
-        trnChangeEffects
-            .syncCash(trn)
-            .forEach { log.warn("Auto-settle cash for {}: {}", trn.id, it) }
-        return trn
+        val cash = trnChangeEffects.syncCash(trn)
+        cash.warnings.forEach { log.warn("Auto-settle cash for {}: {}", trn.id, it) }
+        return Settled(trn, cash.cashLegs)
     }
 
     /**
      * Unsettle one trn: revert the auto-emitted cash legs to PROPOSED so status
      * moves in sync with the parent, flip the parent SETTLED→PROPOSED, persist.
-     * Returns the affected sibling ids. The legs stay linked (not deleted) and
+     * Returns the affected cash legs. The legs stay linked (not deleted) and
      * re-settle to SETTLED when the parent settles again.
      */
-    fun unsettle(trn: Trn): List<String> {
+    fun unsettle(trn: Trn): List<Trn> {
         val siblings = trnChangeEffects.cashLegs(trn)
         if (siblings.isNotEmpty()) {
             siblings.forEach { it.status = TrnStatus.PROPOSED }
@@ -203,7 +209,7 @@ class TrnSettlementService(
         }
         trn.status = TrnStatus.PROPOSED
         trnRepository.save(trn)
-        return siblings.map { it.id }
+        return siblings
     }
 
     /** A cash-impacting trn with a cash asset and a trade amount, but no cash amount yet. */
@@ -213,3 +219,9 @@ class TrnSettlementService(
             trn.tradeAmount.compareTo(BigDecimal.ZERO) != 0
     }
 }
+
+/** A settled trn and the cash legs its settle wrote or removed. */
+private data class Settled(
+    val trn: Trn,
+    val cashLegs: List<Trn>
+)

@@ -170,7 +170,7 @@ class CashAutoSettleService(
             saved[1].id,
             groupBatch
         )
-        return AutoSettleResult(transactions = saved, warnings = warnings)
+        return AutoSettleResult(transactions = saved, warnings = warnings, replaced = stale)
     }
 
     /**
@@ -238,7 +238,15 @@ class CashAutoSettleService(
     }
 }
 
+/**
+ * [transactions] are the legs just posted; [replaced] the stale legs deleted to make way
+ * for them. Both sets are cash the re-sync moved, possibly in the funding portfolio.
+ */
 data class AutoSettleResult(
     val transactions: List<Trn> = emptyList(),
-    val warnings: List<String> = emptyList()
-)
+    val warnings: List<String> = emptyList(),
+    val replaced: List<Trn> = emptyList()
+) {
+    /** Every cash leg the re-sync wrote or removed. */
+    val cashLegs: List<Trn> get() = replaced + transactions
+}

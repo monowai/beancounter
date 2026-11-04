@@ -10,7 +10,6 @@ import com.beancounter.common.model.Trn
 import com.beancounter.common.telemetry.runBlockingTraced
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.holdings.PositionService
-import com.beancounter.position.marketvalue.MarketValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import org.springframework.security.core.context.SecurityContextHolder

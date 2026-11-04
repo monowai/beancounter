@@ -4,6 +4,7 @@ import com.beancounter.marketdata.news.NewsArticle
 import com.beancounter.marketdata.news.NewsArticleRepo
 import com.beancounter.marketdata.news.NewsFetch
 import com.beancounter.marketdata.news.NewsFetchRepo
+import com.beancounter.marketdata.news.embedding.NewsEmbedder
 import com.beancounter.marketdata.news.embedding.NewsEmbeddingProperties
 import com.beancounter.marketdata.news.embedding.NoopNewsEmbedder
 import com.beancounter.marketdata.news.embedding.TopicAnchorStore
@@ -115,5 +116,38 @@ internal class EodhdNewsIngestTest {
         val saved = argumentCaptor<NewsArticle>().also { verify(articleRepo, times(2)).save(it.capture()) }.allValues
         assertThat(saved.last().id).isEqualTo(winner.id)
         assertThat(saved.last().title).isEqualTo("incoming")
+    }
+
+    /** Active embedder that records every text it is asked to embed. */
+    private class RecordingEmbedder : NewsEmbedder {
+        val texts = mutableListOf<String>()
+        override val modelId = "test-model"
+        override val active = true
+
+        override fun embed(texts: List<String>): List<FloatArray> {
+            this.texts.addAll(texts)
+            return texts.map { floatArrayOf(1f, 0f) }
+        }
+    }
+
+    @Test
+    fun `an article repeated in one fetch is embedded and saved once from its newest revision`() {
+        val embedder = RecordingEmbedder()
+        val embeddingIngest =
+            EodhdNewsIngest(
+                articleRepo,
+                fetchRepo,
+                // Anchors embed through a noop so the recorder sees article texts only.
+                NewsArticleEmbeddings(embedder, NewsEmbeddingProperties(), TopicAnchorStore(NoopNewsEmbedder()))
+            )
+        val link = "https://example.com/repeated"
+        val older = EodhdNewsArticle(date = "2026-05-15T05:00:00+00:00", title = "first cut", link = link)
+        val newer = EodhdNewsArticle(date = "2026-05-15T06:00:00+00:00", title = "revised", link = link)
+
+        embeddingIngest.saveArticles("AAPL.US", listOf(older, newer))
+
+        assertThat(embedder.texts).hasSize(1)
+        val saved = argumentCaptor<NewsArticle>().also { verify(articleRepo).save(it.capture()) }.firstValue
+        assertThat(saved.title).isEqualTo("revised")
     }
 }

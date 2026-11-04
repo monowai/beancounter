@@ -32,7 +32,7 @@ class EodhdNewsIngest(
         symbol: String,
         articles: List<EodhdNewsArticle>
     ) {
-        val keyed = articles.map { externalIdOf(it) to it }
+        val keyed = newestPerExternalId(articles)
         val existing = preload(keyed.map { it.first })
         val fresh = embeddings.prepare(keyed, existing)
         for ((externalId, incoming) in keyed) {
@@ -55,6 +55,16 @@ class EodhdNewsIngest(
         existing.lastFetchedAt = LocalDateTime.now(dateUtils.zoneId)
         newsFetchRepo.save(existing)
     }
+
+    /**
+     * EODHD can list one article twice in a response (a revision republished under the same link).
+     * Keep the latest-dated copy — the revision a re-poll would converge on — so the article is
+     * embedded and saved once; equal dates keep the first listed.
+     */
+    private fun newestPerExternalId(articles: List<EodhdNewsArticle>): List<Pair<String, EodhdNewsArticle>> =
+        articles
+            .groupBy { externalIdOf(it) }
+            .map { (externalId, copies) -> externalId to copies.maxBy { parsePublished(it.date) } }
 
     /**
      * One query for every stored row this fetch touches, shared by the embedding currency check

@@ -196,7 +196,7 @@ class TrnBrokerService(
                 brokerService.findById(brokerId, user).orElseThrow {
                     NotFoundException("Broker not found: $brokerId")
                 }
-            // Splits carry no broker; merge them so the quantity aggregation below is
+            // Splits carry no broker; merge them so BrokerHoldingAggregation is
             // split-adjusted instead of reading negative on a sold-out holding.
             val trades = trnRepository.findByBrokerIdAndOwner(brokerId, user, TrnStatus.SETTLED)
             val splits = trnRepository.findBrokerSplits(brokerId, user, DateUtils().date, TrnStatus.SETTLED)

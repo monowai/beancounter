@@ -36,6 +36,9 @@ class TurnLogTest {
     @Autowired
     private lateinit var turnLog: TurnLog
 
+    @Autowired
+    private lateinit var messages: ConversationMessageRepository
+
     private val owner = "owner-a"
     private val stranger = "owner-b"
 
@@ -274,5 +277,19 @@ class TurnLogTest {
         val next = turnLog.openTurn(owner, id, Question("And bonds?"), ConversationKind.CHAT, 6)
 
         assertThat(next.titleSeed).isEqualTo(TitleSeed("Index funds", listOf("Full prompt", "And bonds?")))
+    }
+
+    @Test
+    fun `should number turns appended within one transaction in order`() {
+        // @DataJpaTest runs the test in one transaction. No caller appends twice
+        // in one, but if one did, each append's row-lock query auto-flushes the
+        // turn saved before it, so the count behind the next number sees it.
+        val id = admin.create(owner).id
+        turnLog.appendUser(owner, id, Question("first"))
+        turnLog.appendAssistant(owner, id, "answer", null)
+        turnLog.appendUser(owner, id, Question("second"))
+
+        assertThat(messages.findByConversationIdOrderBySeq(id).map { it.seq to it.content })
+            .containsExactly(0 to "first", 1 to "answer", 2 to "second")
     }
 }

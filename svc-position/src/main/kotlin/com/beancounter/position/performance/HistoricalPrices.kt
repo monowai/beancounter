@@ -46,6 +46,9 @@ class HistoricalPrices(
             }
         }
 
+    /** The fx-cache dates in order, for the nearest-prior lookup. Sorted once per pass. */
+    private val fxDates: List<String> = fxCache.keys.sorted()
+
     /** Prices as they stood on [date]. */
     fun on(date: LocalDate): PricesOnDate {
         val dateStr = date.toString()
@@ -61,8 +64,7 @@ class HistoricalPrices(
     /** FX rates for the exact date, or else the nearest prior date in the pass. */
     private fun nearestFxRates(dateStr: String): FxPairResults? {
         fxCache[dateStr]?.let { return it }
-        return fxCache.keys
-            .sorted()
+        return fxDates
             .lastOrNull { it <= dateStr }
             ?.let { fxCache[it] }
     }

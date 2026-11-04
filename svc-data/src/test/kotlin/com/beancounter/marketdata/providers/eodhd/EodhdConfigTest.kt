@@ -90,16 +90,7 @@ internal class EodhdConfigTest {
         val cfg = EodhdConfig(mock())
         ReflectionTestUtils.setField(cfg, "apiKey", "demo")
         ReflectionTestUtils.setField(cfg, "markets", "")
-        val proxy = mock<EodhdProxy>()
-        val adapter = mock<EodhdAdapter>()
-        val service =
-            EodhdPriceService(
-                cfg,
-                proxy,
-                adapter,
-                com.beancounter.common.utils
-                    .DateUtils()
-            )
+        val service = EodhdPriceService(cfg, mock(), mock())
 
         assertThat(service.isMarketSupported(Market("US"))).isFalse
         assertThat(service.isMarketSupported(Market("LON"))).isFalse

@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.providers.eodhd
 
-import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.AAPL
 import com.beancounter.marketdata.providers.eodhd.model.EodhdQuote
 import io.github.resilience4j.ratelimiter.RateLimiter
@@ -24,7 +23,7 @@ internal class EodhdQuoteTest {
             on { apiKey } doReturn "test-key"
         }
     private val eodhdProxy = mock<EodhdProxy>()
-    private val service = EodhdPriceService(eodhdConfig, eodhdProxy, mock(), DateUtils())
+    private val service = EodhdQuotes(eodhdConfig, eodhdProxy)
 
     @Test
     fun `quote is null when the EODHD rate limiter refuses the call`() {

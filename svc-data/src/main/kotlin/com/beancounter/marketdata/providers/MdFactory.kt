@@ -27,7 +27,8 @@ class MdFactory internal constructor(
     marketStackService: MarketStackService,
     morningstarPriceService: MorningstarPriceService,
     eodhdPriceService: EodhdPriceService,
-    fxPairPriceService: FxPairPriceService
+    fxPairPriceService: FxPairPriceService,
+    searchProviders: List<AssetSearchProvider>
 ) {
     private val providers: Map<String, MarketDataPriceProvider> =
         mapOf(
@@ -68,6 +69,8 @@ class MdFactory internal constructor(
             )
         )
 
+    private val searchProviders: Map<String, AssetSearchProvider> = searchProviders.associateBy { it.getId() }
+
     /**
      * Locate a price provider for the requested market.
      *
@@ -81,11 +84,17 @@ class MdFactory internal constructor(
         providers[provider.uppercase(Locale.getDefault())]!!
 
     /**
-     * Registered providers in declaration order. Used by asset-search fan-out so a header-bar
-     * keyword with no market still reaches every provider's search surface (e.g. EODHD when
-     * configured, regardless of FIGI's coverage).
+     * The search surface of the provider that prices [market], so a market-scoped search asks the
+     * provider it will be priced from; null when that provider cannot search.
      */
-    fun getAllProviders(): Collection<MarketDataPriceProvider> = providers.values
+    fun getSearchProvider(market: Market): AssetSearchProvider? = searchProviders[resolveProvider(market).getId()]
+
+    /**
+     * Every search surface in provider precedence order. Used by asset-search fan-out so a
+     * header-bar keyword with no market still reaches each one (e.g. EODHD when configured,
+     * regardless of FIGI's coverage).
+     */
+    fun getSearchProviders(): List<AssetSearchProvider> = providers.keys.mapNotNull { searchProviders[it] }
 
     private fun resolveProvider(market: Market): MarketDataPriceProvider {
         // ToDo: Map Market to Provider

@@ -7,6 +7,7 @@ import com.beancounter.common.contracts.PortfolioSharesResponse
 import com.beancounter.common.contracts.ShareInviteRequest
 import com.beancounter.common.contracts.ShareRequestAccess
 import com.beancounter.common.input.PortfolioInput
+import com.beancounter.common.model.PortfolioShare
 import com.beancounter.common.model.ShareAccessLevel
 import com.beancounter.common.model.ShareStatus
 import com.beancounter.common.model.SystemUser
@@ -27,6 +28,7 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.ResultActions
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
@@ -565,4 +567,117 @@ internal class PortfolioShareControllerTest {
         assertThat(managed.data).isNotEmpty
         assertThat(managed.data.map { it.portfolio?.code }).contains("MANAGED_TEST")
     }
+
+    @Test
+    fun `only the invited adviser can accept a client invite`() {
+        val shareId = inviteAdviser("INVITEE_ONLY")
+        val outsiderToken = registeredToken("outsider-user")
+
+        accept(shareId, clientToken).andExpect(status().isNotFound)
+        accept(shareId, outsiderToken).andExpect(status().isNotFound)
+
+        val accepted = shareFrom(accept(shareId, adviserToken).andExpect(status().isOk))
+        assertThat(accepted.status).isEqualTo(ShareStatus.ACTIVE)
+    }
+
+    @Test
+    fun `only the client can accept an adviser access request`() {
+        // Its own adviser, so the request cannot collide with another test's pending request.
+        val requesterToken = registeredToken("requester-user")
+        val requested =
+            mockMvc.perform(
+                post("$SHARES_ROOT/request")
+                    .with(jwt().jwt(requesterToken))
+                    .with(csrf())
+                    .content(objectMapper.writeValueAsBytes(ShareRequestAccess(clientEmail = "client@testing.com")))
+                    .contentType(MediaType.APPLICATION_JSON)
+            )
+        val shareId = shareFrom(requested.andExpect(status().isOk)).id
+
+        accept(shareId, requesterToken).andExpect(status().isNotFound)
+        accept(shareId, adviserToken).andExpect(status().isNotFound)
+
+        val accepted = shareFrom(accept(shareId, clientToken).andExpect(status().isOk))
+        assertThat(accepted.status).isEqualTo(ShareStatus.ACTIVE)
+    }
+
+    @Test
+    fun `unrelated user cannot revoke a portfolio share`() {
+        val shareId = inviteAdviser("OUTSIDER_REVOKE")
+        val outsiderToken = registeredToken("outsider-user")
+
+        revoke(shareId, outsiderToken).andExpect(status().isNotFound)
+
+        // Still pending: the invited adviser can accept it.
+        val accepted = shareFrom(accept(shareId, adviserToken).andExpect(status().isOk))
+        assertThat(accepted.status).isEqualTo(ShareStatus.ACTIVE)
+    }
+
+    @Test
+    fun `adviser can revoke a portfolio share made to them`() {
+        val shareId = inviteAdviser("ADVISER_REVOKE")
+
+        val revoked = shareFrom(revoke(shareId, adviserToken).andExpect(status().isOk))
+
+        assertThat(revoked.status).isEqualTo(ShareStatus.REVOKED)
+    }
+
+    private fun inviteAdviser(code: String): String {
+        val portfolio =
+            portfolioCreate(PortfolioInput(code, code, USD.code, NZD.code), mockMvc, clientToken).data.first()
+        val result =
+            mockMvc
+                .perform(
+                    post("$SHARES_ROOT/invite")
+                        .with(jwt().jwt(clientToken))
+                        .with(csrf())
+                        .content(
+                            objectMapper.writeValueAsBytes(
+                                ShareInviteRequest(
+                                    portfolioIds = listOf(portfolio.id),
+                                    adviserEmail = "adviser@testing.com"
+                                )
+                            )
+                        ).contentType(MediaType.APPLICATION_JSON)
+                ).andExpect(status().isOk)
+                .andReturn()
+        return objectMapper
+            .readValue(result.response.contentAsString, PortfolioSharesResponse::class.java)
+            .data
+            .first()
+            .id
+    }
+
+    private fun registeredToken(id: String): Jwt =
+        registerUser(
+            mockMvc,
+            mockAuthConfig.getUserToken(SystemUser(id = id, email = "$id@testing.com", auth0 = "auth0|$id"))
+        )
+
+    private fun accept(
+        shareId: String,
+        token: Jwt
+    ): ResultActions =
+        mockMvc.perform(
+            post("$SHARES_ROOT/$shareId/accept")
+                .with(jwt().jwt(token))
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+
+    private fun revoke(
+        shareId: String,
+        token: Jwt
+    ): ResultActions =
+        mockMvc.perform(
+            delete("$SHARES_ROOT/$shareId")
+                .with(jwt().jwt(token))
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+
+    private fun shareFrom(result: ResultActions): PortfolioShare =
+        objectMapper
+            .readValue(result.andReturn().response.contentAsString, PortfolioShareResponse::class.java)
+            .data
 }

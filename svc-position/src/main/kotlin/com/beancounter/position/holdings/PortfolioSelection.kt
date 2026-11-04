@@ -36,10 +36,7 @@ data class PortfolioSelection(
 
     fun resolve(portfolioServiceClient: PortfolioServiceClient): Collection<Portfolio> {
         if (!ids.isNullOrBlank()) {
-            return ids
-                .split(",")
-                .map { it.trim() }
-                .filter { it.isNotEmpty() }
+            return entries(ids)
                 .mapNotNull { id ->
                     try {
                         portfolioServiceClient.getPortfolioById(id)
@@ -55,9 +52,12 @@ data class PortfolioSelection(
         if (codes.isNullOrBlank()) {
             return allPortfolios
         }
-        val codeSet = codes.split(",").map { it.trim() }.toSet()
+        val codeSet = entries(codes).toSet()
         return allPortfolios.filter { it.code in codeSet }
     }
+
+    /** The comma-separated entries of [list], trimmed, blanks dropped. */
+    private fun entries(list: String): List<String> = list.split(",").map { it.trim() }.filter { it.isNotEmpty() }
 
     companion object {
         private val log = LoggerFactory.getLogger(PortfolioSelection::class.java)

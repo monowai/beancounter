@@ -1,10 +1,10 @@
 package com.beancounter.marketdata.classification.refresh
 
 import com.beancounter.common.contracts.BackfillResult
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Asset
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.assets.AssetRepository
-import com.beancounter.marketdata.classification.ClassificationService
 import com.beancounter.marketdata.classification.enricher.ClassificationEnricher
 import com.beancounter.marketdata.classification.enricher.EnrichmentResult
 import org.slf4j.LoggerFactory
@@ -39,10 +39,9 @@ import org.springframework.stereotype.Service
 class ClassificationRefreshService(
     private val assetRepository: AssetRepository,
     private val classificationEnricher: ClassificationEnricher,
-    private val classificationService: ClassificationService,
-    @Value("\${beancounter.classification.stale-after-days:7}")
+    @Value($$"${beancounter.classification.stale-after-days:7}")
     private val staleAfterDays: Long = 7,
-    @Value("\${beancounter.classification.batch-limit:20}")
+    @Value($$"${beancounter.classification.batch-limit:20}")
     private val batchLimit: Int = 20,
     private val dateUtils: DateUtils = DateUtils()
 ) {
@@ -101,26 +100,28 @@ class ClassificationRefreshService(
     }
 
     /**
-     * Enrich up to [limit] assets that a provider can classify but that carry no classification
-     * data yet, optionally only those in [category].
+     * Enrich up to [limit] assets (at most [MAX_BACKFILL_LIMIT]) that a provider can classify but
+     * that carry no classification data yet, optionally only those in [category].
      */
     fun backfill(
         category: String?,
         limit: Int
     ): BackfillResult {
-        log.info("Starting classification backfill: category=$category, limit=$limit")
+        if (limit < 1) {
+            throw BusinessException("limit must be at least 1, was $limit")
+        }
+        val batch = limit.coerceAtMost(MAX_BACKFILL_LIMIT)
+        log.info("Starting classification backfill: category=$category, limit=$batch")
 
+        val categories =
+            category?.let { setOf(it.uppercase()) }
+                ?: (ClassificationEnricher.EQUITY_CATEGORIES + ClassificationEnricher.ETF_CATEGORIES)
         val assets =
             assetRepository
-                .findAll()
+                .findUnclassified(categories, ClassificationEnricher.ETF_CATEGORIES)
                 .asSequence()
-                .filter { asset ->
-                    category == null || asset.category.equals(category, ignoreCase = true)
-                }.filter { asset ->
-                    classificationEnricher.canEnrich(asset)
-                }.filter { asset ->
-                    !classificationService.isClassified(asset.id, fund = classificationEnricher.isEtf(asset))
-                }.take(limit)
+                .filter { asset -> classificationEnricher.canEnrich(asset) }
+                .take(batch)
                 .toList()
 
         var processed = 0
@@ -280,5 +281,10 @@ class ClassificationRefreshService(
         log.info("$description refresh complete: $result")
 
         return result
+    }
+
+    companion object {
+        /** Most assets one backfill request attempts; it runs synchronously, one provider call each. */
+        const val MAX_BACKFILL_LIMIT = 500
     }
 }

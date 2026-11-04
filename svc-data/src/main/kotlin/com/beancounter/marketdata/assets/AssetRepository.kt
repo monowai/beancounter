@@ -147,6 +147,25 @@ interface AssetRepository : JpaRepository<Asset, String> {
     ): List<Asset>
 
     /**
+     * Assets in [categories] with no classification data yet: a fund (category in
+     * [fundCategories]) has no exposures, anything else has no classifications. Candidates for
+     * the classification backfill; see `ClassificationRefreshService.backfill`.
+     */
+    @Query(
+        "SELECT a FROM Asset a LEFT JOIN FETCH a.systemUser LEFT JOIN FETCH a.accountingType " +
+            "WHERE UPPER(a.category) IN :categories " +
+            "AND ((UPPER(a.category) IN :fundCategories " +
+            "AND NOT EXISTS (SELECT ae.id FROM AssetExposure ae WHERE ae.asset = a)) " +
+            "OR (UPPER(a.category) NOT IN :fundCategories " +
+            "AND NOT EXISTS (SELECT ac.id FROM AssetClassification ac WHERE ac.asset = a))) " +
+            "ORDER BY a.id"
+    )
+    fun findUnclassified(
+        @Param("categories") categories: Collection<String>,
+        @Param("fundCategories") fundCategories: Collection<String>
+    ): List<Asset>
+
+    /**
      * Find all active ETF assets for classification refresh.
      */
     @Query(

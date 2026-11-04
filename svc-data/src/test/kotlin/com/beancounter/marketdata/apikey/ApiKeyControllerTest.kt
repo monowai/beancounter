@@ -37,7 +37,7 @@ private const val API_KEYS_ROOT = "/me/api-keys"
 /**
  * Behaviour tests for BC-issued API keys (phase 1 - bc-claude/MCP.md):
  * the create/list/revoke management endpoints, plus the service-level
- * [ApiKeyService.verify] that phase 2's token-exchange endpoint will call.
+ * [ApiKeyVerifier.verify] that phase 2's token-exchange endpoint will call.
  */
 @SpringMvcDbTest
 internal class ApiKeyControllerTest {
@@ -51,7 +51,7 @@ internal class ApiKeyControllerTest {
     private lateinit var apiKeyRepository: ApiKeyRepository
 
     @Autowired
-    private lateinit var apiKeyService: ApiKeyService
+    private lateinit var apiKeyVerifier: ApiKeyVerifier
 
     @Autowired
     private lateinit var systemUserRepository: SystemUserRepository
@@ -460,7 +460,7 @@ internal class ApiKeyControllerTest {
         val token = registeredToken("apikey-verify-ok")
         val created = createKey(token)
 
-        val verified = apiKeyService.verify(created.apiKey)
+        val verified = apiKeyVerifier.verify(created.apiKey)
         assertThat(verified.lastUsedAt).isNotNull()
 
         val stored = apiKeyRepository.findById(created.data.id).orElseThrow()
@@ -480,7 +480,7 @@ internal class ApiKeyControllerTest {
                     .contentType(MediaType.APPLICATION_JSON)
             ).andExpect(status().isOk)
 
-        assertThatThrownBy { apiKeyService.verify(created.apiKey) }
+        assertThatThrownBy { apiKeyVerifier.verify(created.apiKey) }
             .isInstanceOf(UnauthorizedException::class.java)
 
         val owner =
@@ -499,7 +499,7 @@ internal class ApiKeyControllerTest {
             )
         )
 
-        assertThatThrownBy { apiKeyService.verify(expiredRawKey) }
+        assertThatThrownBy { apiKeyVerifier.verify(expiredRawKey) }
             .isInstanceOf(UnauthorizedException::class.java)
     }
 
@@ -540,7 +540,7 @@ internal class ApiKeyControllerTest {
     fun `verify rejects key of deactivated owner`() {
         val token = registeredToken("apikey-offboarded")
         val created = createKey(token)
-        assertThat(apiKeyService.verify(created.apiKey)).isNotNull()
+        assertThat(apiKeyVerifier.verify(created.apiKey)).isNotNull()
 
         val owner =
             systemUserRepository.findByEmail("apikey-offboarded@testing.com").orElseThrow {
@@ -549,7 +549,7 @@ internal class ApiKeyControllerTest {
         owner.active = false
         systemUserRepository.save(owner)
 
-        assertThatThrownBy { apiKeyService.verify(created.apiKey) }
+        assertThatThrownBy { apiKeyVerifier.verify(created.apiKey) }
             .isInstanceOf(UnauthorizedException::class.java)
             .hasMessageContaining("inactive")
     }

@@ -219,11 +219,20 @@ class OwnedAssetController(
         @Parameter(description = "CSV file containing assets to import")
         @RequestParam("file") file: MultipartFile
     ): AssetUpdateResponse {
-        val owner = ownedAssetService.getCurrentOwnerId()
-        val assetInputs = mutableMapOf<String, AssetInput>()
-        // Owned codes are stored upper-cased, so a repeat differing only in case is the same asset.
-        val seenCodes = mutableSetOf<String>()
+        val assetInputs = readAssets(file, ownedAssetService.getCurrentOwnerId())
+        if (assetInputs.isEmpty()) {
+            throw BusinessException("No assets to import")
+        }
+        return assetService.handle(AssetRequest(assetInputs))
+    }
 
+    /** Every asset row in [file], keyed by code; a bad row stops the read naming its line. */
+    private fun readAssets(
+        file: MultipartFile,
+        owner: String
+    ): Map<String, AssetInput> {
+        val assetInputs = mutableMapOf<String, AssetInput>()
+        val seenCodes = mutableSetOf<String>()
         val csvParser = CSVParserBuilder().withSeparator(',').build()
         val csvReader =
             CSVReaderBuilder(file.inputStream.bufferedReader())
@@ -235,21 +244,35 @@ class OwnedAssetController(
             var row = reader.readNext()
             while (row != null) {
                 line++
-                if (!(line == 1 && isHeaderRow(row)) && row.isNotEmpty() && row[0].isNotBlank()) {
+                if (isAssetRow(row, line)) {
                     val assetInput = assetIoDefinition.parse(row, owner, line)
-                    if (!seenCodes.add(assetInput.code.uppercase())) {
-                        throw BusinessException("Line $line: duplicate code ${assetInput.code}")
-                    }
+                    requireNewCode(seenCodes, assetInput.code, line)
                     assetInputs[assetInput.code] = assetInput
                 }
                 row = reader.readNext()
             }
         }
-        if (assetInputs.isEmpty()) {
-            throw BusinessException("No assets to import")
-        }
+        return assetInputs
+    }
 
-        return assetService.handle(AssetRequest(assetInputs))
+    // Owned codes are stored upper-cased, so a repeat differing only in case is the same asset.
+    private fun requireNewCode(
+        seenCodes: MutableSet<String>,
+        code: String,
+        line: Int
+    ) {
+        if (!seenCodes.add(code.uppercase())) {
+            throw BusinessException("Line $line: duplicate code $code")
+        }
+    }
+
+    /** A row that carries an asset: not the optional header on line 1, and not blank. */
+    private fun isAssetRow(
+        row: Array<String>,
+        line: Int
+    ): Boolean {
+        val isHeader = line == 1 && isHeaderRow(row)
+        return !isHeader && row.isNotEmpty() && row[0].isNotBlank()
     }
 
     private fun isHeaderRow(row: Array<String>): Boolean =

@@ -84,7 +84,6 @@ class CorporateEventController(
         value = ["/{eventId}"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
-    @ResponseStatus(HttpStatus.ACCEPTED)
     @Operation(
         summary = "Reprocess a corporate event",
         description = """
@@ -92,9 +91,9 @@ class CorporateEventController(
             This endpoint:
 
             * Finds the event by its unique identifier
-            * Processes the event to generate dividend or split transactions
-            * Returns the event details
-            * Returns immediately (asynchronous processing)
+            * Generates a proposed dividend or split transaction for each portfolio that
+              held the asset on the record date, sent once the work commits
+            * Runs synchronously and returns the event once distribution has finished
 
             Use this to reprocess events that may have failed or need to be regenerated.
         """
@@ -102,8 +101,8 @@ class CorporateEventController(
     @ApiResponses(
         value = [
             ApiResponse(
-                responseCode = "202",
-                description = "Event reprocessing accepted and started"
+                responseCode = "200",
+                description = "Event reprocessed"
             ),
             ApiResponse(
                 responseCode = "400",

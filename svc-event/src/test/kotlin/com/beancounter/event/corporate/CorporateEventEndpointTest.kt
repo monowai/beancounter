@@ -2,7 +2,11 @@ package com.beancounter.event.corporate
 
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
+import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
+import com.beancounter.common.utils.DateUtils
+import com.beancounter.event.backfill.BackFillService
+import com.beancounter.event.backfill.EventLoader
 import com.beancounter.event.distribution.EventDistribution
 import com.beancounter.event.utils.TestHelpers
 import org.assertj.core.api.Assertions.assertThat
@@ -18,6 +22,7 @@ import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.LocalDate
 
@@ -34,6 +39,18 @@ class CorporateEventEndpointTest {
 
     @MockitoBean
     private lateinit var eventDistribution: EventDistribution
+
+    @MockitoBean
+    private lateinit var backFillService: BackFillService
+
+    @MockitoBean
+    private lateinit var eventLoader: EventLoader
+
+    @MockitoBean
+    private lateinit var portfolioService: PortfolioServiceClient
+
+    @Autowired
+    private lateinit var dateUtils: DateUtils
 
     @Autowired
     private lateinit var eventStore: CorporateEventStore
@@ -100,4 +117,55 @@ class CorporateEventEndpointTest {
         assetId: String,
         recordDate: String
     ) = TestHelpers.createTestCorporateEvent(assetCode = assetId, recordDate = LocalDate.parse(recordDate))
+
+    @Test
+    fun `should return 200 once a portfolio backfill has run`() {
+        mockMvc
+            .perform(
+                post("/backfill/{portfolioId}", "sync-portfolio")
+                    .with(jwt().jwt(mockAuthConfig.getUserToken()))
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.status").value("completed"))
+    }
+
+    @Test
+    fun `should return 200 once a portfolio load has run`() {
+        mockMvc
+            .perform(
+                post("/load/{portfolioId}", "sync-portfolio")
+                    .with(jwt().jwt(mockAuthConfig.getUserToken()))
+            ).andExpect(status().isOk)
+            .andExpect(jsonPath("$.status").value("completed"))
+    }
+
+    @Test
+    fun `should return 200 once an event has been reprocessed`() {
+        val event = eventStore.save(TestHelpers.createTestCorporateEvent(assetCode = "reprocess-sync"))
+
+        mockMvc
+            .perform(
+                post("/{eventId}", event.id)
+                    .with(jwt().jwt(mockAuthConfig.getUserToken()))
+            ).andExpect(status().isOk)
+    }
+
+    @Test
+    fun `should return 400 without loading when the load date is after today`() {
+        val tomorrow = dateUtils.date.plusDays(1).toString()
+
+        mockMvc
+            .perform(
+                post("/load")
+                    .param("fromDate", tomorrow)
+                    .with(jwt().jwt(mockAuthConfig.getUserToken()))
+            ).andExpect(status().isBadRequest)
+        mockMvc
+            .perform(
+                post("/load/{portfolioId}", "future-portfolio")
+                    .param("asAt", tomorrow)
+                    .with(jwt().jwt(mockAuthConfig.getUserToken()))
+            ).andExpect(status().isBadRequest)
+
+        verifyNoInteractions(eventLoader)
+    }
 }

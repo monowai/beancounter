@@ -4,8 +4,10 @@ import com.beancounter.common.contracts.AggregatedPerformanceData
 import com.beancounter.common.contracts.AggregatedPerformanceDataPoint
 import com.beancounter.common.contracts.AggregatedPerformanceResponse
 import com.beancounter.common.contracts.PerformanceData
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.CashFlow
 import com.beancounter.common.model.Currency
+import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.PeriodicCashFlows
 import com.beancounter.common.model.Portfolio
 import com.beancounter.position.irr.IrrCalculator
@@ -42,7 +44,7 @@ class AggregatePerformanceComposer(
         displayCurrency: Currency,
         fxRates: Map<String, BigDecimal>
     ): AggregatedPerformanceResponse {
-        val perPortfolioFx = toDisplaySeries(perPortfolio, fxRates)
+        val perPortfolioFx = toDisplaySeries(perPortfolio, displayCurrency, fxRates)
         if (perPortfolioFx.isEmpty()) {
             return AggregatedPerformanceResponse(AggregatedPerformanceData(displayCurrency))
         }
@@ -64,16 +66,21 @@ class AggregatePerformanceComposer(
 
     /**
      * Discard empty per-portfolio series. Sort each surviving series by date and convert it to
-     * the display currency once.
+     * the display currency once. A portfolio currency with no rate fails the aggregate.
      */
     private fun toDisplaySeries(
         perPortfolio: List<Pair<Portfolio, PerformanceData>>,
+        displayCurrency: Currency,
         fxRates: Map<String, BigDecimal>
     ): List<List<DisplaySnapshot>> =
         perPortfolio
             .filter { (_, data) -> data.series.isNotEmpty() }
             .map { (portfolio, data) ->
-                val rate = fxRates[portfolio.currency.code] ?: BigDecimal.ONE
+                val rate =
+                    fxRates[portfolio.currency.code]
+                        ?: throw BusinessException(
+                            "No FX rate for ${IsoCurrencyPair(portfolio.currency.code, displayCurrency.code)}"
+                        )
                 data.series
                     .sortedBy { it.date }
                     .map { p ->

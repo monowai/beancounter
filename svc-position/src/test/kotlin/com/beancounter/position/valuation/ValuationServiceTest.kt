@@ -7,6 +7,7 @@ import com.beancounter.common.contracts.FxPairResults
 import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.contracts.TrnResponse
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.Currency
@@ -30,6 +31,7 @@ import com.beancounter.position.marketvalue.PositionValuationService
 import com.beancounter.position.utils.ConcurrencyProbe
 import com.beancounter.position.utils.TestHelpers
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.catchThrowable
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
@@ -758,6 +760,13 @@ class ValuationServiceTest {
             }
         whenever(positionService.build(any(), any()))
             .thenReturn(PositionResponse(held))
+        whenever(fxRateService.getRates(any(), any())).thenReturn(
+            FxResponse(
+                FxPairResults(
+                    mapOf(IsoCurrencyPair("USD", "SGD") to FxRate(Currency("USD"), Currency("SGD"), BigDecimal("1.3")))
+                )
+            )
+        )
 
         // When - request aggregation in SGD
         val result =
@@ -850,6 +859,52 @@ class ValuationServiceTest {
         assertThat(portfolioBucket.purchases)
             .describedAs("purchases must be FX-converted alongside cost")
             .isEqualByComparingTo(BigDecimal("567000.00"))
+    }
+
+    @Test
+    fun `getAggregatedPositions fails naming the pair when a cost conversion rate is missing`() {
+        val nzdPortfolio = TestHelpers.createTestPortfolio("nzd-pf", currencyCode = "NZD", baseCurrency = "NZD")
+        val asset = TestHelpers.createTestAsset("HOUSE", "PRIVATE")
+        whenever(trnService.query(any<Portfolio>(), any<String>())).thenReturn(
+            TrnResponse(
+                listOf(
+                    TestHelpers.createTestTransaction(
+                        asset = asset,
+                        portfolio = nzdPortfolio,
+                        trnType = TrnType.BUY,
+                        quantity = BigDecimal.ONE,
+                        price = PRICE_150,
+                        tradeDate = LocalDate.of(2024, 1, 15)
+                    )
+                )
+            )
+        )
+        val held =
+            Positions(nzdPortfolio).apply {
+                add(
+                    Position(asset, nzdPortfolio).apply {
+                        quantityValues.purchased = BigDecimal.ONE
+                        getMoneyValues(Position.In.PORTFOLIO, Currency("NZD")).costBasis = PRICE_150
+                    }
+                )
+            }
+        whenever(positionService.build(any(), any())).thenReturn(PositionResponse(held))
+        // svc-data returns no NZD:USD rate.
+        whenever(fxRateService.getRates(any(), any())).thenReturn(FxResponse())
+
+        val thrown =
+            catchThrowable {
+                valuationService.getAggregatedPositions(
+                    AggregateValuationRequest(
+                        listOf(nzdPortfolio),
+                        DateUtils.TODAY,
+                        value = false,
+                        targetCurrencyCode = "USD"
+                    )
+                )
+            }
+
+        assertThat(thrown).isInstanceOf(BusinessException::class.java).hasMessageContaining("NZD:USD")
     }
 
     @Test

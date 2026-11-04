@@ -95,11 +95,11 @@ class PositionMoveService(
     }
 
     /**
-     * Net cash amount per cash asset id across the cash-impacting [transactions], paired with
-     * the last transaction seen for that cash asset (the source of its code and currency).
+     * Net cash amount per cash asset id across the cash-impacting [transactions], with the last
+     * transaction seen for that cash asset (the source of its code and currency).
      */
-    private fun netCashByAsset(transactions: List<Trn>): Map<String, Pair<BigDecimal, Trn>> {
-        val netByCashAsset = mutableMapOf<String, Pair<BigDecimal, Trn>>()
+    private fun netCashByAsset(transactions: List<Trn>): Map<String, NetCash> {
+        val netByCashAsset = mutableMapOf<String, NetCash>()
 
         transactions.forEach { trn ->
             val cashImpacted = TrnType.isCashImpacted(trn.trnType)
@@ -107,8 +107,8 @@ class PositionMoveService(
             val hasNonZeroCash = trn.cashAmount.compareTo(BigDecimal.ZERO) != 0
             if (cashImpacted && hasCashAsset && hasNonZeroCash) {
                 val cashAssetId = trn.cashAsset!!.id
-                val running = netByCashAsset[cashAssetId]?.first ?: BigDecimal.ZERO
-                netByCashAsset[cashAssetId] = running.add(trn.cashAmount) to trn
+                val running = netByCashAsset[cashAssetId]?.amount ?: BigDecimal.ZERO
+                netByCashAsset[cashAssetId] = NetCash(running.add(trn.cashAmount), trn)
                 log.debug(
                     "Compensating: {} {} cashAsset={} cashAmount={}",
                     trn.trnType,
@@ -144,7 +144,7 @@ class PositionMoveService(
         val targetInputs = mutableListOf<TrnInput>()
 
         netCashByAsset(transactions)
-            .filter { (_, net) -> net.first.compareTo(BigDecimal.ZERO) != 0 }
+            .filter { (_, net) -> net.amount.compareTo(BigDecimal.ZERO) != 0 }
             .forEach { (cashAssetId, net) ->
                 val (netAmount, trn) = net
                 val comment =
@@ -239,3 +239,9 @@ class PositionMoveService(
         trn.tradeCashRate = trnInput.tradeCashRate
     }
 }
+
+/** Netted cash [amount] for one cash asset, and the last [trn] that contributed to it. */
+private data class NetCash(
+    val amount: BigDecimal,
+    val trn: Trn
+)

@@ -156,6 +156,11 @@ class CashAutoSettleService(
         return AutoSettleResult(transactions = saved, warnings = warnings, replaced = stale)
     }
 
+    /**
+     * A skip result carrying one warning. [reason] is a lowercase verb phrase with no trailing
+     * punctuation ("has zero cash amount"); it is inserted between the trade label and
+     * "; cash auto-settle skipped".
+     */
     private fun skipped(
         trade: Trn,
         reason: String

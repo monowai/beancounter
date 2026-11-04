@@ -37,7 +37,8 @@ interface ConversationRepository : JpaRepository<Conversation, String> {
         pageable: Pageable
     ): List<Conversation>
 
-    fun findFirstByOwnerIdAndSubjectOrderByUpdatedAtDesc(
+    /** The owner's one conversation about [subject]; `(owner_id, subject)` is unique. */
+    fun findByOwnerIdAndSubject(
         ownerId: String,
         subject: String
     ): Conversation?

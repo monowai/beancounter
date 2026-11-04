@@ -1,7 +1,9 @@
 package com.beancounter.agent.conversation
 
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.data.domain.PageRequest
 import org.springframework.stereotype.Service
+import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.time.Clock
 import java.time.Duration
@@ -32,17 +34,25 @@ class ConversationAdmin(
 
     /**
      * The owner's conversation about [subject], started if there is none, so
-     * one subject has one thread. The newest wins if a race ever made two.
+     * one subject has one thread. `(owner_id, subject)` is unique: a racing
+     * first request that loses the insert reads the winner's row instead.
+     * Not transactional, so the lookup and the insert each commit on their
+     * own and a lost insert poisons no surrounding transaction.
      */
+    @Transactional(propagation = Propagation.NOT_SUPPORTED)
     fun findOrCreate(
         ownerId: String,
         subject: String
     ): Conversation =
-        conversations.findFirstByOwnerIdAndSubjectOrderByUpdatedAtDesc(ownerId, subject)
-            ?: clock.instant().let { now ->
-                conversations.save(
+        conversations.findByOwnerIdAndSubject(ownerId, subject)
+            ?: try {
+                val now = clock.instant()
+                conversations.saveAndFlush(
                     Conversation(ownerId = ownerId, createdAt = now, updatedAt = now, subject = subject)
                 )
+            } catch (_: DataIntegrityViolationException) {
+                conversations.findByOwnerIdAndSubject(ownerId, subject)
+                    ?: throw IllegalStateException("Conversation for subject vanished after a duplicate insert")
             }
 
     @Transactional(readOnly = true)

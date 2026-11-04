@@ -942,6 +942,68 @@ class ValuationServiceTest {
     }
 
     @Test
+    fun `getAggregatedPositions sums earmarked cash in the cash asset's own units across portfolio currencies`() {
+        // Earmarked quantity is a count of the cash asset (USD units here), exactly like its
+        // settled quantity, whatever currency the holding portfolio reports in. Aggregation
+        // is keyed by asset, so both portfolios' USD cash lands on one position and the units
+        // add raw; MarketValue then prices units into each bucket with the bucket's close
+        // (see MarketValueTest). Converting the quantity here would price it twice.
+        val nzdPortfolio = TestHelpers.createTestPortfolio("nzd-pf", currencyCode = "NZD", baseCurrency = "NZD")
+        val usdPortfolio = TestHelpers.createTestPortfolio("usd-pf")
+        val usdCash =
+            TestHelpers.createTestAsset("USD", "CASH").apply {
+                assetCategory = AssetCategory(AssetCategory.CASH, "Cash")
+            }
+        mapOf(nzdPortfolio to BigDecimal("100"), usdPortfolio to BigDecimal("-30")).forEach { (p, earmark) ->
+            val trn =
+                TestHelpers.createTestTransaction(
+                    asset = usdCash,
+                    portfolio = p,
+                    trnType = TrnType.DEPOSIT,
+                    quantity = BigDecimal("1000"),
+                    price = BigDecimal.ONE,
+                    tradeDate = LocalDate.of(2024, 1, 15)
+                )
+            whenever(trnService.query(argThat { id == p.id }, any<String>())).thenReturn(TrnResponse(listOf(trn)))
+            val held =
+                Positions(p).apply {
+                    add(
+                        Position(usdCash, p).apply {
+                            quantityValues.purchased = BigDecimal("1000")
+                            earmarkedQuantity = earmark
+                        }
+                    )
+                }
+            whenever(positionService.build(eq(p), any())).thenReturn(PositionResponse(held))
+        }
+        whenever(fxRateService.getRates(any(), any())).thenReturn(
+            FxResponse(
+                FxPairResults(
+                    listOf("NZD" to "SGD", "USD" to "SGD", "USD" to "NZD").associate { (from, to) ->
+                        IsoCurrencyPair(from, to) to FxRate(Currency(from), Currency(to), BigDecimal("0.8"))
+                    }
+                )
+            )
+        )
+
+        val result =
+            valuationService.getAggregatedPositions(
+                AggregateValuationRequest(
+                    listOf(nzdPortfolio, usdPortfolio),
+                    DateUtils.TODAY,
+                    value = false,
+                    targetCurrencyCode = "SGD"
+                )
+            )
+
+        val cash =
+            result.data.positions.values
+                .single()
+        assertThat(cash.quantityValues.getTotal()).isEqualByComparingTo("2000")
+        assertThat(cash.earmarkedQuantity).isEqualByComparingTo("70")
+    }
+
+    @Test
     fun `getAggregatedPositions applies per-portfolio splits once and sums cost across portfolios`() {
         // Real accumulator: the split / cost-basis logic only misbehaves end-to-end.
         // A mocked positionService.build cannot reproduce a corporate-action bug.

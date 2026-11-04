@@ -168,7 +168,7 @@ private class SnapshotReplay(
      * with no market price is carried at average cost, which a first ADD only sets and
      * a REDUCE to zero clears, so the value is read after the trn and, failing that,
      * [before] it. With neither a price nor a cost basis, the trn's own amount is the
-     * value moved; only when that is zero too is the flow left out.
+     * value moved; only when that is zero too, or no units moved, is the flow left out.
      */
     private fun inKindValue(
         trn: Trn,
@@ -177,10 +177,10 @@ private class SnapshotReplay(
         val after = inKindState(trn) ?: return null
         val unitsMoved = after.units.subtract(before.units)
         val unitValue = after.unitValue ?: before.unitValue
-        return if (unitValue != null) {
-            unitsMoved.multiply(unitValue).setScale(2, RoundingMode.HALF_UP)
-        } else {
-            tradeAmountFlow(trn, unitsMoved)
+        return when {
+            unitValue != null -> unitsMoved.multiply(unitValue).setScale(2, RoundingMode.HALF_UP)
+            unitsMoved.signum() == 0 -> null
+            else -> tradeAmountFlow(trn, unitsMoved)
         }
     }
 

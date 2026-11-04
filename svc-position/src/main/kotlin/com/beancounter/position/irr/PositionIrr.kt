@@ -82,7 +82,7 @@ class PositionIrr(
 
     /**
      * IRR of [periodicCashFlows]. Zero is a real answer: a 0% return, or a series with no
-     * IRR (no sign change, no cost basis), which [IrrCalculator.calculate] logs itself.
+     * IRR (no sign change, no cost basis), which [IrrCalculator.calculate] logs at debug.
      */
     fun of(periodicCashFlows: PeriodicCashFlows): BigDecimal =
         BigDecimal.valueOf(irrCalculator.calculate(periodicCashFlows))

@@ -172,7 +172,7 @@ class PerformanceInputs(
         portfolio: Portfolio
     ): Set<IsoCurrencyPair> =
         transactions
-            .flatMap { trn -> listOfNotNull(trn.tradeCurrency, trn.cashCurrency) }
+            .flatMap { trn -> listOfNotNull(trn.tradeCurrency, trn.cashCurrency, trn.asset.market.currency) }
             .mapNotNull { currency -> toPair(currency, portfolio.currency) }
             .toSet()
 

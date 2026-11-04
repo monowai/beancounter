@@ -207,6 +207,23 @@ class PerformanceInKindTransferTest {
     }
 
     @Test
+    fun `should add no flow for an in-specie trn that moves no units`() {
+        givenTrns(
+            deposit(today.minusMonths(6), "1000"),
+            inKind(TrnType.ADD, today.minusMonths(2), quantity = "0", price = "0").copy(tradeAmount = BigDecimal("300"))
+        )
+        lenient().`when`(priceService.getBulkPrices(any(), any())).thenReturn(BulkPriceResponse(emptyMap()))
+
+        val last =
+            performanceService
+                .calculate(portfolio, 12)
+                .data.series
+                .last()
+
+        assertThat(last.netContributions).isEqualByComparingTo("1000")
+    }
+
+    @Test
     fun `should treat a buy settled outside the portfolio as money in`() {
         givenTrns(
             deposit(today.minusMonths(6), "1000"),

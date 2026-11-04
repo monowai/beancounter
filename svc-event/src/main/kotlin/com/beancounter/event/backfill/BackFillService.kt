@@ -54,11 +54,11 @@ class BackFillService(
                     assets,
                     asAtDate
                 )
+            log.trace("Publish events: ${events.size}, asAt: $asAtDate")
             for (event in events) {
-                log.trace("Publish events: ${events.size}, asAt: $asAtDate")
                 eventDistribution.processEvent(event)
-                eventCount += events.size
             }
+            eventCount += events.size
         }
         // Record backfill operation metrics
         eventMetrics.recordBackfillOperation(eventCount)

@@ -10,6 +10,7 @@ import com.beancounter.marketdata.Constants.Companion.MSFT
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.cash.AutoSettleResult
 import com.beancounter.marketdata.cash.CashAutoSettleService
+import com.beancounter.marketdata.trn.TrnChangeEffects
 import com.beancounter.marketdata.trn.TrnRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -46,8 +47,7 @@ class TrnSettlementServiceTest {
             TrnSettlementService(
                 trnRepository,
                 fxTransactions,
-                cashAutoSettleService,
-                org.mockito.kotlin.mock(),
+                TrnChangeEffects(cashAutoSettleService, org.mockito.kotlin.mock()),
                 org.mockito.kotlin.mock(),
                 org.mockito.kotlin.mock(),
                 org.mockito.kotlin.mock(),

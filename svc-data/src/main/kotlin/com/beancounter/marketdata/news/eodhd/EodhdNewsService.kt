@@ -1,36 +1,14 @@
 package com.beancounter.marketdata.news.eodhd
 
-import com.beancounter.common.input.AssetInput
-import com.beancounter.common.telemetry.runBlockingTraced
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.news.NewsArticle
 import com.beancounter.marketdata.news.NewsArticleRepo
-import com.beancounter.marketdata.news.NewsArticleTicker
 import com.beancounter.marketdata.news.NewsFetch
-import com.beancounter.marketdata.news.NewsFetchRepo
 import com.beancounter.marketdata.news.NewsProvider
-import com.beancounter.marketdata.news.embedding.EmbeddingCodec
-import com.beancounter.marketdata.news.embedding.NewsEmbedder
 import com.beancounter.marketdata.news.embedding.NewsEmbeddingProperties
-import com.beancounter.marketdata.news.embedding.TopicAnchorStore
-import com.beancounter.marketdata.providers.eodhd.EodhdConfig
-import com.beancounter.marketdata.providers.eodhd.EodhdPriceService
-import com.beancounter.marketdata.providers.eodhd.EodhdProxy
-import com.beancounter.marketdata.providers.eodhd.model.EodhdNewsArticle
 import jakarta.transaction.Transactional
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
-import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withPermit
-import org.slf4j.LoggerFactory
-import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
 import java.time.LocalDateTime
-import java.time.OffsetDateTime
-import java.time.ZoneOffset
-import java.time.format.DateTimeParseException
 
 /**
  * DB-backed EODHD news adapter. The read path always returns from the [NewsArticle] table; the
@@ -45,23 +23,13 @@ import java.time.format.DateTimeParseException
  */
 @Service
 class EodhdNewsService(
-    private val eodhdProxy: EodhdProxy,
-    private val eodhdConfig: EodhdConfig,
     private val newsProperties: EodhdNewsProperties,
     private val newsArticleRepo: NewsArticleRepo,
-    private val newsFetchRepo: NewsFetchRepo,
-    private val assetFinder: AssetFinder,
-    private val newsEmbedder: NewsEmbedder,
-    private val embeddingProperties: NewsEmbeddingProperties,
-    private val topicAnchorStore: TopicAnchorStore,
+    private val symbols: EodhdNewsSymbols,
+    private val refresh: EodhdNewsRefresh,
+    embeddingProperties: NewsEmbeddingProperties,
     private val dateUtils: DateUtils = DateUtils()
 ) : NewsProvider {
-    private val log = LoggerFactory.getLogger(EodhdNewsService::class.java)
-
-    // Bounds the upstream fan-out so a large holdings list can't fire one EODHD request per ticker
-    // simultaneously — that would amplify load and trip the shared ~1200/day quota in a single burst.
-    private val fetchGate = Semaphore(MAX_CONCURRENT_FETCHES)
-
     private val briefing = NewsBriefing(newsProperties, embeddingProperties)
 
     @Transactional
@@ -69,7 +37,7 @@ class EodhdNewsService(
         tickers: String,
         market: String?,
         topics: String?
-    ): Map<String, Any> = newsForSymbols(resolveSymbols(tickers, market), topics)
+    ): Map<String, Any> = newsForSymbols(symbols.forTickers(tickers, market), topics)
 
     /**
      * Market / sector news via proxy symbols. svc-agent passes already-resolved EODHD symbols
@@ -82,26 +50,18 @@ class EodhdNewsService(
     override fun getMarketNews(
         symbols: List<String>,
         topics: String?
-    ): Map<String, Any> = newsForSymbols(symbols.map { it.trim().uppercase() }.filter { it.isNotBlank() }, topics)
+    ): Map<String, Any> = newsForSymbols(this.symbols.forMarket(symbols), topics)
 
     /**
      * Broad macro/topic news (`stock markets`, `economy`, `inflation`, …) rather than news pinned
      * to a ticker or index. Each topic maps to a synthetic key (`TOPIC:STOCK_MARKETS`) that reuses
      * the exact same DB-backed refresh / cooldown / rank / project pipeline as ticker news — the
-     * key is stored as the article's "ticker" tag via [applyIncoming], so [NewsArticleRepo.findByTickersAfter]
-     * finds it the same way it finds a held symbol.
+     * key is stored as the article's "ticker" tag by [EodhdNewsIngest], so
+     * [NewsArticleRepo.findByTickersAfter] finds it the same way it finds a held symbol.
      */
     @Transactional
     override fun getTopicNews(topics: List<String>): Map<String, Any> {
-        // Map key -> original (untruncated) topic so refreshStaleSymbols can recover the full
-        // EODHD tag even when the key itself was truncated to fit the ticker columns (see
-        // topicKey/topicTagFor). Built via associateBy so a key collision after truncation just
-        // keeps the last topic that produced it, rather than fetching for both.
-        val keyToTopic =
-            topics
-                .map { it.trim() }
-                .filter { it.isNotBlank() }
-                .associateBy { topicKey(it) }
+        val keyToTopic = symbols.forTopics(topics)
         return newsForSymbols(keyToTopic.keys.toList(), null, keyToTopic)
     }
 
@@ -117,8 +77,7 @@ class EodhdNewsService(
     ): Map<String, Any> {
         if (symbols.isEmpty()) return emptyMap()
 
-        val refreshCutoff = LocalDateTime.now(dateUtils.zoneId).minusHours(newsProperties.refreshAfterHours)
-        refreshStaleSymbols(symbols.filter { shouldRefresh(it, refreshCutoff) }, topicTags)
+        refresh.refreshStale(symbols, topicTags)
 
         val retentionStart = LocalDateTime.now(dateUtils.zoneId).minusDays(newsProperties.retentionDays)
         val stored = newsArticleRepo.findByTickersAfter(symbols, retentionStart)
@@ -129,427 +88,5 @@ class EodhdNewsService(
             "feed" to ranked,
             "count" to ranked.size
         )
-    }
-
-    private fun shouldRefresh(
-        symbol: String,
-        cutoff: LocalDateTime
-    ): Boolean {
-        val meta = newsFetchRepo.findById(symbol).orElse(null)
-        return meta == null || meta.lastFetchedAt.isBefore(cutoff)
-    }
-
-    /**
-     * Refresh each stale symbol from EODHD. The upstream HTTP call is the slow part — one network
-     * round-trip per symbol — so the fetches fan out across [Dispatchers.IO] and run concurrently.
-     * A 10-ticker agent query that previously did 10 serial round-trips (~21s observed in Sentry)
-     * collapses to a single round-trip's latency.
-     *
-     * Persistence stays on the calling thread. This method runs inside a `@Transactional` boundary,
-     * and the bound Hibernate session is single-threaded — DB writes must never touch it from a
-     * coroutine dispatcher thread. So coroutines do network-only work; the results are persisted
-     * serially here. [runBlockingTraced] keeps the OTel/Sentry span attached across the dispatcher
-     * switch (see jar-common CoroutineTracing).
-     */
-    private fun refreshStaleSymbols(
-        symbols: List<String>,
-        topicTags: Map<String, String> = emptyMap()
-    ) {
-        if (symbols.isEmpty()) return
-        val fetched =
-            runBlockingTraced {
-                symbols
-                    .map { symbol ->
-                        async(Dispatchers.IO) { fetchGate.withPermit { symbol to fetchFor(symbol, topicTags) } }
-                    }.awaitAll()
-            }
-        for ((symbol, outcome) in fetched) {
-            persist(symbol, outcome)
-        }
-    }
-
-    /** Dispatch by key shape: a synthetic `TOPIC:` key fetches by topic tag, anything else by ticker. */
-    private fun fetchFor(
-        key: String,
-        topicTags: Map<String, String> = emptyMap()
-    ): FetchResult = if (key.startsWith(TOPIC_PREFIX)) fetchUpstreamTopic(key, topicTags) else fetchUpstream(key)
-
-    private fun fetchUpstream(symbol: String): FetchResult =
-        try {
-            FetchResult.Success(
-                eodhdProxy.getNews(
-                    symbol = symbol,
-                    limit = newsProperties.providerLimit,
-                    from = null,
-                    apiKey = eodhdConfig.apiKey
-                )
-            )
-        } catch (
-            @Suppress("TooGenericExceptionCaught")
-            e: Exception
-        ) {
-            log.debug("EODHD news lookup failed for {}: {}", symbol, e.message)
-            FetchResult.Failure
-        }
-
-    private fun fetchUpstreamTopic(
-        key: String,
-        topicTags: Map<String, String> = emptyMap()
-    ): FetchResult =
-        try {
-            val from = dateUtils.date.minusDays(newsProperties.topicWindowDays).toString()
-            FetchResult.Success(
-                eodhdProxy.getNewsByTopic(
-                    topic = topicTagFor(key, topicTags),
-                    limit = newsProperties.providerLimit,
-                    from = from,
-                    apiKey = eodhdConfig.apiKey
-                )
-            )
-        } catch (
-            @Suppress("TooGenericExceptionCaught")
-            e: Exception
-        ) {
-            log.debug("EODHD topic news lookup failed for {}: {}", key, e.message)
-            FetchResult.Failure
-        }
-
-    /**
-     * "stock markets" -> "TOPIC:STOCK_MARKETS". Truncated to [TOPIC_KEY_MAX_SUFFIX] chars so the
-     * result always fits the `news_fetch.ticker` / `news_article_ticker.ticker` VARCHAR(32) columns
-     * regardless of how long an arbitrary `/news/topic` input is. Truncation is lossy — see
-     * [topicTagFor] for why the upstream EODHD call must NOT be derived from this key.
-     */
-    private fun topicKey(topic: String): String =
-        TOPIC_PREFIX +
-            topic
-                .trim()
-                .uppercase()
-                .replace(" ", "_")
-                .take(TOPIC_KEY_MAX_SUFFIX)
-
-    /**
-     * The EODHD tag for topic key [key]. Prefers the original, untruncated topic carried in
-     * [topicTags] (populated by [getTopicNews] for every key it mints) — [topicKey] truncates to
-     * fit the VARCHAR(32) ticker columns, so reconstructing the tag FROM the (possibly truncated)
-     * key would silently send EODHD a corrupted tag for any topic longer than
-     * [TOPIC_KEY_MAX_SUFFIX] characters. The key-derived fallback only exists for callers that
-     * don't have (or need) the original — it's exact for any key that was never truncated.
-     */
-    private fun topicTagFor(
-        key: String,
-        topicTags: Map<String, String> = emptyMap()
-    ): String = topicTags[key]?.lowercase() ?: key.removePrefix(TOPIC_PREFIX).lowercase().replace("_", " ")
-
-    private fun persist(
-        symbol: String,
-        outcome: FetchResult
-    ) {
-        when (outcome) {
-            is FetchResult.Success -> {
-                upsertAll(symbol, outcome.articles)
-                newsFetchRepo.save(NewsFetch(symbol, LocalDateTime.now(dateUtils.zoneId), outcome.articles.size))
-            }
-            FetchResult.Failure -> {
-                // Burn the refresh cooldown even on failure — otherwise a transient EODHD outage
-                // or 429 turns every subsequent request into a quota-amplifying retry storm. Next
-                // attempt waits `refresh-after-hours`, matching the success-path backoff. Articles
-                // already in the DB keep serving in the meantime.
-                val existing =
-                    newsFetchRepo
-                        .findById(symbol)
-                        .orElseGet { NewsFetch(ticker = symbol, lastFetchedAt = LocalDateTime.now(dateUtils.zoneId)) }
-                existing.lastFetchedAt = LocalDateTime.now(dateUtils.zoneId)
-                newsFetchRepo.save(existing)
-            }
-        }
-    }
-
-    private sealed interface FetchResult {
-        data class Success(
-            val articles: List<EodhdNewsArticle>
-        ) : FetchResult
-
-        data object Failure : FetchResult
-    }
-
-    private fun upsertAll(
-        symbol: String,
-        fresh: List<EodhdNewsArticle>
-    ) {
-        val prepared = computeEmbeddings(fresh)
-        for (incoming in fresh) {
-            val externalId = externalIdOf(incoming)
-            saveOrMerge(symbol, externalId, incoming, prepared.embeddings[externalId], prepared.existing[externalId])
-        }
-    }
-
-    /** EODHD's link is the dedup key; a blank one falls back to the date+title pair. */
-    private fun externalIdOf(incoming: EodhdNewsArticle): String =
-        incoming.link.ifBlank { "${incoming.date}|${incoming.title}" }
-
-    /**
-     * Batch-embeds the [fresh] articles that actually need a (re)computed vector, skipping any
-     * whose stored row already carries an embedding for the current [NewsEmbedder.modelId] with
-     * an unchanged title — EODHD republishes the same article on every poll, so without this every
-     * refresh would re-embed its whole feed. A no-op entirely when [newsEmbedder] is inactive (the
-     * default), so the noop path never touches the repo for this.
-     *
-     * The rows loaded here for the currency check are carried out in [Prepared.existing] and handed
-     * to [saveOrMerge], which would otherwise re-query every `external_id` a second time — 2N
-     * lookups per embed-enabled refresh instead of N.
-     *
-     * Runs before the (still serial, calling-thread) persist loop in [upsertAll]. The embed call
-     * is network I/O against `bc-embed`, but it only produces plain [FloatArray] values here — no
-     * entity or Hibernate session is touched off-thread.
-     */
-    private fun computeEmbeddings(fresh: List<EodhdNewsArticle>): Prepared {
-        if (!newsEmbedder.active || fresh.isEmpty()) return Prepared()
-
-        val candidates =
-            fresh.map { incoming ->
-                val externalId = externalIdOf(incoming)
-                Candidate(externalId, incoming, newsArticleRepo.findByExternalId(externalId).orElse(null))
-            }
-        val existing = candidates.mapNotNull { c -> c.existing?.let { c.externalId to it } }.toMap()
-        val toEmbed = candidates.filterNot { isEmbeddingCurrent(it.existing, it.incoming.title) }
-        return if (toEmbed.isEmpty()) Prepared(existing = existing) else embed(toEmbed, existing)
-    }
-
-    private fun embed(
-        toEmbed: List<Candidate>,
-        existing: Map<String, NewsArticle>
-    ): Prepared {
-        val texts = toEmbed.map { embeddingText(it.incoming, it.existing?.summary) }
-        val vectors = newsEmbedder.embed(texts)
-        if (vectors.size != texts.size) {
-            // Partial-batch failure (or a provider that doesn't honour request order/size).
-            // Discarding the whole round is deliberate — a positional zip here would silently pair
-            // the wrong vector with the wrong article, which is worse than skipping embedding
-            // until the next refresh.
-            log.warn(
-                "news_embedding: {} returned {} vector(s) for {} text(s) — skipping this batch",
-                newsEmbedder.modelId,
-                vectors.size,
-                texts.size
-            )
-            return Prepared(existing = existing)
-        }
-
-        return Prepared(
-            embeddings =
-                toEmbed
-                    .zip(vectors) { candidate, vector ->
-                        candidate.externalId to ArticleEmbedding(vector, newsEmbedder.modelId)
-                    }.toMap(),
-            existing = existing
-        )
-    }
-
-    /** Per-refresh ingest scratch: fresh vectors by externalId, plus the rows already loaded for them. */
-    private class Prepared(
-        val embeddings: Map<String, ArticleEmbedding> = emptyMap(),
-        val existing: Map<String, NewsArticle> = emptyMap()
-    )
-
-    private fun isEmbeddingCurrent(
-        existing: NewsArticle?,
-        incomingTitle: String
-    ): Boolean =
-        existing != null &&
-            existing.embedding != null &&
-            existing.embeddingModel == newsEmbedder.modelId &&
-            existing.title == incomingTitle
-
-    private fun embeddingText(
-        incoming: EodhdNewsArticle,
-        existingSummary: String?
-    ): String {
-        val tail = existingSummary?.takeIf { it.isNotBlank() } ?: incoming.content
-        return "${incoming.title}. $tail".take(EMBEDDING_TEXT_MAX_CHARS)
-    }
-
-    private data class Candidate(
-        val externalId: String,
-        val incoming: EodhdNewsArticle,
-        val existing: NewsArticle?
-    )
-
-    private class ArticleEmbedding(
-        val vector: FloatArray,
-        val model: String
-    )
-
-    /**
-     * Defensive upsert: read-then-save can race when two concurrent refreshes for overlapping
-     * tickers find the same `external_id` missing and both try to insert. The DB unique constraint
-     * catches one transaction with a [DataIntegrityViolationException]; we then re-fetch the row
-     * the winner inserted and merge our fields into it. Idempotent — at worst we do one extra read
-     * + write on contention.
-     */
-    private fun saveOrMerge(
-        symbol: String,
-        externalId: String,
-        incoming: EodhdNewsArticle,
-        embedding: ArticleEmbedding?,
-        preloaded: NewsArticle?
-    ) {
-        // Reuses the row computeEmbeddings already loaded, when it loaded one.
-        val existing = preloaded ?: newsArticleRepo.findByExternalId(externalId).orElse(null)
-        val article =
-            existing ?: NewsArticle(
-                externalId = externalId,
-                // Placeholder — applyIncoming() overwrites both stamps immediately below.
-                published = LocalDateTime.now(dateUtils.zoneId),
-                fetchedAt = LocalDateTime.now(dateUtils.zoneId)
-            )
-        applyIncoming(article, externalId, symbol, incoming, embedding)
-        try {
-            newsArticleRepo.save(article)
-        } catch (e: DataIntegrityViolationException) {
-            val winner = newsArticleRepo.findByExternalId(externalId).orElseThrow { e }
-            applyIncoming(winner, externalId, symbol, incoming, embedding)
-            newsArticleRepo.save(winner)
-        }
-    }
-
-    private fun applyIncoming(
-        article: NewsArticle,
-        externalId: String,
-        symbol: String,
-        incoming: EodhdNewsArticle,
-        embedding: ArticleEmbedding?
-    ) {
-        // Captured before the overwrite below — decides whether a vector carried over from a
-        // previous round still describes this article (see the embedding block at the end).
-        val textChanged = article.title != incoming.title || article.content != incoming.content
-
-        article.externalId = externalId
-        article.published = parsePublished(incoming.date)
-        article.title = incoming.title
-        article.content = incoming.content
-        article.link = incoming.link
-        incoming.sentiment?.let { s ->
-            article.polarity = s.polarity
-            article.sentimentPos = s.pos
-            article.sentimentNeg = s.neg
-            article.sentimentNeu = s.neu
-        }
-        article.source = "EODHD"
-        article.fetchedAt = LocalDateTime.now(dateUtils.zoneId)
-
-        // Refresh the tag set — EODHD can revise tags between fetches.
-        article.tags.clear()
-        article.tags.addAll(incoming.tags)
-
-        // Symbols: keep raw EODHD tickers + ensure the queried symbol is always present so a
-        // ticker that only appears in `symbols[]` on one update isn't lost.
-        val symbolSet = (incoming.symbols + symbol).toSet()
-        val existingTickers = article.tickerLinks.map { it.ticker }.toSet()
-        for (t in symbolSet - existingTickers) {
-            article.tickerLinks.add(NewsArticleTicker(ticker = t))
-        }
-
-        // Only present when computeEmbeddings() actually (re)computed a vector this round — a
-        // skip-recompute hit (title + model unchanged) leaves the article's existing
-        // embedding/embeddingModel/derivedTopics untouched.
-        if (embedding != null) {
-            article.embedding = EmbeddingCodec.encode(embedding.vector)
-            article.embeddingModel = embedding.model
-            article.derivedTopics.clear()
-            article.derivedTopics.addAll(
-                topicAnchorStore.matchingTopics(embedding.vector, embeddingProperties.topicThreshold)
-            )
-        } else if (textChanged && article.embedding != null) {
-            // Text moved on but no fresh vector was produced — the embedder is inactive, or its
-            // batch was discarded. The stored vector and derived topics describe the superseded
-            // text, so keeping them would dedup and topic-tag this article against a body it no
-            // longer has. Clearing costs one refresh cycle of dedup coverage; the next
-            // embed-enabled round recomputes (isEmbeddingCurrent sees a null embedding).
-            article.embedding = null
-            article.embeddingModel = null
-            article.derivedTopics.clear()
-        }
-    }
-
-    private fun parsePublished(raw: String): LocalDateTime =
-        try {
-            // EODHD ships `2026-05-15T05:15:00+00:00` — keep an OffsetDateTime parse for safety.
-            OffsetDateTime.parse(raw).toLocalDateTime()
-        } catch (
-            @Suppress("SwallowedException")
-            e: DateTimeParseException
-        ) {
-            try {
-                LocalDateTime.parse(raw)
-            } catch (
-                @Suppress("SwallowedException")
-                e2: DateTimeParseException
-            ) {
-                LocalDateTime.now(ZoneOffset.UTC)
-            }
-        }
-
-    private fun resolveSymbols(
-        tickers: String,
-        market: String?
-    ): List<String> {
-        val exchange =
-            if (market.isNullOrBlank()) {
-                "US"
-            } else {
-                // Caller-supplied market codes are not guaranteed to be ours, and
-                // MarketService is @Transactional — catching its exception left the
-                // caller's transaction rollback-only (#1088).
-                eodhdConfig.marketService
-                    .getMarketOrNull(market)
-                    ?.getAlias(EodhdPriceService.ID)
-                    ?: market.also { log.debug("No EODHD alias for market {}", it) }
-            }
-        val bcMarket = if (market.isNullOrBlank()) "US" else market
-        return tickers
-            .split(",")
-            .map { it.trim().uppercase() }
-            .filter { it.matches(TICKER_PATTERN) }
-            .map { "${priceSymbolFor(it, bcMarket)}.$exchange" }
-    }
-
-    /**
-     * Map a BC asset code to the symbol EODHD actually indexes news under. BC stores the canonical
-     * EODHD ticker in `Asset.priceSymbol` (e.g. code `BRK.B` → priceSymbol `BRK-B`, since EODHD uses
-     * a hyphen for US class shares). Without this, a naive `code.exchange` build (`BRK.B.US`) has no
-     * EODHD coverage and the agent wrongly falls back to general knowledge. Unknown tickers (not held
-     * locally) and lookup failures fall back to the raw code so ad-hoc queries still work.
-     */
-    private fun priceSymbolFor(
-        code: String,
-        bcMarket: String
-    ): String =
-        // findLocally now returns null for an unknown market instead of throwing, so the
-        // "not held locally" fallback no longer needs a catch that would have left the
-        // caller's transaction rollback-only (#1088).
-        assetFinder
-            .findLocally(AssetInput(bcMarket, code))
-            ?.priceSymbol
-            ?.takeIf { it.isNotBlank() }
-            ?: code.also { log.debug("No local asset for {}/{}", bcMarket, it) }
-
-    companion object {
-        // Caps simultaneous EODHD news round-trips per request. 8 covers a typical portfolio's
-        // holdings in one wave while leaving headroom under the shared daily quota.
-        private const val MAX_CONCURRENT_FETCHES = 8
-
-        // Cap on the "title. summary-or-content" text sent to the embedder per article — the
-        // model truncates internally anyway, and this keeps the request payload small.
-        private const val EMBEDDING_TEXT_MAX_CHARS = 512
-        private val TICKER_PATTERN = Regex("[A-Z0-9.-]{1,10}")
-
-        // Synthetic key prefix distinguishing a topic-tag query from a ticker/index symbol in the
-        // shared refresh/rank pipeline. See [topicKey] / [topicTagFor].
-        private const val TOPIC_PREFIX = "TOPIC:"
-
-        // news_fetch.ticker / news_article_ticker.ticker are VARCHAR(32). TOPIC_PREFIX is 6 chars,
-        // so the normalized topic suffix gets 32 - 6 = 26.
-        private const val TOPIC_KEY_MAX_SUFFIX = 26
     }
 }

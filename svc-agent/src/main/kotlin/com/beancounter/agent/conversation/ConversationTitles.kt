@@ -1,12 +1,14 @@
 package com.beancounter.agent.conversation
 
 /**
- * The provisional title a conversation gets the moment its first question
+ * Conversation titles. The provisional title a conversation gets the moment its first question
  * lands: the question's key words, with question words, pronouns, stopwords
  * and conversational filler removed. [ConversationTitler] later replaces it
  * with a model-written title.
  */
 object ConversationTitles {
+    /** The title column's width: every title, provisional, generated or chosen, fits it. */
+    const val MAX_CHARS = 60
     const val PROVISIONAL_MAX_CHARS = 40
     private const val FALLBACK_MAX_CHARS = 60
 
@@ -164,6 +166,9 @@ object ConversationTitles {
         val text = title.ifEmpty { words.first().take(PROVISIONAL_MAX_CHARS) }.toString()
         return text.replaceFirstChar { it.uppercaseChar() }
     }
+
+    /** A generated or chosen [title], trimmed and cut to the column. */
+    fun clip(title: String): String = title.trim().take(MAX_CHARS).trimEnd()
 
     private fun fallback(question: String): String {
         val flat = question.trim().replace(WHITESPACE, " ")

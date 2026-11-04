@@ -7,14 +7,12 @@ import com.beancounter.common.model.Currency
 import com.beancounter.common.model.FxRate
 import com.beancounter.common.model.Market
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
-import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.fx.FxHistoryPoint
 import com.beancounter.marketdata.fx.FxHistoryResponse
 import com.beancounter.marketdata.fx.FxHistoryService
 import com.beancounter.marketdata.fx.FxRateService
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
-import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
@@ -29,19 +27,10 @@ import java.time.LocalDate
 internal class FxPairPriceServiceTest {
     private val fxRateService = mock<FxRateService>()
     private val fxHistoryService = mock<FxHistoryService>()
-    private val currencyService = mock<CurrencyService>()
-    private val service = FxPairPriceService(fxRateService, fxHistoryService, currencyService)
+    private val service = FxPairPriceService(fxRateService, fxHistoryService)
 
     private val fx = Market(code = "FX", currencyId = "USD")
     private val friday = LocalDate.of(2024, 1, 19)
-
-    @BeforeEach
-    fun configuredCurrencies() {
-        // Index codes sit in some currency tables; they are not currencies.
-        whenever(currencyService.currencies()).thenReturn(
-            listOf("AUD", "GSPC", "NZD", "SGD", "USD").map { Currency(it) }
-        )
-    }
 
     @Test
     fun `should support only the FX market`() {
@@ -142,11 +131,6 @@ internal class FxPairPriceServiceTest {
     }
 
     @Test
-    fun `should search the FX market however the caller spaces or cases it`() {
-        assertThat(service.searchAssets("NZDSGD", " fx ").map { it.symbol }).containsExactly("NZDSGD")
-    }
-
-    @Test
     fun `should resolve the price date the way the FX rates pick theirs`() {
         whenever(fxRateService.getDate("today")).thenReturn(friday)
 
@@ -177,54 +161,5 @@ internal class FxPairPriceServiceTest {
             .usingElementComparator { a, b -> a.compareTo(b) }
             .containsExactly(BigDecimal("0.82"), BigDecimal("0.83"))
         assertThat(response.data).allSatisfy { assertThat(it.source).isEqualTo(FxPairPriceService.ID) }
-    }
-
-    @Test
-    fun `should find a pair typed as six letters on an unscoped search`() {
-        val results = service.searchAssets("nzdsgd", null)
-
-        assertThat(results).hasSize(1)
-        val pair = results.single()
-        assertThat(pair.symbol).isEqualTo("NZDSGD")
-        assertThat(pair.name).isEqualTo("NZD/SGD")
-        assertThat(pair.market).isEqualTo("FX")
-        assertThat(pair.currency).isEqualTo("SGD")
-        assertThat(pair.type).isEqualTo("Currency")
-    }
-
-    @Test
-    fun `should accept the slash, Yahoo and prefixed spellings of a pair`() {
-        listOf("NZD/SGD", "NZDSGD=X", "FX:NZDSGD", "nzd sgd").forEach { keyword ->
-            assertThat(service.searchAssets(keyword, "FX").map { it.symbol })
-                .describedAs(keyword)
-                .containsExactly("NZDSGD")
-        }
-    }
-
-    @Test
-    fun `should not offer a pair whose half is not a currency`() {
-        assertThat(service.searchAssets("NZDGSP", "FX")).isEmpty()
-        assertThat(service.searchAssets("GSPCNZ", null)).isEmpty()
-        // Configured nowhere
-        assertThat(service.searchAssets("NZDJPY", null)).isEmpty()
-    }
-
-    @Test
-    fun `should not offer a currency paired with itself`() {
-        assertThat(service.searchAssets("NZDNZD", "FX")).isEmpty()
-    }
-
-    @Test
-    fun `should not search another market`() {
-        assertThat(service.searchAssets("NZDSGD", "US")).isEmpty()
-    }
-
-    @Test
-    fun `should expand one currency into its pairs on an FX search only`() {
-        val results = service.searchAssets("nzd", "FX")
-
-        assertThat(results.map { it.symbol }).containsExactlyInAnyOrder("NZDAUD", "NZDSGD", "NZDUSD")
-        assertThat(results.map { it.currency }).containsExactlyInAnyOrder("AUD", "SGD", "USD")
-        assertThat(service.searchAssets("NZD", null)).isEmpty()
     }
 }

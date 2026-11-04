@@ -1,7 +1,6 @@
 package com.beancounter.marketdata.providers.eodhd
 
 import com.beancounter.common.model.Market
-import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.markets.MarketService
 import com.beancounter.marketdata.providers.eodhd.model.EodhdSearchResult
 import org.assertj.core.api.Assertions.assertThat
@@ -15,15 +14,13 @@ import org.mockito.kotlin.whenever
 import org.springframework.test.util.ReflectionTestUtils
 
 /**
- * Unit tests for [EodhdPriceService.searchAssets]. End-to-end persistence is exercised by the
+ * Unit tests for [EodhdAssetSearch]. End-to-end persistence is exercised by the
  * Spring + WireMock stack ([EodhdApiTest]); this spec pins the routing logic, the
  * empty-allowlist gate, and the response mapping shape.
  */
-internal class EodhdPriceServiceSearchTest {
+internal class EodhdAssetSearchTest {
     private val proxy = mock<EodhdProxy>()
     private val marketService = mock<MarketService>()
-    private val adapter = mock<EodhdAdapter>()
-    private val dateUtils = DateUtils()
 
     // BC splits London into LON (GBP, pence-quoted) and LSE (USD ETFs); both carry the same
     // EODHD alias ("LSE"). US is the unambiguous control. The currency-aware resolver disambiguates
@@ -68,7 +65,7 @@ internal class EodhdPriceServiceSearchTest {
 
     @Test
     fun `searchAssets returns mapped results from EODHD search`() {
-        val service = EodhdPriceService(configWithMarkets("US"), proxy, adapter, dateUtils)
+        val service = EodhdAssetSearch(configWithMarkets("US"), proxy)
         whenever(proxy.searchAssets(any(), any())).thenReturn(
             listOf(searchResult(code = "HYSA", exchange = "US", currency = "USD", name = HYSA_NAME))
         )
@@ -87,7 +84,7 @@ internal class EodhdPriceServiceSearchTest {
     @Test
     fun `searchAssets drops FOREX rows so currency pairs come only from the FX rate provider`() {
         // Even with a market that would map EODHD's FOREX exchange, pairs are not EODHD assets.
-        val service = EodhdPriceService(configWithMarkets("FX"), proxy, adapter, dateUtils)
+        val service = EodhdAssetSearch(configWithMarkets("FX"), proxy)
         whenever(proxy.searchAssets(any(), any())).thenReturn(
             listOf(
                 searchResult(code = "NZDSGD", exchange = "FOREX", currency = "NA", type = "Currency"),
@@ -103,7 +100,7 @@ internal class EodhdPriceServiceSearchTest {
     @Test
     fun `searchAssets routes a USD London listing to the LSE market`() {
         // VUAA/MOTU et al — USD-denominated London ETFs key to LSE (currencyId USD).
-        val service = EodhdPriceService(configWithMarkets("LON,LSE"), proxy, adapter, dateUtils)
+        val service = EodhdAssetSearch(configWithMarkets("LON,LSE"), proxy)
         whenever(proxy.searchAssets(any(), any())).thenReturn(
             listOf(searchResult(code = "MOTU", exchange = "LSE", currency = "USD", name = MOTU_NAME))
         )
@@ -119,7 +116,7 @@ internal class EodhdPriceServiceSearchTest {
     @Test
     fun `searchAssets routes a GBX London listing to the LON market`() {
         // EODHD reports London pence as GBX; BC's LON market is currencyId GBP (0.01 multiplier).
-        val service = EodhdPriceService(configWithMarkets("LON,LSE"), proxy, adapter, dateUtils)
+        val service = EodhdAssetSearch(configWithMarkets("LON,LSE"), proxy)
         whenever(proxy.searchAssets(any(), any())).thenReturn(
             listOf(searchResult(code = "VOD", exchange = "LSE", currency = "GBX"))
         )
@@ -133,7 +130,7 @@ internal class EodhdPriceServiceSearchTest {
 
     @Test
     fun `searchAssets routes a GBP London listing to the LON market`() {
-        val service = EodhdPriceService(configWithMarkets("LON,LSE"), proxy, adapter, dateUtils)
+        val service = EodhdAssetSearch(configWithMarkets("LON,LSE"), proxy)
         whenever(proxy.searchAssets(any(), any())).thenReturn(
             listOf(searchResult(code = "TSCO", exchange = "LSE", currency = "GBP"))
         )
@@ -148,7 +145,7 @@ internal class EodhdPriceServiceSearchTest {
     @Test
     fun `searchAssets resolves an unambiguous exchange regardless of currency`() {
         // US maps to a single BC market; the currency must not affect routing.
-        val service = EodhdPriceService(configWithMarkets("US"), proxy, adapter, dateUtils)
+        val service = EodhdAssetSearch(configWithMarkets("US"), proxy)
         whenever(proxy.searchAssets(any(), any())).thenReturn(
             listOf(searchResult(code = "HYSA", exchange = "US", currency = "EUR", name = HYSA_NAME))
         )
@@ -164,7 +161,7 @@ internal class EodhdPriceServiceSearchTest {
     fun `searchAssets drops rows whose exchange maps to no BC market`() {
         // An EODHD exchange with no BC market (e.g. XETRA) must be dropped, not surfaced with a raw
         // code the UI would post and 404 on.
-        val service = EodhdPriceService(configWithMarkets("LON"), proxy, adapter, dateUtils)
+        val service = EodhdAssetSearch(configWithMarkets("LON"), proxy)
         whenever(proxy.searchAssets(any(), any())).thenReturn(
             listOf(searchResult(code = "XYZ", exchange = "XETRA", currency = "EUR", name = "Some Frankfurt Listing"))
         )
@@ -176,7 +173,7 @@ internal class EodhdPriceServiceSearchTest {
 
     @Test
     fun `searchAssets returns empty when EODHD markets allowlist is empty`() {
-        val service = EodhdPriceService(configWithMarkets(""), proxy, adapter, dateUtils)
+        val service = EodhdAssetSearch(configWithMarkets(""), proxy)
 
         val results = service.searchAssets("HYSA", "US")
 
@@ -186,7 +183,7 @@ internal class EodhdPriceServiceSearchTest {
 
     @Test
     fun `searchAssets with null market still queries EODHD when provider is enabled`() {
-        val service = EodhdPriceService(configWithMarkets("US"), proxy, adapter, dateUtils)
+        val service = EodhdAssetSearch(configWithMarkets("US"), proxy)
         whenever(proxy.searchAssets(any(), any())).thenReturn(
             listOf(searchResult(code = "HYSA", exchange = "US", currency = "USD"))
         )
@@ -204,7 +201,7 @@ internal class EodhdPriceServiceSearchTest {
 
     @Test
     fun `searchAssets swallows transient errors and returns empty`() {
-        val service = EodhdPriceService(configWithMarkets("US"), proxy, adapter, dateUtils)
+        val service = EodhdAssetSearch(configWithMarkets("US"), proxy)
         whenever(proxy.searchAssets(any(), any())).thenThrow(RuntimeException("boom"))
 
         val results = service.searchAssets("HYSA", "US")

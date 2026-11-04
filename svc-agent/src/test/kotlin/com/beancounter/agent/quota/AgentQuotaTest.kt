@@ -7,12 +7,13 @@ import com.beancounter.agent.LlmMetrics
 import com.beancounter.agent.SystemPromptSelector
 import com.beancounter.agent.agentEndpoints
 import com.beancounter.agent.config.AgentScopeAuthorizer
+import com.beancounter.agent.conversation.ConversationAdmin
 import com.beancounter.agent.conversation.ConversationOwner
-import com.beancounter.agent.conversation.ConversationService
-import com.beancounter.agent.conversation.ConversationServiceTest
 import com.beancounter.agent.conversation.ConversationTitler
 import com.beancounter.agent.conversation.InFlightTurns
 import com.beancounter.agent.conversation.SteppingClock
+import com.beancounter.agent.conversation.SteppingClockConfig
+import com.beancounter.agent.conversation.TurnLog
 import com.beancounter.agent.health.ServiceHealthChecker
 import com.beancounter.agent.review.AssetReviewCacheService
 import com.beancounter.agent.review.AssetReviewRepository
@@ -59,7 +60,8 @@ import java.time.Duration
         ComponentScan.Filter(
             type = FilterType.ASSIGNABLE_TYPE,
             classes = [
-                ConversationService::class,
+                ConversationAdmin::class,
+                TurnLog::class,
                 InFlightTurns::class,
                 AssetReviewCacheService::class,
                 AgentQuota::class
@@ -75,7 +77,7 @@ import java.time.Duration
         "beancounter.agent.quota.contact=help@example.com"
     ]
 )
-@Import(ConversationServiceTest.ClockConfig::class)
+@Import(SteppingClockConfig::class)
 // The stream records on another thread; it must see committed rows.
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 class AgentQuotaTest {
@@ -86,7 +88,10 @@ class AgentQuotaTest {
     private lateinit var usageRows: AgentUsageRepository
 
     @Autowired
-    private lateinit var conversations: ConversationService
+    private lateinit var admin: ConversationAdmin
+
+    @Autowired
+    private lateinit var turnLog: TurnLog
 
     @Autowired
     private lateinit var reviews: AssetReviewCacheService
@@ -109,7 +114,7 @@ class AgentQuotaTest {
         usageRows.deleteAll()
         quota.clearLimit(me)
         reviewRows.deleteAll()
-        conversations.deleteAll(me)
+        admin.deleteAll(me)
         modelCalls = 0
         modelFails = false
         actAs(AuthConstants.SCOPE_PREVIEW, AuthConstants.SCOPE_VERIFIED)
@@ -145,7 +150,7 @@ class AgentQuotaTest {
             systemPromptSelector = mock<SystemPromptSelector> { on { selectFor(anyOrNull()) } doAnswer { "prompt" } },
             chatModelSelector = mock<ChatModelSelector> { on { selectFor(anyOrNull(), any()) } doAnswer { "model" } },
             scopeAuthorizer = AgentScopeAuthorizer(),
-            conversations = conversations,
+            conversations = turnLog,
             conversationOwner = owner,
             clock = clock,
             reviewCache = reviews,
@@ -184,11 +189,11 @@ class AgentQuotaTest {
     @Test
     fun `a refused turn in a conversation should record no question`() {
         ask(chat, times = 3)
-        val id = conversations.create(me).id
+        val id = admin.create(me).id
 
         controller().query(chat.copy(conversationId = id))
 
-        assertThat(conversations.get(me, id).messages).isEmpty()
+        assertThat(admin.get(me, id).messages).isEmpty()
     }
 
     @Test
@@ -235,7 +240,7 @@ class AgentQuotaTest {
 
     @Test
     fun `a news page question inside a conversation should count like any chat`() {
-        val id = conversations.create(me).id
+        val id = admin.create(me).id
 
         ask(news.copy(conversationId = id))
 
@@ -366,7 +371,7 @@ class AgentQuotaTest {
         quota.setLimit(me, 0)
 
         val refused =
-            listOf(chat, assetReview, news.copy(conversationId = conversations.create(me).id))
+            listOf(chat, assetReview, news.copy(conversationId = admin.create(me).id))
                 .map { controller().query(it) }
 
         assertThat(refused.map { it.statusCode.value() to it.body?.error })

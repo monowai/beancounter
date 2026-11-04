@@ -12,6 +12,7 @@ import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.Constants.Companion.usdCashBalance
 import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.portfolio.PortfolioService
+import com.beancounter.marketdata.trn.TrnChangeEffects
 import com.beancounter.marketdata.trn.TrnPostProcessor
 import com.beancounter.marketdata.trn.TrnRepository
 import org.assertj.core.api.Assertions.assertThat
@@ -76,10 +77,9 @@ class TrnSettleTest {
             TrnSettlementService(
                 trnRepository = trnRepository,
                 fxTransactions = fxTransactions,
-                cashAutoSettleService = cashAutoSettleService,
+                trnChangeEffects = TrnChangeEffects(cashAutoSettleService, cacheInvalidationProducer),
                 portfolioService = portfolioService,
                 portfolioAccessControl = mock(),
-                cacheInvalidationProducer = cacheInvalidationProducer,
                 dateUtils = dateUtils,
                 trnPostProcessor = trnPostProcessor
             )

@@ -51,6 +51,9 @@ class PriceScheduleTest {
     private lateinit var marketDataService: MarketDataService
 
     @Autowired
+    private lateinit var utilityService: MarketDataUtilityService
+
+    @Autowired
     private lateinit var assetService: AssetService
 
     @Autowired
@@ -82,7 +85,7 @@ class PriceScheduleTest {
                 .apply<DefaultMockMvcBuilder>(SecurityMockMvcConfigurers.springSecurity())
                 .build()
 
-        marketDataService.purge()
+        utilityService.purge()
         val asxMarket =
             marketService.getMarket(
                 ASX.code,

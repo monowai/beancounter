@@ -121,7 +121,7 @@ class AssetSearchService(
             withTimeoutOrNull(SEARCH_TIMEOUT_MS) {
                 runCatching {
                     val resolved = marketService.getMarket(market)
-                    mdFactory.getMarketDataProvider(resolved).searchAssets(keyword, market)
+                    mdFactory.getSearchProvider(resolved)?.searchAssets(keyword, market).orEmpty()
                 }.onFailure {
                     log.debug("Provider search for '{}' on {} failed: {}", keyword, market, it.message)
                 }.getOrDefault(emptyList())
@@ -142,7 +142,7 @@ class AssetSearchService(
 
     /**
      * Null-market (header bar) entry point: DB lookup first; on miss, fan out across every
-     * registered price provider's search surface plus FIGI global, merge + dedupe by
+     * provider search surface plus FIGI global, merge + dedupe by
      * `(symbol, market)`.
      *
      * Market-scoped searches must call [searchLocalDbAssets] directly — the fan-out here is
@@ -166,7 +166,7 @@ class AssetSearchService(
             runBlockingTraced {
                 supervisorScope {
                     val providerTasks =
-                        mdFactory.getAllProviders().map { provider ->
+                        mdFactory.getSearchProviders().map { provider ->
                             async(Dispatchers.IO) {
                                 withTimeoutOrNull(SEARCH_TIMEOUT_MS) {
                                     runCatching {
@@ -244,9 +244,9 @@ class AssetSearchService(
         market: String?
     ): AssetSearchResponse {
         // First ask the market's configured price provider. Symmetric with price routing —
-        // EODHD (on kauri) and any other provider that wires `searchAssets` answers here before
-        // the FIGI/MarketStack/Alpha chain runs. Non-search providers (cash, custom, morningstar)
-        // return empty via the interface default and fall through unchanged.
+        // EODHD (on kauri) and any other provider with an AssetSearchProvider answers here before
+        // the FIGI/MarketStack/Alpha chain runs. Providers without one (cash, custom, morningstar)
+        // fall through unchanged.
         val providerHits = if (market != null) searchViaConfiguredProvider(keyword, market) else emptyList()
         return if (providerHits.isNotEmpty()) {
             AssetSearchResponse(providerHits)

@@ -1,7 +1,7 @@
 package com.beancounter.agent.conversation
 
-import com.beancounter.agent.conversation.ConversationService.Companion.ROLE_ASSISTANT
-import com.beancounter.agent.conversation.ConversationService.Companion.ROLE_USER
+import com.beancounter.agent.conversation.Utterance.Companion.ROLE_ASSISTANT
+import com.beancounter.agent.conversation.Utterance.Companion.ROLE_USER
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.http.HttpStatus
@@ -28,7 +28,8 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/agent/conversations")
 @Tag(name = "Conversations", description = "Saved agent chat history")
 class ConversationController(
-    private val service: ConversationService,
+    private val admin: ConversationAdmin,
+    private val turnLog: TurnLog,
     private val owner: ConversationOwner,
     private val titler: ConversationTitler
 ) {
@@ -57,19 +58,19 @@ class ConversationController(
             require(subject.length <= MAX_SUBJECT_CHARS) { "Subject is longer than $MAX_SUBJECT_CHARS characters" }
             require(turns.isEmpty()) { "A subject's conversation cannot be seeded" }
             require(!request.hidden) { "A subject's conversation cannot be hidden" }
-            return service.findOrCreate(ownerId, subject).let {
+            return admin.findOrCreate(ownerId, subject).let {
                 ConversationSummaryResponse(
                     ConversationSummary(it.id, it.title, it.createdAt, it.updatedAt, it.kind)
                 )
             }
         }
         val hidden = request?.hidden == true
-        val conversation = service.create(ownerId, hidden)
+        val conversation = admin.create(ownerId, hidden)
         if (turns.isNotEmpty()) seed(ownerId, conversation.id, turns, hidden)
         return ConversationSummaryResponse(
             ConversationSummary(
                 conversation.id,
-                if (turns.isEmpty()) conversation.title else service.titleOf(ownerId, conversation.id),
+                if (turns.isEmpty()) conversation.title else turnLog.titleOf(ownerId, conversation.id),
                 conversation.createdAt,
                 conversation.updatedAt,
                 conversation.kind
@@ -94,15 +95,15 @@ class ConversationController(
     ) {
         turns.forEach {
             if (it.role == ROLE_USER) {
-                service.appendUser(ownerId, id, Question(it.content, it.deepThink, it.label))
+                turnLog.appendUser(ownerId, id, Question(it.content, it.deepThink, it.label))
             } else {
-                service.appendAssistant(ownerId, id, it.content, null)
+                turnLog.appendAssistant(ownerId, id, it.content, null)
             }
         }
         if (hidden) return
         val answer = turns.lastOrNull { it.role == ROLE_ASSISTANT } ?: return
         val questions = turns.filter { it.role == ROLE_USER }.map { it.label ?: it.content }
-        titler.suggest(ownerId, id, TitleSeed(service.titleOf(ownerId, id), questions), answer.content)
+        titler.suggest(ownerId, id, TitleSeed(turnLog.titleOf(ownerId, id), questions), answer.content)
     }
 
     @GetMapping
@@ -111,13 +112,13 @@ class ConversationController(
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "30") size: Int
     ): ConversationsResponse =
-        ConversationsResponse(service.list(owner.id(), page.coerceAtLeast(0), size.coerceIn(1, MAX_PAGE_SIZE)))
+        ConversationsResponse(admin.list(owner.id(), page.coerceAtLeast(0), size.coerceIn(1, MAX_PAGE_SIZE)))
 
     @GetMapping("/{id}")
     @Operation(summary = "One conversation with its turns, oldest first")
     fun get(
         @PathVariable id: String
-    ): ConversationResponse = ConversationResponse(service.get(owner.id(), id))
+    ): ConversationResponse = ConversationResponse(admin.get(owner.id(), id))
 
     @PatchMapping("/{id}")
     @Operation(summary = "Rename a conversation")
@@ -126,8 +127,8 @@ class ConversationController(
         @RequestBody request: RenameConversationRequest
     ): ConversationResponse {
         val ownerId = owner.id()
-        service.rename(ownerId, id, request.title)
-        return ConversationResponse(service.get(ownerId, id))
+        admin.rename(ownerId, id, request.title)
+        return ConversationResponse(admin.get(ownerId, id))
     }
 
     @DeleteMapping("/{id}")
@@ -135,11 +136,11 @@ class ConversationController(
     @Operation(summary = "Delete a conversation and its turns")
     fun delete(
         @PathVariable id: String
-    ) = service.delete(owner.id(), id)
+    ) = admin.delete(owner.id(), id)
 
     @DeleteMapping
     @Operation(summary = "Delete all of the caller's conversations (offboarding)")
-    fun deleteAll(): DeletedConversationsResponse = DeletedConversationsResponse(service.deleteAll(owner.id()))
+    fun deleteAll(): DeletedConversationsResponse = DeletedConversationsResponse(admin.deleteAll(owner.id()))
 }
 
 /** One turn to seed; [label] and [deepThink] only apply to a user turn. */

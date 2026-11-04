@@ -13,7 +13,6 @@ import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.price.backfill.MarketDataBackfillService
 import com.beancounter.marketdata.price.history.PriceHistoryReader
-import com.beancounter.marketdata.providers.MarketDataPriceProvider
 import com.beancounter.marketdata.providers.MarketDataPriceProvider.Companion.defaultBackfillFrom
 import com.beancounter.marketdata.providers.MdFactory
 import com.beancounter.marketdata.providers.ProviderUtils
@@ -33,7 +32,6 @@ class MarketDataService(
     private val assetService: AssetService,
     private val assetFinder: AssetFinder,
     private val backfillService: MarketDataBackfillService,
-    private val utilityService: MarketDataUtilityService,
     private val priceProcessor: MarketDataPriceProcessor,
     private val priceHistoryReader: PriceHistoryReader,
     private val dateUtils: DateUtils,
@@ -115,26 +113,6 @@ class MarketDataService(
      * @return results
      */
     fun getPriceResponse(priceRequest: PriceRequest): PriceResponse = priceProcessor.getPriceResponse(priceRequest)
-
-    fun getMarketDate(
-        marketDataPriceProvider: MarketDataPriceProvider,
-        asset: Asset,
-        priceRequest: PriceRequest
-    ): LocalDate = utilityService.getMarketDate(marketDataPriceProvider, asset, priceRequest)
-
-    /**
-     * Delete all prices.  Supports testing
-     */
-    fun purge() {
-        utilityService.purge()
-    }
-
-    fun refresh(
-        asset: Asset,
-        priceDate: String
-    ) {
-        utilityService.refresh(asset, priceDate)
-    }
 
     private fun getAsset(assetId: String): Asset {
         val asset = assetFinder.find(assetId)

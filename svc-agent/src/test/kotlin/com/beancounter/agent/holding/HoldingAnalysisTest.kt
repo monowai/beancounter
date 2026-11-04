@@ -10,13 +10,14 @@ import com.beancounter.agent.SystemPromptSelector
 import com.beancounter.agent.agentEndpoints
 import com.beancounter.agent.client.PositionClient
 import com.beancounter.agent.config.AgentScopeAuthorizer
+import com.beancounter.agent.conversation.ConversationAdmin
 import com.beancounter.agent.conversation.ConversationKind
 import com.beancounter.agent.conversation.ConversationOwner
-import com.beancounter.agent.conversation.ConversationService
-import com.beancounter.agent.conversation.ConversationServiceTest
 import com.beancounter.agent.conversation.ConversationTitler
 import com.beancounter.agent.conversation.InFlightTurns
 import com.beancounter.agent.conversation.SteppingClock
+import com.beancounter.agent.conversation.SteppingClockConfig
+import com.beancounter.agent.conversation.TurnLog
 import com.beancounter.agent.health.ServiceHealthChecker
 import com.beancounter.agent.review.AssetReviewCacheService
 import com.beancounter.agent.review.AssetReviewKey
@@ -88,7 +89,7 @@ import java.time.LocalDate
     includeFilters = [
         ComponentScan.Filter(
             type = FilterType.ASSIGNABLE_TYPE,
-            classes = [ConversationService::class, InFlightTurns::class, AssetReviewCacheService::class]
+            classes = [ConversationAdmin::class, TurnLog::class, InFlightTurns::class, AssetReviewCacheService::class]
         )
     ],
     properties = [
@@ -98,12 +99,15 @@ import java.time.LocalDate
         "spring.jpa.hibernate.ddl-auto=validate"
     ]
 )
-@Import(ConversationServiceTest.ClockConfig::class)
+@Import(SteppingClockConfig::class)
 // The stream records on another thread; it must see committed rows.
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 class HoldingAnalysisTest {
     @Autowired
-    private lateinit var conversations: ConversationService
+    private lateinit var admin: ConversationAdmin
+
+    @Autowired
+    private lateinit var turnLog: TurnLog
 
     @Autowired
     private lateinit var cache: AssetReviewCacheService
@@ -192,7 +196,7 @@ class HoldingAnalysisTest {
     @BeforeEach
     fun reset() {
         repository.deleteAll()
-        conversations.deleteAll(me)
+        admin.deleteAll(me)
         whenever(request.stream()).thenAnswer {
             streamCalls++
             val spec = mock<ChatClient.StreamResponseSpec>()
@@ -216,7 +220,7 @@ class HoldingAnalysisTest {
             toolSelector = toolSelector,
             systemPromptSelector = SystemPromptSelector(),
             chatModelSelector = modelSelector,
-            conversations = conversations,
+            conversations = turnLog,
             conversationOwner = owner,
             clock = clock,
             reviewCache = reviewCache,
@@ -549,7 +553,7 @@ class HoldingAnalysisTest {
     fun `a conversation created hidden over REST should take the kind of its first turn`() {
         val rest =
             com.beancounter.agent.conversation
-                .ConversationController(conversations, owner, mock())
+                .ConversationController(admin, turnLog, owner, mock())
         cache.store(reviewKey, cachedReview)
         val holding =
             rest
@@ -580,7 +584,7 @@ class HoldingAnalysisTest {
     @Test
     fun `a follow-up in a holding analysis conversation is the caller's question whatever page it names`() {
         cache.store(reviewKey, cachedReview)
-        val id = conversations.create(me).id
+        val id = admin.create(me).id
         stream(analysis(conversationId = id))
         streamed = listOf(chunk("Watch the ex-date.", "stop"))
 
@@ -595,13 +599,13 @@ class HoldingAnalysisTest {
     @Test
     fun `a blank question in a holding analysis conversation that has turns is a bad request, not a new opening`() {
         cache.store(reviewKey, cachedReview)
-        val id = conversations.create(me).id
+        val id = admin.create(me).id
         stream(analysis(conversationId = id))
 
         assertThatThrownBy { controller().stream(analysis(conversationId = id)) }
             .isInstanceOf(BusinessException::class.java)
         verify(positionClient).getPositionsByCode(any(), any(), any())
-        assertThat(conversations.get(me, id).messages).hasSize(2)
+        assertThat(admin.get(me, id).messages).hasSize(2)
     }
 
     @Test
@@ -643,14 +647,14 @@ class HoldingAnalysisTest {
     @Test
     fun `a failed review should end the stream with its error code and record nothing`() {
         whenever(request.call()).thenThrow(RuntimeException("429 - Too Many Requests"))
-        val id = conversations.create(me, hidden = true).id
+        val id = admin.create(me, hidden = true).id
 
         val events = stream(analysis(conversationId = id))
 
         assertThat(events.map { it.event() to it.data() }).containsExactly("error" to "provider-rate")
         assertThat(streamCalls).isZero()
-        assertThat(conversations.get(me, id).messages).isEmpty()
-        assertThat(conversations.get(me, id).pending).isFalse()
+        assertThat(admin.get(me, id).messages).isEmpty()
+        assertThat(admin.get(me, id).pending).isFalse()
         assertThat(repository.findAll()).isEmpty()
     }
 
@@ -670,11 +674,11 @@ class HoldingAnalysisTest {
     @Test
     fun `the opening turn should be recorded as a holding analysis conversation with its label`() {
         cache.store(reviewKey, cachedReview)
-        val id = conversations.create(me, hidden = true).id
+        val id = admin.create(me, hidden = true).id
 
         stream(analysis(conversationId = id))
 
-        val detail = conversations.get(me, id)
+        val detail = admin.get(me, id)
         assertThat(detail.kind).isEqualTo(ConversationKind.HOLDING_ANALYSIS)
         assertThat(detail.messages.map { it.role }).containsExactly("user", "assistant")
         assertThat(detail.messages.first().label).isEqualTo("Holding Analysis — NATO")
@@ -686,12 +690,12 @@ class HoldingAnalysisTest {
     @Test
     fun `a caller's own label should be kept`() {
         cache.store(reviewKey, cachedReview)
-        val id = conversations.create(me, hidden = true).id
+        val id = admin.create(me, hidden = true).id
 
         stream(analysis(conversationId = id).copy(label = "My NATO"))
 
         assertThat(
-            conversations
+            admin
                 .get(me, id)
                 .messages
                 .first()
@@ -701,7 +705,7 @@ class HoldingAnalysisTest {
 
     @Test
     fun `an asset review conversation should be kinded as one`() {
-        val id = conversations.create(me, hidden = true).id
+        val id = admin.create(me, hidden = true).id
 
         stream(
             AgentQuery(
@@ -710,13 +714,13 @@ class HoldingAnalysisTest {
             )
         )
 
-        assertThat(conversations.get(me, id).kind).isEqualTo(ConversationKind.ASSET_REVIEW)
+        assertThat(admin.get(me, id).kind).isEqualTo(ConversationKind.ASSET_REVIEW)
     }
 
     @Test
     fun `a follow-up in a holding analysis conversation is answered live with the holding analysis prompt and tools`() {
         cache.store(reviewKey, cachedReview)
-        val id = conversations.create(me).id
+        val id = admin.create(me).id
         stream(analysis(conversationId = id))
         streamed = listOf(chunk("Watch the ex-date.", "stop"))
 
@@ -732,12 +736,12 @@ class HoldingAnalysisTest {
         // The follow-up re-reads nothing: the opening turn's facts are in the history.
         verify(positionClient).getPositionsByCode(any(), any(), any())
         assertThat(repository.findAll().map { it.content }).containsExactly(cachedReview)
-        assertThat(conversations.get(me, id).kind).isEqualTo(ConversationKind.HOLDING_ANALYSIS)
+        assertThat(admin.get(me, id).kind).isEqualTo(ConversationKind.HOLDING_ANALYSIS)
     }
 
     @Test
     fun `a follow-up in an asset review conversation stays asset-only`() {
-        val id = conversations.create(me).id
+        val id = admin.create(me).id
         val review = mapOf("page" to "Asset Review", "tickers" to "NATO", "market" to "NASDAQ")
         stream(AgentQuery(context = review, conversationId = id))
         streamed = listOf(chunk("Steady.", "stop"))
@@ -752,7 +756,7 @@ class HoldingAnalysisTest {
 
     @Test
     fun `a holding analysis inside an asset review conversation is refused`() {
-        val id = conversations.create(me).id
+        val id = admin.create(me).id
         stream(
             AgentQuery(
                 context = mapOf("page" to "Asset Review", "tickers" to "NATO", "market" to "NASDAQ"),
@@ -766,6 +770,6 @@ class HoldingAnalysisTest {
         assertThatThrownBy { controller().query(analysis(query = "And my position?", conversationId = id)) }
             .isInstanceOf(BusinessException::class.java)
         verify(positionClient, never()).getPositionsByCode(any(), any(), any())
-        assertThat(conversations.get(me, id).messages).hasSize(2)
+        assertThat(admin.get(me, id).messages).hasSize(2)
     }
 }

@@ -1,9 +1,9 @@
 package com.beancounter.agent
 
 import com.beancounter.agent.conversation.ConversationRecorder
-import com.beancounter.agent.conversation.ConversationService
 import com.beancounter.agent.conversation.ConversationTitler
 import com.beancounter.agent.conversation.Question
+import com.beancounter.agent.conversation.TurnLog
 import com.beancounter.agent.conversation.TurnRecorder
 import com.beancounter.agent.review.AssetReviewCache
 import com.beancounter.agent.review.AssetReviewKey
@@ -16,7 +16,7 @@ import reactor.core.scheduler.Schedulers
 /** Opens a turn in its conversation and records how it ended, cached and counted where it should be. */
 @Component
 class ConversationTurns(
-    private val conversations: ConversationService,
+    private val conversations: TurnLog,
     private val titler: ConversationTitler,
     private val pageQuerySelector: PageQuerySelector,
     private val reviewCache: AssetReviewCache,

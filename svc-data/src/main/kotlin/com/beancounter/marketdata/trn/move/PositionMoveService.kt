@@ -95,18 +95,11 @@ class PositionMoveService(
     }
 
     /**
-     * Create consolidated compensating cash transactions to maintain
-     * cash balances in both portfolios. Nets cash amounts per cash asset
-     * to produce a single DEPOSIT/WITHDRAWAL pair per cash asset.
+     * Net cash amount per cash asset id across the cash-impacting [transactions], with the last
+     * transaction seen for that cash asset (the source of its code and currency).
      */
-    private fun createCompensatingTransactions(
-        transactions: List<Trn>,
-        sourcePortfolio: Portfolio,
-        targetPortfolio: Portfolio
-    ): Int {
-        // Net cash amounts per cash asset ID
-        val netByCashAsset = mutableMapOf<String, BigDecimal>()
-        val sampleTrnByCashAsset = mutableMapOf<String, Trn>()
+    private fun netCashByAsset(transactions: List<Trn>): Map<String, NetCash> {
+        val netByCashAsset = mutableMapOf<String, NetCash>()
 
         transactions.forEach { trn ->
             val cashImpacted = TrnType.isCashImpacted(trn.trnType)
@@ -114,9 +107,8 @@ class PositionMoveService(
             val hasNonZeroCash = trn.cashAmount.compareTo(BigDecimal.ZERO) != 0
             if (cashImpacted && hasCashAsset && hasNonZeroCash) {
                 val cashAssetId = trn.cashAsset!!.id
-                netByCashAsset[cashAssetId] =
-                    (netByCashAsset[cashAssetId] ?: BigDecimal.ZERO).add(trn.cashAmount)
-                sampleTrnByCashAsset[cashAssetId] = trn
+                val running = netByCashAsset[cashAssetId]?.amount ?: BigDecimal.ZERO
+                netByCashAsset[cashAssetId] = NetCash(running.add(trn.cashAmount), trn)
                 log.debug(
                     "Compensating: {} {} cashAsset={} cashAmount={}",
                     trn.trnType,
@@ -135,14 +127,26 @@ class PositionMoveService(
                 )
             }
         }
+        return netByCashAsset
+    }
 
+    /**
+     * Create consolidated compensating cash transactions to maintain
+     * cash balances in both portfolios. Nets cash amounts per cash asset
+     * to produce a single DEPOSIT/WITHDRAWAL pair per cash asset.
+     */
+    private fun createCompensatingTransactions(
+        transactions: List<Trn>,
+        sourcePortfolio: Portfolio,
+        targetPortfolio: Portfolio
+    ): Int {
         val sourceInputs = mutableListOf<TrnInput>()
         val targetInputs = mutableListOf<TrnInput>()
 
-        netByCashAsset
-            .filter { (_, netAmount) -> netAmount.compareTo(BigDecimal.ZERO) != 0 }
-            .forEach { (cashAssetId, netAmount) ->
-                val trn = sampleTrnByCashAsset[cashAssetId]!!
+        netCashByAsset(transactions)
+            .filter { (_, net) -> net.amount.compareTo(BigDecimal.ZERO) != 0 }
+            .forEach { (cashAssetId, net) ->
+                val (netAmount, trn) = net
                 val comment =
                     "Position move: ${trn.asset.code} from ${sourcePortfolio.code} to ${targetPortfolio.code}"
                 val tradeCurrency = trn.cashCurrency?.code ?: trn.tradeCurrency.code
@@ -235,3 +239,9 @@ class PositionMoveService(
         trn.tradeCashRate = trnInput.tradeCashRate
     }
 }
+
+/** Netted cash [amount] for one cash asset, and the last [trn] that contributed to it. */
+private data class NetCash(
+    val amount: BigDecimal,
+    val trn: Trn
+)

@@ -1,7 +1,9 @@
 package com.beancounter.marketdata.cash
 
 import com.beancounter.common.contracts.TrnRequest
+import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.CallerRef
+import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
@@ -71,22 +73,9 @@ class CashAutoSettleService(
         // A funding portfolio IS configured, so from here on a skip is
         // surfaced as a warning rather than silently swallowed — the user
         // opted into central funding and the trade wasn't settled (#1040).
-        val cashAsset =
-            trade.cashAsset ?: return AutoSettleResult(
-                warnings =
-                    listOf(
-                        "Trade ${trade.id} (${trade.trnType} ${trade.asset.code}) has no " +
-                            "settlement account; cash auto-settle skipped"
-                    )
-            )
+        val cashAsset = trade.cashAsset ?: return skipped(trade, "has no settlement account")
         if (trade.cashAmount.signum() == 0) {
-            return AutoSettleResult(
-                warnings =
-                    listOf(
-                        "Trade ${trade.id} (${trade.trnType} ${trade.asset.code}) has " +
-                            "zero cash amount; cash auto-settle skipped"
-                    )
-            )
+            return skipped(trade, "has zero cash amount")
         }
 
         // findOrNull (not find) — stream-consumer threads have no JWT, and
@@ -153,14 +142,8 @@ class CashAutoSettleService(
         val withdrawalInput = leg(TrnType.WITHDRAWAL)
         val depositInput = leg(TrnType.DEPOSIT)
 
-        val withdrawal =
-            trnInputMapper
-                .convert(fromPortfolio, TrnRequest(fromPortfolio.id, listOf(withdrawalInput)))
-                .single()
-        val deposit =
-            trnInputMapper
-                .convert(toPortfolio, TrnRequest(toPortfolio.id, listOf(depositInput)))
-                .single()
+        val withdrawal = convertLeg(fromPortfolio, withdrawalInput)
+        val deposit = convertLeg(toPortfolio, depositInput)
 
         val saved = trnRepository.saveAll(listOf(withdrawal, deposit)).toList()
         log.debug(
@@ -172,6 +155,27 @@ class CashAutoSettleService(
         )
         return AutoSettleResult(transactions = saved, warnings = warnings, replaced = stale)
     }
+
+    /**
+     * A skip result carrying one warning. [reason] is a lowercase verb phrase with no trailing
+     * punctuation ("has zero cash amount"); it is inserted between the trade label and
+     * "; cash auto-settle skipped".
+     */
+    private fun skipped(
+        trade: Trn,
+        reason: String
+    ) = AutoSettleResult(
+        warnings =
+            listOf(
+                "Trade ${trade.id} (${trade.trnType} ${trade.asset.code}) $reason; " +
+                    "cash auto-settle skipped"
+            )
+    )
+
+    private fun convertLeg(
+        portfolio: Portfolio,
+        input: TrnInput
+    ): Trn = trnInputMapper.convert(portfolio, TrnRequest(portfolio.id, listOf(input))).single()
 
     /**
      * Returns trns where provider=BC-AUTO and batch=parent.callerRef.callerId —

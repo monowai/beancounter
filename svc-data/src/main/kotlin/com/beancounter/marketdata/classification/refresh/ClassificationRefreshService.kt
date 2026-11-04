@@ -201,6 +201,25 @@ class ClassificationRefreshService(
             classificationEnricher
         }
 
+    /**
+     * Enrich with the resolved provider, not the chain, so the provider stopped on a rate limit
+     * is the one that answered. A failure is logged and counted, never thrown, so one asset
+     * cannot stop the run.
+     */
+    private fun enrich(
+        provider: ClassificationEnricher,
+        asset: Asset
+    ): EnrichmentResult =
+        try {
+            provider.enrichClassification(asset)
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            log.warn("Failed to refresh classification for ${asset.code}: ${e.message}")
+            EnrichmentResult.FAILED
+        }
+
     private fun processAssets(
         totalActive: Int,
         dueAssets: List<Asset>,
@@ -232,20 +251,7 @@ class ClassificationRefreshService(
             }
             attempted++
 
-            val result =
-                try {
-                    // The resolved provider, not the chain, so the provider stopped on a rate
-                    // limit is the one that answered.
-                    provider.enrichClassification(asset)
-                } catch (
-                    @Suppress("TooGenericExceptionCaught")
-                    e: Exception
-                ) {
-                    // Continue processing other assets even if one fails
-                    log.warn("Failed to refresh classification for ${asset.code}: ${e.message}")
-                    EnrichmentResult.FAILED
-                }
-
+            val result = enrich(provider, asset)
             stampIfAttempted(asset, result)
 
             when (result) {

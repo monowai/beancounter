@@ -1,6 +1,8 @@
 package com.beancounter.marketdata.cash
 
 import com.beancounter.common.contracts.TrnRequest
+import com.beancounter.common.input.TrnInput
+import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
@@ -40,7 +42,68 @@ class CashTransferService(
      * @throws IllegalArgumentException if currencies don't match or amount is invalid
      */
     fun transfer(request: CashTransferRequest): CashTransferResponse {
-        // Validate amounts
+        validateAmounts(request)
+
+        val fromAsset = assetService.find(request.fromAssetId)
+        val toAsset = assetService.find(request.toAssetId)
+        val fromPortfolio = portfolioService.find(request.fromPortfolioId)
+        val toPortfolio = portfolioService.find(request.toPortfolioId)
+
+        val fromCurrency = getCashAssetCurrency(fromAsset)
+        val toCurrency = getCashAssetCurrency(toAsset)
+        require(fromCurrency == toCurrency) {
+            "Cannot transfer between different currencies: $fromCurrency and $toCurrency"
+        }
+
+        val tradeDate = request.tradeDate ?: dateUtils.date
+
+        // WITHDRAWAL leg: amount sent from source. cashAssetId lets the cash ladder track it.
+        val withdrawalTrns =
+            saveLeg(
+                fromPortfolio,
+                cashLegInput(
+                    cashAssetId = fromAsset.id,
+                    trnType = TrnType.WITHDRAWAL,
+                    amount = request.sentAmount,
+                    currency = fromCurrency,
+                    tradeDate = tradeDate,
+                    status = TrnStatus.SETTLED,
+                    comments = request.description ?: "Transfer to ${toAsset.code}"
+                )
+            )
+
+        // DEPOSIT leg: amount received at destination. cashAssetId lets the cash ladder track it.
+        val depositTrns =
+            saveLeg(
+                toPortfolio,
+                cashLegInput(
+                    cashAssetId = toAsset.id,
+                    trnType = TrnType.DEPOSIT,
+                    amount = request.receivedAmount,
+                    currency = toCurrency,
+                    tradeDate = tradeDate,
+                    status = TrnStatus.SETTLED,
+                    comments = request.description ?: "Transfer from ${fromAsset.code}"
+                )
+            )
+
+        log.info(
+            "Cash transfer completed: sent {} {}, received {} {} (fee: {}), from {} ({}) to {} ({})",
+            request.sentAmount,
+            fromCurrency,
+            request.receivedAmount,
+            toCurrency,
+            request.sentAmount - request.receivedAmount,
+            fromAsset.code,
+            fromPortfolio.code,
+            toAsset.code,
+            toPortfolio.code
+        )
+
+        return CashTransferResponse(withdrawalTrns + depositTrns)
+    }
+
+    private fun validateAmounts(request: CashTransferRequest) {
         require(request.sentAmount > BigDecimal.ZERO) {
             "Sent amount must be positive"
         }
@@ -50,85 +113,12 @@ class CashTransferService(
         require(request.receivedAmount <= request.sentAmount) {
             "Received amount cannot exceed sent amount"
         }
-
-        // Load assets and portfolios
-        val fromAsset = assetService.find(request.fromAssetId)
-        val toAsset = assetService.find(request.toAssetId)
-        val fromPortfolio = portfolioService.find(request.fromPortfolioId)
-        val toPortfolio = portfolioService.find(request.toPortfolioId)
-
-        // Validate same currency
-        val fromCurrency = getCashAssetCurrency(fromAsset)
-        val toCurrency = getCashAssetCurrency(toAsset)
-        require(fromCurrency == toCurrency) {
-            "Cannot transfer between different currencies: $fromCurrency and $toCurrency"
-        }
-
-        val tradeDate = request.tradeDate ?: dateUtils.date
-        val transactions = mutableListOf<Trn>()
-
-        // Create WITHDRAWAL transaction (amount sent from source)
-        // Set cashAssetId = fromAsset.id so the cash ladder can track this transaction
-        val withdrawalInput =
-            cashLegInput(
-                cashAssetId = fromAsset.id,
-                trnType = TrnType.WITHDRAWAL,
-                amount = request.sentAmount,
-                currency = fromCurrency,
-                tradeDate = tradeDate,
-                status = TrnStatus.SETTLED,
-                comments = request.description ?: "Transfer to ${toAsset.code}"
-            )
-
-        val withdrawalTrns =
-            trnService.save(
-                fromPortfolio,
-                TrnRequest(
-                    fromPortfolio.id,
-                    listOf(withdrawalInput)
-                )
-            )
-        transactions.addAll(withdrawalTrns)
-
-        // Create DEPOSIT transaction (amount received at destination)
-        // Set cashAssetId = toAsset.id so the cash ladder can track this transaction
-        val depositInput =
-            cashLegInput(
-                cashAssetId = toAsset.id,
-                trnType = TrnType.DEPOSIT,
-                amount = request.receivedAmount,
-                currency = toCurrency,
-                tradeDate = tradeDate,
-                status = TrnStatus.SETTLED,
-                comments = request.description ?: "Transfer from ${fromAsset.code}"
-            )
-
-        val depositTrns =
-            trnService.save(
-                toPortfolio,
-                TrnRequest(
-                    toPortfolio.id,
-                    listOf(depositInput)
-                )
-            )
-        transactions.addAll(depositTrns)
-
-        val fee = request.sentAmount - request.receivedAmount
-        log.info(
-            "Cash transfer completed: sent {} {}, received {} {} (fee: {}), from {} ({}) to {} ({})",
-            request.sentAmount,
-            fromCurrency,
-            request.receivedAmount,
-            toCurrency,
-            fee,
-            fromAsset.code,
-            fromPortfolio.code,
-            toAsset.code,
-            toPortfolio.code
-        )
-
-        return CashTransferResponse(transactions)
     }
+
+    private fun saveLeg(
+        portfolio: Portfolio,
+        input: TrnInput
+    ): Collection<Trn> = trnService.save(portfolio, TrnRequest(portfolio.id, listOf(input)))
 
     private fun getCashAssetCurrency(asset: com.beancounter.common.model.Asset): String =
         asset.accountingType?.currency?.code ?: asset.market.currency.code

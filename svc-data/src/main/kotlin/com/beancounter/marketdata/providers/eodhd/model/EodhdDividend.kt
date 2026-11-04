@@ -7,9 +7,10 @@ import java.time.LocalDate
 /**
  * EODHD dividend row from `/api/div/{symbol}`.
  *
- * Unlike AlphaVantage's TIME_SERIES_DAILY_ADJUSTED — which only exposes the ex-date — EODHD ships
- * declaration / record / payment dates separately. This lets us populate [com.beancounter.common.event.CorporateEvent.payDate]
- * accurately instead of synthesising `recordDate + 18 days` the way [com.beancounter.event.behaviour.alpha.AlphaEventAdapter] does.
+ * Unlike AlphaVantage's TIME_SERIES_DAILY_ADJUSTED — which only exposes the ex-date — EODHD
+ * ships declaration / record / payment dates separately. This lets us populate
+ * [com.beancounter.common.event.CorporateEvent.payDate] accurately instead of synthesising
+ * `recordDate + 18 days` the way [com.beancounter.event.behaviour.alpha.AlphaEventAdapter] does.
  */
 data class EodhdDividend(
     val date: LocalDate,

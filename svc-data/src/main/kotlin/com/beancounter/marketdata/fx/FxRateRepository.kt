@@ -81,7 +81,9 @@ interface FxRateRepository : JpaRepository<FxRate, String> {
      * @return The base FxRate entity that matches the criteria, or null if not found.
      */
     @Query(
-        "select f from FxRate f join fetch f.from join fetch f.to where f.from = :from and f.to = :from and f.date <= :earlyDate order by f.date desc limit 1"
+        "select f from FxRate f join fetch f.from join fetch f.to " +
+            "where f.from = :from and f.to = :from and f.date <= :earlyDate " +
+            "order by f.date desc limit 1"
     )
     fun findBaseRate(
         from: Currency,

@@ -26,7 +26,9 @@
 #   AssetCascadeDeleter (FK deletion order), EntityCountMetrics (the entities
 #   counted) and ToolSelector (page-to-tool routing table). The parameter list is
 #   the content.
-# - TooManyFunctions: excludes MathUtils, a cohesive BigDecimal facade.
+# - TooManyFunctions: excludes MathUtils, a cohesive BigDecimal facade, and
+#   EodhdProxy / EodhdGateway, which hold one method per EODHD endpoint (the
+#   provider pattern PROVIDER.md documents).
 #
 # The defaults already exclude tests from TooManyFunctions, MagicNumber,
 # FunctionNaming and UnsafeCallOnNullableType. Unused-code, empty-block and
@@ -205,7 +207,7 @@ complexity:
     ignoreStringsRegex: '$^'
   TooManyFunctions:
     active: true
-    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/jsTest/**', '**/iosTest/**', '**/contractTest/**', '**/testFixtures/**', '**/common/utils/MathUtils.kt']
+    excludes: ['**/test/**', '**/androidTest/**', '**/commonTest/**', '**/jvmTest/**', '**/androidUnitTest/**', '**/androidInstrumentedTest/**', '**/jsTest/**', '**/iosTest/**', '**/contractTest/**', '**/testFixtures/**', '**/common/utils/MathUtils.kt', '**/providers/eodhd/EodhdProxy.kt', '**/providers/eodhd/EodhdGateway.kt']
     thresholdInFiles: 11
     thresholdInClasses: 11
     thresholdInInterfaces: 11

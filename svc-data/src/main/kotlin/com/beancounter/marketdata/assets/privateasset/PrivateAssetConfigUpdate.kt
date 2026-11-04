@@ -31,7 +31,7 @@ class PrivateAssetConfigUpdate(
         val updated =
             existing
                 .copy(
-                    monthlyRentalIncome = rentalIncome(existing.monthlyRentalIncome),
+                    monthlyRentalIncome = request.monthlyRentalIncome ?: existing.monthlyRentalIncome,
                     rentalCurrency = request.rentalCurrency ?: existing.rentalCurrency,
                     countryCode = request.countryCode?.uppercase() ?: existing.countryCode,
                     updatedDate = today
@@ -41,20 +41,10 @@ class PrivateAssetConfigUpdate(
                 .mergePensionSettings(request)
                 .mergeCpfSettings(request)
                 .mergeUsUkPolicySettings(request)
+                .zeroRentalForPrimaryResidence()
         mergeSubAccounts(updated, assetId)
         return updated
     }
-
-    /**
-     * Resolve the monthly rental income from the request,
-     * zeroing it out when the asset is marked as a primary residence.
-     */
-    private fun rentalIncome(fallback: BigDecimal): BigDecimal =
-        if (request.isPrimaryResidence == true) {
-            BigDecimal.ZERO
-        } else {
-            request.monthlyRentalIncome ?: fallback
-        }
 
     /**
      * Validate that sub-account codes are unique within the request.
@@ -133,6 +123,13 @@ private fun PrivateAssetConfig.mergeExpenses(request: PrivateAssetConfigRequest)
         annualInsurance = request.annualInsurance ?: annualInsurance,
         monthlyOtherExpenses = request.monthlyOtherExpenses ?: monthlyOtherExpenses
     )
+
+/**
+ * A primary residence earns no rent. Reads the merged flag, so a partial update that omits it
+ * still honours the stored one.
+ */
+private fun PrivateAssetConfig.zeroRentalForPrimaryResidence() =
+    if (isPrimaryResidence) copy(monthlyRentalIncome = BigDecimal.ZERO) else this
 
 private fun PrivateAssetConfig.mergePropertyFlags(request: PrivateAssetConfigRequest) =
     copy(

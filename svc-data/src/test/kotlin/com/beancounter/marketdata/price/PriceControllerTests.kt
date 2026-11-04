@@ -521,6 +521,39 @@ internal class PriceControllerTests
         }
 
         @Test
+        fun `should return 400 when an off-market write records no price`() {
+            val privateMarketAsset =
+                getTestAsset(
+                    market = Market(PrivateMarketDataProvider.ID),
+                    code = assetCode
+                )
+            val request =
+                OffMarketPriceRequest(
+                    privateMarketAsset.id,
+                    closePrice = BigDecimal("0.00")
+                )
+            `when`(assetFinder.find(privateMarketAsset.id)).thenReturn(privateMarketAsset)
+            `when`(
+                marketDataRepo.findByAssetIdAndPriceDate(
+                    privateMarketAsset.id,
+                    DateUtils().getFormattedDate(request.date)
+                )
+            ).thenReturn(Optional.empty())
+
+            mockMvc
+                .perform(
+                    MockMvcRequestBuilders
+                        .post("/prices/write")
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                        .with(
+                            SecurityMockMvcRequestPostProcessors
+                                .jwt()
+                                .jwt(mockAuthConfig.getUserToken())
+                        ).content(objectMapper.writeValueAsString(request))
+                ).andExpect(MockMvcResultMatchers.status().isBadRequest)
+        }
+
+        @Test
         @Tag("wiremock")
         @WithMockUser(
             username = "test-user",

@@ -6,6 +6,7 @@ import com.beancounter.client.services.ClassificationClient
 import com.beancounter.client.services.PriceService
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.model.Positions
+import com.beancounter.position.valuation.reading
 import com.beancounter.position.valuation.runAs
 import io.sentry.kotlin.SentryContext
 import kotlinx.coroutines.Dispatchers
@@ -15,7 +16,6 @@ import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
-import kotlin.coroutines.cancellation.CancellationException
 
 /**
  * The market data a valuation needs from bc-data: prices, FX rates and
@@ -64,7 +64,7 @@ class ValuationDataSource(
                 )
             val priceDeferred =
                 async {
-                    reading(READ_PRICES, positions) {
+                    log.reading(READ_PRICES, positions.portfolio) {
                         caller.runAs {
                             if (live) {
                                 priceService.getLivePrices(priceRequest, token)
@@ -76,11 +76,14 @@ class ValuationDataSource(
                 }
             val fxDeferred =
                 async {
-                    reading(READ_FX, positions) { caller.runAs { fxRateService.getRates(fxRequest, token) } }
+                    log.reading(
+                        READ_FX,
+                        positions.portfolio
+                    ) { caller.runAs { fxRateService.getRates(fxRequest, token) } }
                 }
             val classificationDeferred =
                 async {
-                    reading(READ_CLASSIFICATIONS, positions) {
+                    log.reading(READ_CLASSIFICATIONS, positions.portfolio) {
                         caller.runAs {
                             classificationClient.getClassifications(
                                 positions.positions.values.map { it.asset.id }
@@ -96,23 +99,6 @@ class ValuationDataSource(
             )
         }
     }
-
-    /**
-     * [block]'s result. A genuine failure is logged with the [read] and portfolio it
-     * belongs to, then propagated; a cancellation passes through untouched so the
-     * caller's cooperative cancellation still works.
-     */
-    private fun <T> reading(
-        read: String,
-        positions: Positions,
-        block: () -> T
-    ): T =
-        runCatching(block)
-            .onFailure { e ->
-                if (e !is CancellationException) {
-                    log.error("{} read failed for portfolio {}", read, positions.portfolio.code, e)
-                }
-            }.getOrThrow()
 
     companion object {
         private const val READ_PRICES = "Price"

@@ -7,6 +7,7 @@ import com.beancounter.marketdata.news.NewsArticleTicker
 import com.beancounter.marketdata.news.NewsFetch
 import com.beancounter.marketdata.news.NewsFetchRepo
 import com.beancounter.marketdata.providers.eodhd.model.EodhdNewsArticle
+import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
@@ -33,6 +34,9 @@ class EodhdNewsIngest(
         articles: List<EodhdNewsArticle>
     ) {
         val keyed = newestPerExternalId(articles)
+        if (keyed.size < articles.size) {
+            log.debug("News for {}: kept the latest of {} repeated copies", symbol, articles.size - keyed.size)
+        }
         val existing = preload(keyed.map { it.first })
         val fresh = embeddings.prepare(keyed, existing)
         for ((externalId, incoming) in keyed) {
@@ -169,4 +173,8 @@ class EodhdNewsIngest(
                 LocalDateTime.now(ZoneOffset.UTC)
             }
         }
+
+    private companion object {
+        val log = LoggerFactory.getLogger(EodhdNewsIngest::class.java)
+    }
 }

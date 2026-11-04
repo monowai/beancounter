@@ -28,15 +28,17 @@ import java.time.Instant
     ]
 )
 data class PortfolioShare(
-    @Id val id: String = KeyGenUtils().id,
+    @Id override val id: String = KeyGenUtils().id,
     @ManyToOne val portfolio: Portfolio? = null,
-    @ManyToOne val sharedWith: SystemUser,
+    @ManyToOne override val sharedWith: SystemUser,
     @Enumerated(EnumType.STRING)
     val accessLevel: ShareAccessLevel = ShareAccessLevel.FULL,
     @Enumerated(EnumType.STRING)
-    var status: ShareStatus = ShareStatus.PENDING_CLIENT_INVITE,
+    override var status: ShareStatus = ShareStatus.PENDING_CLIENT_INVITE,
     val createdAt: Instant = Instant.now(),
-    @ManyToOne val createdBy: SystemUser,
-    @ManyToOne val targetUser: SystemUser? = null,
-    var acceptedAt: Instant? = null
-)
+    @ManyToOne override val createdBy: SystemUser,
+    @ManyToOne override val targetUser: SystemUser? = null,
+    override var acceptedAt: Instant? = null
+) : Share {
+    override fun owner(): SystemUser? = portfolio?.owner
+}

@@ -34,6 +34,7 @@ class FxController
     @Autowired
     internal constructor(
         private val fxRateService: FxRateService,
+        private val fxHistoryService: FxHistoryService,
         private val tokenService: TokenService
     ) {
         // A cache-filling read: a miss fetches from the provider and stores it. The widget scope
@@ -67,7 +68,7 @@ class FxController
             @RequestParam from: String,
             @RequestParam to: String,
             @RequestParam(defaultValue = "3") months: Int
-        ): FxHistoryResponse = fxRateService.getHistoricalRates(from, to, months)
+        ): FxHistoryResponse = fxHistoryService.getHistoricalRates(from, to, months)
     }
 
 /**

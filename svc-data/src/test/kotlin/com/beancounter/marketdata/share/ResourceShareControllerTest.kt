@@ -7,6 +7,7 @@ import com.beancounter.common.contracts.ResourceShareRequestAccess
 import com.beancounter.common.contracts.ResourceShareResponse
 import com.beancounter.common.contracts.ResourceSharesResponse
 import com.beancounter.common.contracts.ShareAccessCheck
+import com.beancounter.common.model.ResourceShare
 import com.beancounter.common.model.ShareAccessLevel
 import com.beancounter.common.model.ShareResourceType
 import com.beancounter.common.model.ShareStatus
@@ -25,6 +26,7 @@ import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequ
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.ResultActions
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
@@ -578,4 +580,90 @@ internal class ResourceShareControllerTest {
         assertThat(ownerEmail).contains("*")
         assertThat(ownerEmail).doesNotContain("rs-client@testing.com")
     }
+
+    @Test
+    fun `only the invited adviser can accept a resource invite`() {
+        val shareId = inviteAdviser("plan-invitee-only")
+        val outsiderToken = registeredToken("rs-stranger")
+
+        accept(shareId, clientToken).andExpect(status().isNotFound)
+        accept(shareId, outsiderToken).andExpect(status().isNotFound)
+
+        val accepted = shareFrom(accept(shareId, adviserToken).andExpect(status().isOk))
+        assertThat(accepted.status).isEqualTo(ShareStatus.ACTIVE)
+    }
+
+    @Test
+    fun `only the client can accept an adviser resource request`() {
+        // Its own adviser, so the request cannot collide with another test's pending request.
+        val requesterToken = registeredToken("rs-requester")
+        val requested =
+            mockMvc.perform(
+                post("$RESOURCE_SHARES_ROOT/request")
+                    .with(jwt().jwt(requesterToken))
+                    .with(csrf())
+                    .content(
+                        objectMapper.writeValueAsBytes(
+                            ResourceShareRequestAccess(
+                                resourceType = ShareResourceType.INDEPENDENCE_PLAN,
+                                clientEmail = "rs-client@testing.com"
+                            )
+                        )
+                    ).contentType(MediaType.APPLICATION_JSON)
+            )
+        val shareId = shareFrom(requested.andExpect(status().isOk)).id
+
+        accept(shareId, requesterToken).andExpect(status().isNotFound)
+        accept(shareId, adviserToken).andExpect(status().isNotFound)
+
+        val accepted = shareFrom(accept(shareId, clientToken).andExpect(status().isOk))
+        assertThat(accepted.status).isEqualTo(ShareStatus.ACTIVE)
+    }
+
+    private fun inviteAdviser(resourceId: String): String {
+        val result =
+            mockMvc
+                .perform(
+                    post("$RESOURCE_SHARES_ROOT/invite")
+                        .with(jwt().jwt(clientToken))
+                        .with(csrf())
+                        .content(
+                            objectMapper.writeValueAsBytes(
+                                ResourceShareInviteRequest(
+                                    resourceType = ShareResourceType.INDEPENDENCE_PLAN,
+                                    resourceIds = listOf(resourceId),
+                                    adviserEmail = "rs-adviser@testing.com"
+                                )
+                            )
+                        ).contentType(MediaType.APPLICATION_JSON)
+                ).andExpect(status().isOk)
+                .andReturn()
+        return objectMapper
+            .readValue(result.response.contentAsString, ResourceSharesResponse::class.java)
+            .data
+            .first()
+            .id
+    }
+
+    private fun registeredToken(id: String): Jwt =
+        registerUser(
+            mockMvc,
+            mockAuthConfig.getUserToken(SystemUser(id = id, email = "$id@testing.com", auth0 = "auth0|$id"))
+        )
+
+    private fun accept(
+        shareId: String,
+        token: Jwt
+    ): ResultActions =
+        mockMvc.perform(
+            post("$RESOURCE_SHARES_ROOT/$shareId/accept")
+                .with(jwt().jwt(token))
+                .with(csrf())
+                .contentType(MediaType.APPLICATION_JSON)
+        )
+
+    private fun shareFrom(result: ResultActions): ResourceShare =
+        objectMapper
+            .readValue(result.andReturn().response.contentAsString, ResourceShareResponse::class.java)
+            .data
 }

@@ -31,6 +31,9 @@ class UserPreferencesServiceTest {
     lateinit var systemUserService: SystemUserService
 
     @Autowired
+    lateinit var systemUserRegistration: SystemUserRegistration
+
+    @Autowired
     lateinit var authUtilService: AuthUtilService
 
     private val defaultView = HoldingsView.CARDS
@@ -340,7 +343,7 @@ class UserPreferencesServiceTest {
     private fun createAndAuthenticateUser(email: String): SystemUser {
         val user = SystemUser(email = email, auth0 = "auth0-$email")
         authUtilService.authenticate(user, AuthUtilService.AuthProvider.AUTH0)
-        systemUserService.register()
+        systemUserRegistration.register()
         return systemUserService.getActiveUser()!!
     }
 }

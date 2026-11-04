@@ -8,6 +8,7 @@ import com.beancounter.marketdata.Constants.Companion.PRIVATE
 import com.beancounter.marketdata.Constants.Companion.PRIVATE_MARKET
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetRepository
+import com.beancounter.marketdata.registration.SystemUserRegistration
 import com.beancounter.marketdata.registration.SystemUserService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -32,6 +33,9 @@ class AssetSearchServiceTest {
     private lateinit var systemUserService: SystemUserService
 
     @Autowired
+    private lateinit var systemUserRegistration: SystemUserRegistration
+
+    @Autowired
     private lateinit var assetSearchService: AssetSearchService
 
     @Autowired
@@ -43,7 +47,7 @@ class AssetSearchServiceTest {
     fun setUp() {
         val testUser = SystemUser(email = "search-test@test.com", auth0 = "auth0-search-test")
         authUtilService.authenticate(testUser, AuthUtilService.AuthProvider.AUTH0)
-        systemUserService.register()
+        systemUserRegistration.register()
         user = systemUserService.getActiveUser()!!
     }
 
@@ -74,7 +78,7 @@ class AssetSearchServiceTest {
         // Switch to a different user
         val otherUser = SystemUser(email = "other@test.com", auth0 = "auth0-other")
         authUtilService.authenticate(otherUser, AuthUtilService.AuthProvider.AUTH0)
-        systemUserService.register()
+        systemUserRegistration.register()
 
         val results = assetSearchService.search("SECRET", PRIVATE)
 

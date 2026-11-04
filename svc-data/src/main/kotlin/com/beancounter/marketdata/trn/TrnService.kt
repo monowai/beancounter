@@ -8,8 +8,6 @@ import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
-import com.beancounter.marketdata.cache.CacheInvalidationProducer
-import com.beancounter.marketdata.cash.CashAutoSettleService
 import com.beancounter.marketdata.portfolio.PortfolioAccessControl
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.trn.analysis.TrnAnalysisService
@@ -36,8 +34,7 @@ class TrnService(
     private val trnInputMapper: TrnInputMapper,
     private val portfolioService: PortfolioService,
     private val portfolioAccessControl: PortfolioAccessControl,
-    private val cacheInvalidationProducer: CacheInvalidationProducer,
-    private val cashAutoSettleService: CashAutoSettleService,
+    private val trnChangeEffects: TrnChangeEffects,
     private val trnFinder: TrnFinder
 ) {
     private val log = LoggerFactory.getLogger(TrnService::class.java)
@@ -79,18 +76,12 @@ class TrnService(
         // saveAll returns entities whose asset reference was already hydrated upstream.
         val results: MutableCollection<Trn> = mutableListOf()
         saved.forEach(Consumer { e: Trn -> results.add(e) })
-        // Auto-settle cash to the linked funding portfolio. Skips non-trigger
-        // types (DEPOSIT/WITHDRAWAL etc.) — no recursion risk.
-        val warnings = mutableListOf<String>()
-        for (trn in results.toList()) {
-            // Cash auto-settle emits a compensating pair whose status mirrors the
-            // parent — a PROPOSED trade carries PROPOSED legs (no settled cash
-            // impact), a SETTLED trade carries SETTLED legs. Settling later
-            // reconciles them to SETTLED. emitCompensatingTransfer no-ops for
-            // non-trigger types (DEPOSIT/WITHDRAWAL etc.), so no recursion.
-            val res = cashAutoSettleService.emitCompensatingTransfer(trn)
-            warnings.addAll(res.warnings)
-        }
+        // Auto-settle cash to the linked funding portfolio. A compensating pair's
+        // status mirrors the parent — a PROPOSED trade carries PROPOSED legs (no
+        // settled cash impact), a SETTLED trade carries SETTLED legs. Settling later
+        // reconciles them to SETTLED. Non-trigger types (DEPOSIT/WITHDRAWAL etc.)
+        // no-op, so no recursion.
+        val warnings = trnChangeEffects.afterChange(portfolio.id, results)
         if (trnRequest.data.size == 1) {
             log.trace(
                 "Wrote 1 transaction asset: ${trnRequest.data[0].assetId}, portfolio: ${portfolio.code}"
@@ -100,11 +91,7 @@ class TrnService(
                 "Wrote ${results.size}/${trnRequest.data.size} transactions for ${portfolio.code}"
             )
         }
-        val earliestDate = results.minOfOrNull { it.tradeDate }
-        if (earliestDate != null) {
-            cacheInvalidationProducer.sendTransactionEvent(portfolio.id, earliestDate)
-        }
-        return TrnSaveResult(results.toList(), warnings.toList())
+        return TrnSaveResult(results.toList(), warnings)
     }
 
     fun purge(portfolioId: String): Long {
@@ -118,7 +105,7 @@ class TrnService(
     fun purge(portfolio: Portfolio): Long {
         log.debug("Purging transactions for {}", portfolio.code)
         val count = trnRepository.deleteByPortfolioId(portfolio.id)
-        cacheInvalidationProducer.sendTransactionEvent(portfolio.id, LocalDate.MIN)
+        trnChangeEffects.invalidate(portfolio.id, LocalDate.MIN)
         return count
     }
 
@@ -134,9 +121,9 @@ class TrnService(
             // rather than a silent empty success.
             throw NotFoundException("Transaction not found: $trnId")
         }
-        val siblings = cashAutoSettleService.findSiblings(parent).map { it.id }
+        val siblings = trnChangeEffects.cashLegs(parent).map { it.id }
         trnRepository.delete(parent)
-        cacheInvalidationProducer.sendTransactionEvent(parent.portfolio.id, parent.tradeDate)
+        trnChangeEffects.invalidate(parent.portfolio.id, parent.tradeDate)
         return TrnDeleteResponse(listOf(parent.id), siblings)
     }
 
@@ -166,8 +153,7 @@ class TrnService(
         // deletes any stale pair and re-posts so the legs track the new
         // amount/date/currency AND the new status. Editing a SETTLED trade down to
         // PROPOSED must revert its legs to PROPOSED too (not orphan them settled).
-        val warnings = cashAutoSettleService.emitCompensatingTransfer(trn).warnings
-        cacheInvalidationProducer.sendTransactionEvent(portfolio.id, trn.tradeDate)
+        val warnings = trnChangeEffects.afterChange(portfolio.id, listOf(trn))
         return TrnResponse(arrayListOf(trn), warnings)
     }
 }

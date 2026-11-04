@@ -5,17 +5,14 @@ import com.beancounter.common.contracts.ResourceShareInviteRequest
 import com.beancounter.common.contracts.ResourceShareRequestAccess
 import com.beancounter.common.contracts.ShareAccessCheck
 import com.beancounter.common.exception.BusinessException
-import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.model.ResourceShare
 import com.beancounter.common.model.ShareAccessLevel
 import com.beancounter.common.model.ShareResourceType
 import com.beancounter.common.model.ShareStatus
 import com.beancounter.common.model.SystemUser
-import com.beancounter.marketdata.portfolio.PortfolioShareService
 import com.beancounter.marketdata.registration.SystemUserService
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
-import java.time.Instant
 
 /**
  * Business logic for sharing non-portfolio resources (plans, models)
@@ -27,26 +24,21 @@ class ResourceShareService(
     private val resourceShareRepository: ResourceShareRepository,
     private val systemUserService: SystemUserService
 ) {
+    private val shares = ShareLifecycle(resourceShareRepository, systemUserService)
+
     /**
      * Owner invites an adviser to view specific resources.
      */
     fun inviteAdviser(request: ResourceShareInviteRequest): Collection<ResourceShare> {
         val owner = systemUserService.getOrThrow()
-        val adviser = resolveUserByEmail(request.adviserEmail)
-        if (adviser.id == owner.id) {
-            throw BusinessException("Cannot share resources with yourself")
-        }
+        val adviser = shares.counterparty(request.adviserEmail, owner, "Cannot share resources with yourself")
 
         return request.resourceIds.map { resourceId ->
-            val existing =
+            shares.requireNotShared(
                 resourceShareRepository
-                    .findByResourceTypeAndResourceIdAndSharedWith(request.resourceType, resourceId, adviser)
-            if (existing.isPresent) {
-                val share = existing.get()
-                if (share.status == ShareStatus.ACTIVE || share.status == ShareStatus.PENDING_CLIENT_INVITE) {
-                    throw BusinessException("Resource is already shared with this user")
-                }
-            }
+                    .findByResourceTypeAndResourceIdAndSharedWith(request.resourceType, resourceId, adviser),
+                "Resource is already shared with this user"
+            )
 
             resourceShareRepository.save(
                 ResourceShare(
@@ -67,10 +59,7 @@ class ResourceShareService(
      */
     fun requestAccess(request: ResourceShareRequestAccess): ResourceShare {
         val adviser = systemUserService.getOrThrow()
-        val client = resolveUserByEmail(request.clientEmail)
-        if (client.id == adviser.id) {
-            throw BusinessException("Cannot request access to your own resources")
-        }
+        val client = shares.counterparty(request.clientEmail, adviser, "Cannot request access to your own resources")
 
         val existingRequests =
             resourceShareRepository
@@ -99,62 +88,12 @@ class ResourceShareService(
     /**
      * Accept a pending invitation or request.
      */
-    fun acceptShare(shareId: String): ResourceShare {
-        val currentUser = systemUserService.getOrThrow()
-        val share = findShareOrThrow(shareId)
-        validateShareAcceptance(share, currentUser, shareId)
-        share.status = ShareStatus.ACTIVE
-        share.acceptedAt = Instant.now()
-        return resourceShareRepository.save(share)
-    }
-
-    private fun validateShareAcceptance(
-        share: ResourceShare,
-        currentUser: SystemUser,
-        shareId: String
-    ) {
-        if (!isAuthorisedToAccept(share, currentUser, shareId)) {
-            throw NotFoundException(shareNotFoundMessage(shareId))
-        }
-    }
-
-    private fun isAuthorisedToAccept(
-        share: ResourceShare,
-        currentUser: SystemUser,
-        shareId: String
-    ): Boolean =
-        when (share.status) {
-            ShareStatus.PENDING_CLIENT_INVITE -> {
-                share.sharedWith.id == currentUser.id
-            }
-            ShareStatus.PENDING_ADVISER_REQUEST -> {
-                val target =
-                    share.targetUser
-                        ?: throw BusinessException("Share $shareId has no target user")
-                target.id == currentUser.id
-            }
-            else -> {
-                throw BusinessException("Share is not pending: $shareId")
-            }
-        }
+    fun acceptShare(shareId: String): ResourceShare = shares.accept(shareId)
 
     /**
      * Either party can revoke a share.
      */
-    fun revokeShare(shareId: String): ResourceShare {
-        val currentUser = systemUserService.getOrThrow()
-        val share = findShareOrThrow(shareId)
-
-        val isOwner = share.resourceOwner.id == currentUser.id
-        val isAdviser = share.sharedWith.id == currentUser.id
-        val isTarget = share.targetUser?.id == currentUser.id
-        if (!isOwner && !isAdviser && !isTarget) {
-            throw NotFoundException(shareNotFoundMessage(shareId))
-        }
-
-        share.status = ShareStatus.REVOKED
-        return resourceShareRepository.save(share)
-    }
+    fun revokeShare(shareId: String): ResourceShare = shares.revoke(shareId)
 
     /**
      * Pending notifications for the current user across all resource types.
@@ -234,46 +173,13 @@ class ResourceShareService(
         )
     }
 
-    private fun findShareOrThrow(shareId: String): ResourceShare =
-        resourceShareRepository.findById(shareId).orElseThrow {
-            NotFoundException(shareNotFoundMessage(shareId))
-        }
-
-    private fun resolveUserByEmail(email: String): SystemUser =
-        systemUserService.findByEmail(email)
-            ?: throw NotFoundException("User not found: ${PortfolioShareService.maskEmail(email)}")
-
     private fun maskShareEmails(
         share: ResourceShare,
         currentUser: SystemUser
-    ): ResourceShare {
-        val maskedSharedWith =
-            if (share.sharedWith.id != currentUser.id) {
-                share.sharedWith.copy(email = PortfolioShareService.maskEmail(share.sharedWith.email))
-            } else {
-                share.sharedWith
-            }
-
-        val maskedCreatedBy =
-            if (share.createdBy.id != currentUser.id) {
-                share.createdBy.copy(email = PortfolioShareService.maskEmail(share.createdBy.email))
-            } else {
-                share.createdBy
-            }
-
-        val maskedOwner =
-            if (share.resourceOwner.id != currentUser.id) {
-                share.resourceOwner.copy(email = PortfolioShareService.maskEmail(share.resourceOwner.email))
-            } else {
-                share.resourceOwner
-            }
-
-        return share.copy(
-            sharedWith = maskedSharedWith,
-            createdBy = maskedCreatedBy,
-            resourceOwner = maskedOwner
+    ): ResourceShare =
+        share.copy(
+            sharedWith = maskUnlessCaller(share.sharedWith, currentUser),
+            createdBy = maskUnlessCaller(share.createdBy, currentUser),
+            resourceOwner = maskUnlessCaller(share.resourceOwner, currentUser)
         )
-    }
 }
-
-private fun shareNotFoundMessage(shareId: String): String = "Share not found: $shareId"

@@ -11,7 +11,7 @@ import java.util.regex.PatternSyntaxException
 /**
  * Fixed-window, in-memory rate limiter for the (unauthenticated) token
  * exchange endpoint, keyed by client address ([clientKey]) - the only
- * signal available before [ApiKeyService.verify] has run. Single-JVM only:
+ * signal available before [ApiKeyVerifier.verify] has run. Single-JVM only:
  * a multi-instance deployment would need a shared store, out of scope for
  * phase 2.
  *

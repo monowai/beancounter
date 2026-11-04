@@ -5,16 +5,16 @@ import com.beancounter.common.contracts.ShareInviteRequest
 import com.beancounter.common.contracts.ShareRequestAccess
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.ForbiddenException
-import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.PortfolioShare
 import com.beancounter.common.model.ShareAccessLevel
 import com.beancounter.common.model.ShareStatus
 import com.beancounter.common.model.SystemUser
 import com.beancounter.marketdata.registration.SystemUserService
+import com.beancounter.marketdata.share.ShareLifecycle
+import com.beancounter.marketdata.share.maskUnlessCaller
 import jakarta.transaction.Transactional
 import org.springframework.stereotype.Service
-import java.time.Instant
 
 /**
  * Business logic for portfolio sharing between clients and advisers.
@@ -26,20 +26,22 @@ class PortfolioShareService(
     private val portfolioService: PortfolioService,
     private val systemUserService: SystemUserService
 ) {
+    private val shares = ShareLifecycle(portfolioShareRepository, systemUserService)
+
     /**
      * Client invites an adviser to view/manage selected portfolios.
      */
     fun inviteAdviser(request: ShareInviteRequest): Collection<PortfolioShare> {
         val client = systemUserService.getOrThrow()
-        val adviser = resolveUserByEmail(request.adviserEmail)
-        if (adviser.id == client.id) {
-            throw BusinessException("Cannot share portfolios with yourself")
-        }
+        val adviser = shares.counterparty(request.adviserEmail, client, "Cannot share portfolios with yourself")
 
         return request.portfolioIds.map { portfolioId ->
             val portfolio = portfolioService.find(portfolioId)
             validateOwnership(portfolio, client)
-            validateNotAlreadyShared(portfolio, adviser)
+            shares.requireNotShared(
+                portfolioShareRepository.findByPortfolioAndSharedWith(portfolio, adviser),
+                "Portfolio ${portfolio.code} is already shared with this user"
+            )
 
             portfolioShareRepository.save(
                 PortfolioShare(
@@ -62,29 +64,13 @@ class PortfolioShareService(
         }
     }
 
-    private fun validateNotAlreadyShared(
-        portfolio: Portfolio,
-        adviser: SystemUser
-    ) {
-        val existing = portfolioShareRepository.findByPortfolioAndSharedWith(portfolio, adviser)
-        if (existing.isPresent) {
-            val share = existing.get()
-            if (share.status == ShareStatus.ACTIVE || share.status == ShareStatus.PENDING_CLIENT_INVITE) {
-                throw BusinessException("Portfolio ${portfolio.code} is already shared with this user")
-            }
-        }
-    }
-
     /**
      * Adviser requests access from a client. No portfolio is specified;
      * the client will later choose which portfolios to share via the invite flow.
      */
     fun requestAccess(request: ShareRequestAccess): PortfolioShare {
         val adviser = systemUserService.getOrThrow()
-        val client = resolveUserByEmail(request.clientEmail)
-        if (client.id == adviser.id) {
-            throw BusinessException("Cannot request access to your own portfolios")
-        }
+        val client = shares.counterparty(request.clientEmail, adviser, "Cannot request access to your own portfolios")
 
         val existingRequests =
             portfolioShareRepository.findByTargetUserAndStatus(
@@ -109,62 +95,12 @@ class PortfolioShareService(
     /**
      * Accept a pending invitation or request.
      */
-    fun acceptShare(shareId: String): PortfolioShare {
-        val currentUser = systemUserService.getOrThrow()
-        val share = findShareOrThrow(shareId)
-        validateShareAcceptance(share, currentUser, shareId)
-        share.status = ShareStatus.ACTIVE
-        share.acceptedAt = Instant.now()
-        return portfolioShareRepository.save(share)
-    }
-
-    private fun validateShareAcceptance(
-        share: PortfolioShare,
-        currentUser: SystemUser,
-        shareId: String
-    ) {
-        if (!isAuthorisedToAccept(share, currentUser, shareId)) {
-            throw NotFoundException(shareNotFoundMessage(shareId))
-        }
-    }
-
-    private fun isAuthorisedToAccept(
-        share: PortfolioShare,
-        currentUser: SystemUser,
-        shareId: String
-    ): Boolean =
-        when (share.status) {
-            ShareStatus.PENDING_CLIENT_INVITE -> {
-                share.sharedWith.id == currentUser.id
-            }
-            ShareStatus.PENDING_ADVISER_REQUEST -> {
-                val target =
-                    share.targetUser
-                        ?: throw BusinessException("Share $shareId has no target user")
-                target.id == currentUser.id
-            }
-            else -> {
-                throw BusinessException("Share is not pending: $shareId")
-            }
-        }
+    fun acceptShare(shareId: String): PortfolioShare = shares.accept(shareId)
 
     /**
      * Either party can revoke a share.
      */
-    fun revokeShare(shareId: String): PortfolioShare {
-        val currentUser = systemUserService.getOrThrow()
-        val share = findShareOrThrow(shareId)
-
-        val isOwner = share.portfolio?.owner?.id == currentUser.id
-        val isAdviser = share.sharedWith.id == currentUser.id
-        val isTarget = share.targetUser?.id == currentUser.id
-        if (!isOwner && !isAdviser && !isTarget) {
-            throw NotFoundException(shareNotFoundMessage(shareId))
-        }
-
-        share.status = ShareStatus.REVOKED
-        return portfolioShareRepository.save(share)
-    }
+    fun revokeShare(shareId: String): PortfolioShare = shares.revoke(shareId)
 
     /**
      * Get pending notifications for the current user:
@@ -249,65 +185,13 @@ class PortfolioShareService(
             .filter { it.portfolio != null }
     }
 
-    private fun findShareOrThrow(shareId: String): PortfolioShare =
-        portfolioShareRepository.findById(shareId).orElseThrow {
-            NotFoundException(shareNotFoundMessage(shareId))
-        }
-
-    private fun resolveUserByEmail(email: String): SystemUser =
-        systemUserService.findByEmail(email)
-            ?: throw NotFoundException("User not found: ${maskEmail(email)}")
-
     private fun maskShareEmails(
         share: PortfolioShare,
         currentUser: SystemUser
-    ): PortfolioShare {
-        val maskedOwner =
-            share.portfolio?.owner?.let { owner ->
-                if (owner.id != currentUser.id) {
-                    owner.copy(email = maskEmail(owner.email))
-                } else {
-                    owner
-                }
-            }
-
-        val maskedSharedWith =
-            if (share.sharedWith.id != currentUser.id) {
-                share.sharedWith.copy(email = maskEmail(share.sharedWith.email))
-            } else {
-                share.sharedWith
-            }
-
-        val maskedCreatedBy =
-            if (share.createdBy.id != currentUser.id) {
-                share.createdBy.copy(email = maskEmail(share.createdBy.email))
-            } else {
-                share.createdBy
-            }
-
-        return share.copy(
-            portfolio = share.portfolio?.let { it.copy(owner = maskedOwner ?: it.owner) },
-            sharedWith = maskedSharedWith,
-            createdBy = maskedCreatedBy
+    ): PortfolioShare =
+        share.copy(
+            portfolio = share.portfolio?.let { it.copy(owner = maskUnlessCaller(it.owner, currentUser)) },
+            sharedWith = maskUnlessCaller(share.sharedWith, currentUser),
+            createdBy = maskUnlessCaller(share.createdBy, currentUser)
         )
-    }
-
-    companion object {
-        /**
-         * Mask an email address: m***h@gmail.com
-         */
-        fun maskEmail(email: String): String {
-            val atIndex = email.indexOf('@')
-            if (atIndex <= 1) return email
-            val local = email.substring(0, atIndex)
-            val domain = email.substring(atIndex)
-            return if (local.length <= 2) {
-                "${local.first()}*$domain"
-            } else {
-                "${local.first()}${"*".repeat(local.length - 2)}${local.last()}$domain"
-            }
-        }
-    }
 }
-
-private fun shareNotFoundMessage(shareId: String): String = "Share not found: $shareId"

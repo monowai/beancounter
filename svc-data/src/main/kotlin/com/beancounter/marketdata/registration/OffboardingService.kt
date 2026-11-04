@@ -1,13 +1,8 @@
 package com.beancounter.marketdata.registration
 
 import com.beancounter.common.exception.BusinessException
-import com.beancounter.marketdata.assets.AssetRepository
-import com.beancounter.marketdata.assets.admin.AssetCascadeDeleter
-import com.beancounter.marketdata.broker.BrokerRepository
-import com.beancounter.marketdata.broker.BrokerSettlementAccountRepository
-import com.beancounter.marketdata.portfolio.PortfolioRepository
+import com.beancounter.common.model.SystemUser
 import com.beancounter.marketdata.tax.TaxRateRepository
-import com.beancounter.marketdata.trn.TrnRepository
 import com.beancounter.marketdata.watchlist.WatchlistService
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
@@ -17,15 +12,11 @@ import org.springframework.stereotype.Service
  * Service for user offboarding - allows users to remove their data from Beancounter.
  *
  * Deletion order respects FK constraints:
- * 1. Transactions (via portfolio and asset)
- * 2. MarketData and other asset dependents (via AssetCascadeDeleter)
- * 3. Portfolios
- * 4. Settlement accounts (before assets and brokers)
- * 5. Asset dependents (AssetCascadeDeleter), then Assets
- * 6. Brokers (after transactions and assets — trn.broker_id FK)
- * 7. TaxRates
- * 8. Watchlist items, UserPreferences
- * 9. SystemUser
+ * 1. Portfolios and their transactions ([PortfolioErasure])
+ * 2. Settlement accounts, assets with their dependents, then brokers ([OwnedAssetErasure])
+ * 3. TaxRates
+ * 4. Watchlist items, UserPreferences
+ * 5. SystemUser (deactivated, not deleted)
  */
 @Service
 @Transactional
@@ -33,14 +24,10 @@ class OffboardingService(
     private val systemUserService: SystemUserService,
     private val systemUserRepository: SystemUserRepository,
     private val systemUserCache: SystemUserCache,
-    private val portfolioRepository: PortfolioRepository,
-    private val assetRepository: AssetRepository,
-    private val trnRepository: TrnRepository,
-    private val brokerRepository: BrokerRepository,
-    private val brokerSettlementAccountRepository: BrokerSettlementAccountRepository,
+    private val portfolioErasure: PortfolioErasure,
+    private val ownedAssetErasure: OwnedAssetErasure,
     private val taxRateRepository: TaxRateRepository,
     private val userPreferencesRepository: UserPreferencesRepository,
-    private val assetCascadeDeleter: AssetCascadeDeleter,
     private val watchlistService: WatchlistService
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
@@ -49,34 +36,23 @@ class OffboardingService(
      * Get summary of user's data for offboarding preview.
      */
     fun getSummary(): OffboardingSummaryResponse {
-        val user =
-            systemUserService.getActiveUser()
-                ?: throw BusinessException(SystemUserService.USER_NOT_AUTHENTICATED)
-
-        val portfolios = portfolioRepository.findByOwner(user).toList()
-        val assets = assetRepository.findBySystemUserId(user.id)
-        val taxRates = taxRateRepository.findAllByOwnerId(user.id)
-        val brokers = brokerRepository.findByOwner(user)
-
+        val user = activeUser()
+        val owned = ownedAssetErasure.count(user)
         return OffboardingSummaryResponse(
-            portfolioCount = portfolios.size,
-            assetCount = assets.size,
-            taxRateCount = taxRates.size,
-            brokerCount = brokers.size
+            portfolioCount = portfolioErasure.count(user),
+            assetCount = owned.assets,
+            taxRateCount = taxRateRepository.findAllByOwnerId(user.id).size,
+            brokerCount = owned.brokers
         )
     }
 
     /**
      * Delete all user-owned assets and their associated data.
-     * Cascades to: transactions, market data
+     * Cascades to: transactions, market data, settlement accounts, brokers
      */
     fun deleteUserAssets(): OffboardingResult {
-        val user =
-            systemUserService.getActiveUser()
-                ?: throw BusinessException(SystemUserService.USER_NOT_AUTHENTICATED)
-
-        val assets = assetRepository.findBySystemUserId(user.id)
-        if (assets.isEmpty()) {
+        val user = activeUser()
+        if (ownedAssetErasure.count(user).assets == 0) {
             return OffboardingResult(
                 success = true,
                 deletedCount = 0,
@@ -84,29 +60,11 @@ class OffboardingService(
                 message = "No assets to delete"
             )
         }
-
-        // Clear settlement accounts before assets: broker_settlement_account has a NO-ACTION
-        // FK to the cash asset (fk_settlement_account), so the asset delete below trips that
-        // constraint unless the settlement rows are gone first.
-        brokerSettlementAccountRepository.deleteByBrokerOwnerId(user.id)
-
-        var deletedCount = 0
-        assets.forEach { asset ->
-            // One ordered list of asset dependents (trns, prices, classifications,
-            // watchlist items, ...) shared with the asset delete paths.
-            assetCascadeDeleter.deleteDependents(asset.id)
-            assetRepository.delete(asset)
-            deletedCount++
-        }
-
-        // Delete brokers — safe AFTER trns (trn.broker_id FK) and settlement
-        // accounts are gone. Idempotent bulk delete.
-        val brokerCount = brokerRepository.deleteByOwnerId(user.id)
-
-        log.info("Deleted {} assets, {} brokers for user {}", deletedCount, brokerCount, user.id)
+        val erased = ownedAssetErasure.erase(user)
+        log.info("Deleted {} assets, {} brokers for user {}", erased.assets, erased.brokers, user.id)
         return OffboardingResult(
             success = true,
-            deletedCount = deletedCount,
+            deletedCount = erased.assets,
             type = "assets"
         )
     }
@@ -115,12 +73,8 @@ class OffboardingService(
      * Delete all user's portfolios and their transactions.
      */
     fun deleteUserPortfolios(): OffboardingResult {
-        val user =
-            systemUserService.getActiveUser()
-                ?: throw BusinessException(SystemUserService.USER_NOT_AUTHENTICATED)
-
-        val portfolios = portfolioRepository.findByOwner(user).toList()
-        if (portfolios.isEmpty()) {
+        val user = activeUser()
+        if (portfolioErasure.count(user) == 0) {
             return OffboardingResult(
                 success = true,
                 deletedCount = 0,
@@ -128,16 +82,11 @@ class OffboardingService(
                 message = "No portfolios to delete"
             )
         }
-
-        portfolios.forEach { portfolio ->
-            trnRepository.deleteByPortfolioId(portfolio.id)
-        }
-        portfolioRepository.deleteByOwnerId(user.id)
-
-        log.info("Deleted {} portfolios for user {}", portfolios.size, user.id)
+        val portfolios = portfolioErasure.erase(user)
+        log.info("Deleted {} portfolios for user {}", portfolios, user.id)
         return OffboardingResult(
             success = true,
-            deletedCount = portfolios.size,
+            deletedCount = portfolios,
             type = "portfolios"
         )
     }
@@ -147,52 +96,21 @@ class OffboardingService(
      * This is a combined operation for the Wealth step in offboarding.
      */
     fun deleteUserWealth(): OffboardingResult {
-        val user =
-            systemUserService.getActiveUser()
-                ?: throw BusinessException(SystemUserService.USER_NOT_AUTHENTICATED)
-
-        var totalDeleted = 0
-
-        // 1. Delete portfolios and their transactions
-        val portfolios = portfolioRepository.findByOwner(user).toList()
-        portfolios.forEach { portfolio ->
-            trnRepository.deleteByPortfolioId(portfolio.id)
-        }
-        portfolioRepository.deleteByOwnerId(user.id)
-        totalDeleted += portfolios.size
-
-        // 2. Clear settlement accounts BEFORE assets. broker_settlement_account has a NO-ACTION
-        //    FK to the cash asset (fk_settlement_account); the asset delete below rolls back the
-        //    whole wealth delete (kauri 409) unless the settlement rows are cleared first.
-        brokerSettlementAccountRepository.deleteByBrokerOwnerId(user.id)
-
-        // 3. Delete assets and their data
-        val assets = assetRepository.findBySystemUserId(user.id)
-        assets.forEach { asset ->
-            // One ordered list of asset dependents (trns, prices, classifications,
-            // watchlist items, ...) shared with the asset delete paths.
-            assetCascadeDeleter.deleteDependents(asset.id)
-            assetRepository.delete(asset)
-            totalDeleted++
-        }
-
-        // 4. Delete brokers — safe AFTER trns (trn.broker_id FK) and settlement
-        //    accounts are gone. Idempotent bulk delete.
-        val brokerCount = brokerRepository.deleteByOwnerId(user.id)
-
+        val user = activeUser()
+        val portfolios = portfolioErasure.erase(user)
+        val erased = ownedAssetErasure.erase(user)
         log.info(
             "Deleted wealth data for user {}: {} portfolios, {} assets, {} brokers",
             user.id,
-            portfolios.size,
-            assets.size,
-            brokerCount
+            portfolios,
+            erased.assets,
+            erased.brokers
         )
-
         return OffboardingResult(
             success = true,
-            deletedCount = totalDeleted,
+            deletedCount = portfolios + erased.assets,
             type = "wealth",
-            message = "${portfolios.size} portfolios and ${assets.size} assets deleted"
+            message = "$portfolios portfolios and ${erased.assets} assets deleted"
         )
     }
 
@@ -201,9 +119,7 @@ class OffboardingService(
      * This is the nuclear option - deletes everything and the user record.
      */
     fun deleteUserAccount(): OffboardingResult {
-        val user =
-            systemUserService.getActiveUser()
-                ?: throw BusinessException(SystemUserService.USER_NOT_AUTHENTICATED)
+        val user = activeUser()
 
         // Soft-delete: deactivate the user and clear its cash-portfolio link up
         // front. The user row SURVIVES offboarding (re-registration reactivates
@@ -211,57 +127,25 @@ class OffboardingService(
         // before the portfolios below are deleted or the surviving row dangles.
         systemUserRepository.deactivate(user.id)
 
-        // Delete data in order of FK dependencies
-        // 1. Delete portfolios and their transactions
-        val portfolios = portfolioRepository.findByOwner(user).toList()
-        portfolios.forEach { portfolio ->
-            trnRepository.deleteByPortfolioId(portfolio.id)
-        }
-        portfolioRepository.deleteByOwnerId(user.id)
-
-        // 2. Clear settlement accounts BEFORE assets and brokers.
-        //    broker_settlement_account has NO-ACTION FKs to BOTH the cash asset
-        //    (fk_settlement_account) and the broker (fk_settlement_broker), so the
-        //    asset and broker bulk deletes below trip those constraints unless the
-        //    settlement rows are gone first.
-        brokerSettlementAccountRepository.deleteByBrokerOwnerId(user.id)
-
-        // 3. Delete assets and their data
-        val assets = assetRepository.findBySystemUserId(user.id)
-        assets.forEach { asset ->
-            // One ordered list of asset dependents (trns, prices, classifications,
-            // watchlist items, ...) shared with the asset delete paths.
-            assetCascadeDeleter.deleteDependents(asset.id)
-            assetRepository.delete(asset)
-        }
-
-        // 4. Delete brokers — safe AFTER trns (trn.broker_id FK) and settlement
-        //    accounts are gone. Idempotent bulk delete.
-        val brokerCount = brokerRepository.deleteByOwnerId(user.id)
-
-        // 4. Delete tax rates
+        val portfolios = portfolioErasure.erase(user)
+        val erased = ownedAssetErasure.erase(user)
         taxRateRepository.deleteAllByOwnerId(user.id)
-
-        // 5. Delete the watchlist
         watchlistService.deleteByOwner(user.id)
-
-        // 6. Delete user preferences
         userPreferencesRepository.findByOwner(user).ifPresent {
             userPreferencesRepository.delete(it)
         }
 
-        // 7. User row already deactivated above (not deleted) — evict the cache
-        //    so the inactive state is re-read on the next request.
+        // User row already deactivated above (not deleted) — evict the cache
+        // so the inactive state is re-read on the next request.
         systemUserCache.evictAll()
 
         log.info(
             "Deactivated account for user {}: deleted {} portfolios, {} assets, {} brokers",
             user.id,
-            portfolios.size,
-            assets.size,
-            brokerCount
+            portfolios,
+            erased.assets,
+            erased.brokers
         )
-
         return OffboardingResult(
             success = true,
             deletedCount = 1,
@@ -269,4 +153,8 @@ class OffboardingService(
             message = "Account deactivated and all data deleted"
         )
     }
+
+    private fun activeUser(): SystemUser =
+        systemUserService.getActiveUser()
+            ?: throw BusinessException(SystemUserService.USER_NOT_AUTHENTICATED)
 }

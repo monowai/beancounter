@@ -52,6 +52,9 @@ internal class EodhdApiTest {
     @Autowired
     private lateinit var eodhdPriceService: EodhdPriceService
 
+    @Autowired
+    private lateinit var eodhdAssetSearch: EodhdAssetSearch
+
     // Reset between tests so per-test stub/verify counters don't bleed into
     // siblings — the bulk-routing tests register `/api/eod-bulk-last-day/US`
     // stubs that would otherwise carry over and turn the per-symbol 404 test
@@ -291,7 +294,7 @@ internal class EodhdApiTest {
 
     @Test
     fun `searchAssets surfaces EODHD search hits end-to-end`() {
-        // Covers EodhdPriceService.searchAssets → EodhdProxy.searchAssets → EodhdGateway
+        // Covers EodhdAssetSearch.searchAssets → EodhdProxy.searchAssets → EodhdGateway
         // through the real RestClient + WireMock, so all three layers see actual HTTP traffic
         // instead of unit-level mocks.
         val body = ClassPathResource("mock/eodhd/search-HYSA.json").file.readText()
@@ -305,7 +308,7 @@ internal class EodhdApiTest {
                 )
         )
 
-        val results = eodhdPriceService.searchAssets("HYSA", "US")
+        val results = eodhdAssetSearch.searchAssets("HYSA", "US")
 
         assertThat(results).hasSize(1)
         val hit = results.first()
@@ -371,7 +374,7 @@ internal class EodhdApiTest {
         )
 
         val appender = ListAppender<ILoggingEvent>().apply { start() }
-        val logger = LoggerFactory.getLogger(EodhdPriceService::class.java) as Logger
+        val logger = LoggerFactory.getLogger(EodhdDailyPrices::class.java) as Logger
         logger.addAppender(appender)
         try {
             val result =

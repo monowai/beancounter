@@ -7,8 +7,6 @@ import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.usdCashBalance
 import com.beancounter.marketdata.portfolio.PortfolioService
-import com.beancounter.marketdata.portfolio.PortfolioShareRepository
-import com.beancounter.marketdata.registration.SystemUserService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.extension.ExtendWith
@@ -37,12 +35,6 @@ class TrnFinderZoneTest {
 
     @Mock
     private lateinit var portfolioService: PortfolioService
-
-    @Mock
-    private lateinit var systemUserService: SystemUserService
-
-    @Mock
-    private lateinit var portfolioShareRepository: PortfolioShareRepository
 
     @Mock
     private lateinit var trnPostProcessor: TrnPostProcessor
@@ -86,8 +78,6 @@ class TrnFinderZoneTest {
                 TrnFinder(
                     trnRepository,
                     portfolioService,
-                    systemUserService,
-                    portfolioShareRepository,
                     DateUtils(serviceZone.id),
                     trnPostProcessor
                 )

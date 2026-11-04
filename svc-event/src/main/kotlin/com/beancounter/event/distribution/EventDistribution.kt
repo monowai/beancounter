@@ -8,7 +8,6 @@ import com.beancounter.event.corporate.CorporateEventStore
 import com.beancounter.event.metrics.EventMetrics
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.stereotype.Service
 
 /**
@@ -20,16 +19,10 @@ import org.springframework.stereotype.Service
 class EventDistribution(
     private val positionService: PositionService,
     private val eventStore: CorporateEventStore,
-    private val eventMetrics: EventMetrics
+    private val eventMetrics: EventMetrics,
+    private val eventPublisher: EventPublisher
 ) {
-    private lateinit var eventPublisher: EventPublisher
-
     private val log = LoggerFactory.getLogger(this::class.java)
-
-    @Autowired(required = false)
-    fun setEventPublisher(eventPublisher: EventPublisher) {
-        this.eventPublisher = eventPublisher
-    }
 
     @Suppress("TooGenericExceptionCaught") // Intentionally catching all exceptions for metrics
     fun process(eventRequest: TrustedEventInput): Collection<TrustedTrnEvent> {

@@ -64,8 +64,12 @@ class EventDistributionTest {
         }
 
         eventDistribution =
-            EventDistribution(positionService, CorporateEventStore(eventRepository, keyGenUtils), eventMetrics)
-        eventDistribution.setEventPublisher(eventPublisher)
+            EventDistribution(
+                positionService,
+                CorporateEventStore(eventRepository, keyGenUtils),
+                eventMetrics,
+                eventPublisher
+            )
 
         testCorporateEvent = TestHelpers.createTestCorporateEvent()
         testTrustedEventInput = TrustedEventInput(testCorporateEvent)

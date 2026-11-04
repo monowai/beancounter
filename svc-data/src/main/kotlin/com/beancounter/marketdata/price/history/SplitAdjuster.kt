@@ -2,6 +2,7 @@ package com.beancounter.marketdata.price.history
 
 import com.beancounter.common.contracts.PricePoint
 import com.beancounter.common.model.MarketData
+import com.beancounter.marketdata.price.DayChange
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -81,16 +82,32 @@ object SplitAdjuster {
             if (noRebase && canonicalSplit == p.split) {
                 p
             } else {
-                p.copy(
-                    close = divideIfPositive(p.close, closeFactor),
-                    open = divideIfPositive(p.open, factor),
-                    high = divideIfPositive(p.high, factor),
-                    low = divideIfPositive(p.low, factor),
-                    previousClose = divideIfPositive(p.previousClose, previousCloseFactor),
-                    split = canonicalSplit
+                withChange(
+                    p.copy(
+                        close = divideIfPositive(p.close, closeFactor),
+                        open = divideIfPositive(p.open, factor),
+                        high = divideIfPositive(p.high, factor),
+                        low = divideIfPositive(p.low, factor),
+                        previousClose = divideIfPositive(p.previousClose, previousCloseFactor),
+                        split = canonicalSplit
+                    )
                 )
             }
         }
+    }
+
+    /**
+     * The day's change from a rebased row's own close and previousClose. The stored change was
+     * taken on the raw basis, so it no longer agrees with the rebased pair. A row with no
+     * previousClose keeps its stored change: there is nothing to measure from.
+     */
+    private fun withChange(p: PricePoint): PricePoint {
+        if (p.previousClose.signum() <= 0) return p
+        val change = p.close.subtract(p.previousClose)
+        return p.copy(
+            change = change,
+            changePercent = change.divide(p.previousClose, DayChange.CHANGE_PERCENT_SCALE, ROUNDING)
+        )
     }
 
     /**

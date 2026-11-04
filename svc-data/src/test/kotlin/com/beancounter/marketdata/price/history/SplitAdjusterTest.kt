@@ -140,6 +140,59 @@ class SplitAdjusterTest {
     }
 
     @Test
+    fun `recomputes change from the rebased close and previousClose on a pre-split row`() {
+        val preSplit =
+            PricePoint(
+                priceDate = date20260403,
+                close = bd(5000.0),
+                previousClose = bd(4900.0),
+                change = bd(100.0),
+                changePercent = BigDecimal("0.020408")
+            )
+        val adjusted =
+            SplitAdjuster.adjust(
+                listOf(preSplit, point(date20260406, 200.0, split = 25.0))
+            )
+        assertThat(adjusted[0].change).isEqualByComparingTo(BigDecimal("4"))
+        assertThat(adjusted[0].changePercent).isEqualByComparingTo(BigDecimal("0.020408"))
+    }
+
+    @Test
+    fun `recomputes change on the ex-date row once its raw previousClose is rebased`() {
+        // The stored change was taken against the raw pre-split previous close.
+        val exDate =
+            PricePoint(
+                priceDate = date20260406,
+                close = bd(200.0),
+                previousClose = bd(4900.0),
+                change = bd(-4700.0),
+                changePercent = BigDecimal("-0.959184"),
+                split = bd(25.0)
+            )
+        val adjusted = SplitAdjuster.adjust(listOf(point(date20260403, 4900.0), exDate))
+        assertThat(adjusted[1].previousClose).isEqualByComparingTo(BigDecimal("196"))
+        assertThat(adjusted[1].change).isEqualByComparingTo(BigDecimal("4"))
+        assertThat(adjusted[1].changePercent).isEqualByComparingTo(BigDecimal("0.020408"))
+    }
+
+    @Test
+    fun `keeps the stored change on a row the split does not rebase`() {
+        val postSplit =
+            PricePoint(
+                priceDate = date20260407,
+                close = bd(205.0),
+                previousClose = bd(200.0),
+                change = bd(5.0),
+                changePercent = BigDecimal("0.025")
+            )
+        val adjusted =
+            SplitAdjuster.adjust(
+                listOf(point(date20260403, 5000.0), point(date20260406, 200.0, split = 25.0), postSplit)
+            )
+        assertThat(adjusted[2]).isSameAs(postSplit)
+    }
+
+    @Test
     fun `leaves zero-valued OHLC fields alone`() {
         val prices =
             listOf(

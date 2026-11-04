@@ -13,17 +13,14 @@ import java.time.Duration
  * requesting the same portfolio ids never share a cached response -
  * cross-user leakage here would be a data breach, not a stale read.
  *
- * [contextPortfolioId] is `portfolios.first().id` - the synthesised
- * aggregate's context portfolio (owner/id, and currency when
- * `targetCurrencyCode` is unset) is derived from whichever portfolio is
- * first in the caller's list, so a different ordering of the SAME id set
- * must be treated as a different key rather than collapsed onto whichever
- * ordering happened to load first.
+ * [portfolioIds] keep the caller's order: the first id is the aggregate's
+ * context portfolio (owner/id, and currency when `targetCurrencyCode` is
+ * unset), and each position's `portfolioBreakdown` follows the caller's
+ * order, so the same id set in another order is a different response.
  */
 data class ValuationCacheKey(
     val subject: String,
     val portfolioIds: List<String>,
-    val contextPortfolioId: String,
     val valuationDate: String,
     val value: Boolean,
     val targetCurrencyCode: String?,
@@ -36,12 +33,7 @@ data class ValuationCacheKey(
         ): ValuationCacheKey =
             ValuationCacheKey(
                 subject = subject,
-                portfolioIds =
-                    request.portfolios
-                        .map { it.id }
-                        .distinct()
-                        .sorted(),
-                contextPortfolioId = request.portfolios.first().id,
+                portfolioIds = request.portfolios.map { it.id },
                 valuationDate = request.valuationDate,
                 value = request.value,
                 targetCurrencyCode = request.targetCurrency,

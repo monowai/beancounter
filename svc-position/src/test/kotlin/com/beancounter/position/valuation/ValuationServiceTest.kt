@@ -312,6 +312,26 @@ class ValuationServiceTest {
     }
 
     @Test
+    fun `getAggregatedPositions loads twice when later portfolio ids come in a different order`() {
+        // Same first portfolio, same id set, different order after it. The response's
+        // portfolioBreakdown follows the caller's order, so the two must not share an entry.
+        val portfolio2 = TestHelpers.createTestPortfolio("Portfolio2")
+        val portfolio3 = TestHelpers.createTestPortfolio("Portfolio3")
+        whenever(tokenService.subject).thenReturn("user-1")
+        whenever(trnService.query(any<Portfolio>(), any<String>()))
+            .thenReturn(TrnResponse(emptyList()))
+
+        valuationService.getAggregatedPositions(
+            AggregateValuationRequest(listOf(portfolio, portfolio2, portfolio3), DateUtils.TODAY, value = false)
+        )
+        valuationService.getAggregatedPositions(
+            AggregateValuationRequest(listOf(portfolio, portfolio3, portfolio2), DateUtils.TODAY, value = false)
+        )
+
+        verify(trnService, times(2)).query(portfolio2, DateUtils.TODAY)
+    }
+
+    @Test
     fun `getAggregatedPositions bypasses cache when ttl is zero`() {
         // Given - a service configured with cache-ttl-seconds=0
         val bypassService =

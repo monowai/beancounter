@@ -9,6 +9,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.trn.ProposedScope
 import com.beancounter.marketdata.trn.SettleTransactionsRequest
 import com.beancounter.marketdata.trn.TrnFinder
+import com.beancounter.marketdata.trn.UserTrnFinder
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.responses.ApiResponse
@@ -41,6 +42,7 @@ import org.springframework.web.bind.annotation.RestController
 )
 class TrnSettlementController(
     private val trnFinder: TrnFinder,
+    private val userTrnFinder: UserTrnFinder,
     private val trnSettlementService: TrnSettlementService,
     private val dateUtils: DateUtils
 ) {
@@ -144,7 +146,7 @@ class TrnSettlementController(
         @RequestParam(value = "asAt", required = false) asAt: String?
     ): TrnResponse =
         TrnResponse(
-            trnFinder.findProposedForUser(scope, dateUtils.getFormattedDate(asAt ?: dateUtils.today()))
+            userTrnFinder.findProposedForUser(scope, dateUtils.getFormattedDate(asAt ?: dateUtils.today()))
         )
 
     @GetMapping(
@@ -175,7 +177,9 @@ class TrnSettlementController(
         @Parameter(description = "Count proposed transactions due on or before this date (default today)")
         @RequestParam(value = "asAt", required = false) asAt: String?
     ): Map<String, Long> =
-        mapOf("count" to trnFinder.countProposedForUser(scope, dateUtils.getFormattedDate(asAt ?: dateUtils.today())))
+        mapOf(
+            "count" to userTrnFinder.countProposedForUser(scope, dateUtils.getFormattedDate(asAt ?: dateUtils.today()))
+        )
 
     @GetMapping(
         value = ["/settled"],
@@ -218,7 +222,7 @@ class TrnSettlementController(
         val legacy = tradeDate ?: dateUtils.today()
         val fromDate = dateUtils.getFormattedDate(if (rangeMode) from ?: dateUtils.today() else legacy)
         val toDate = dateUtils.getFormattedDate(if (rangeMode) to ?: dateUtils.today() else legacy)
-        return TrnResponse(trnFinder.findSettledForUser(fromDate, toDate))
+        return TrnResponse(userTrnFinder.findSettledForUser(fromDate, toDate))
     }
 
     @PostMapping(

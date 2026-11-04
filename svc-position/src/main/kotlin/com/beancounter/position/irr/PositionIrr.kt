@@ -4,10 +4,6 @@ import com.beancounter.common.model.CashFlow
 import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.PeriodicCashFlows
 import com.beancounter.common.model.Position
-import io.sentry.Breadcrumb
-import io.sentry.Sentry
-import io.sentry.SentryLevel
-import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -30,8 +26,6 @@ import java.time.temporal.ChronoUnit
 class PositionIrr(
     private val irrCalculator: IrrCalculator
 ) {
-    private val log = LoggerFactory.getLogger(PositionIrr::class.java)
-
     /**
      * Anchor the IRR investment to the position's cost basis.
      *
@@ -82,35 +76,16 @@ class PositionIrr(
         return if (holdingDays < irrCalculator.minHoldingDays || position.periodicCashFlows.cashFlows.isEmpty()) {
             roi
         } else {
-            of(position.periodicCashFlows, "Failed to calculate IRR for ${position.asset.code}")
+            of(position.periodicCashFlows)
         }
     }
 
     /**
-     * IRR of [periodicCashFlows]. A zero result is reported, under [label], only when
-     * an IRR exists: a series with no sign change (a cash portfolio that only ever
-     * received deposits) has none, and `0` there means "undefined", not "0% return".
+     * IRR of [periodicCashFlows]. Zero is a real answer: a 0% return, or a series with no
+     * IRR (no sign change, no cost basis), which [IrrCalculator.calculate] logs at debug.
      */
-    fun of(
-        periodicCashFlows: PeriodicCashFlows,
-        label: String
-    ): BigDecimal {
-        val result = irrCalculator.calculate(periodicCashFlows)
-        if (result == 0.0 && IrrCalculator.isDefined(periodicCashFlows.cashFlows)) {
-            val cashFlowSummary =
-                periodicCashFlows.cashFlows
-                    .sortedBy { it.date }
-                    .joinToString(", ") { "${it.date}:${it.amount}" }
-            log.warn("IRR calculation returned zero for non-empty cash flows [$label]. Cash flows: $cashFlowSummary")
-            Sentry.addBreadcrumb(
-                Breadcrumb(label).apply {
-                    category = "data"
-                    level = SentryLevel.WARNING
-                }
-            )
-        }
-        return BigDecimal(result)
-    }
+    fun of(periodicCashFlows: PeriodicCashFlows): BigDecimal =
+        BigDecimal.valueOf(irrCalculator.calculate(periodicCashFlows))
 
     companion object {
         private const val COST_BASIS_SHORTFALL_TOLERANCE = 0.01

@@ -187,6 +187,43 @@ class PerformanceInKindTransferTest {
     }
 
     @Test
+    fun `should value an in-specie reduce at its trade amount when the asset has no price or cost`() {
+        // Added at no cost and never priced: the units carry no value, so the reduce's
+        // own amount is the only measure of what left the portfolio.
+        givenTrns(
+            deposit(today.minusMonths(6), "1000"),
+            inKind(TrnType.ADD, today.minusMonths(4), quantity = "10", price = "0"),
+            inKind(TrnType.REDUCE, today.minusMonths(2), quantity = "10", price = "30")
+        )
+        lenient().`when`(priceService.getBulkPrices(any(), any())).thenReturn(BulkPriceResponse(emptyMap()))
+
+        val last =
+            performanceService
+                .calculate(portfolio, 12)
+                .data.series
+                .last()
+
+        assertThat(last.netContributions).isEqualByComparingTo("700")
+    }
+
+    @Test
+    fun `should add no flow for an in-specie trn that moves no units`() {
+        givenTrns(
+            deposit(today.minusMonths(6), "1000"),
+            inKind(TrnType.ADD, today.minusMonths(2), quantity = "0", price = "0").copy(tradeAmount = BigDecimal("300"))
+        )
+        lenient().`when`(priceService.getBulkPrices(any(), any())).thenReturn(BulkPriceResponse(emptyMap()))
+
+        val last =
+            performanceService
+                .calculate(portfolio, 12)
+                .data.series
+                .last()
+
+        assertThat(last.netContributions).isEqualByComparingTo("1000")
+    }
+
+    @Test
     fun `should treat a buy settled outside the portfolio as money in`() {
         givenTrns(
             deposit(today.minusMonths(6), "1000"),

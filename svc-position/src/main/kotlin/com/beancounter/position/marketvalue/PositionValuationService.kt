@@ -95,11 +95,7 @@ class PositionValuationService(
         calculateGainsForAllPositions(positions)
 
         weightsAndGains(positions)
-        val irr =
-            positionIrr.of(
-                positions.periodicCashFlows,
-                "Failed to calculate IRR for ${positions.portfolio.code}"
-            )
+        val irr = positionIrr.of(positions.periodicCashFlows)
         baseTotals.irr = irr
         pfTotals.irr = irr
         tradeTotals.irr = irr

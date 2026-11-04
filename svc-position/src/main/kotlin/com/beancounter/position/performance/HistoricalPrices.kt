@@ -1,6 +1,7 @@
 package com.beancounter.position.performance
 
 import com.beancounter.common.contracts.FxPairResults
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.MarketData
@@ -33,17 +34,21 @@ class HistoricalPrices(
      * PrivateMarketDataProvider with a single latest-price row and no daily
      * history, so the per-date lookup only ever finds a row on that one date;
      * every other valuation date needs this fallback instead of purchase cost.
+     * A row whose close is not positive is no price, so it never hides an earlier one.
      * Computed once per pass, not per date.
      */
     private val latestPriceIndex: Map<String, MarketData> =
         buildMap {
-            for (marketData in priceCache.values.flatten()) {
+            for (marketData in priceCache.values.flatten().filter { it.close.signum() > 0 }) {
                 val existing = get(marketData.key())
                 if (existing == null || marketData.priceDate.isAfter(existing.priceDate)) {
                     put(marketData.key(), marketData)
                 }
             }
         }
+
+    /** The fx-cache dates in order, for the nearest-prior lookup. Sorted once per pass. */
+    private val fxDates: List<String> = fxCache.keys.sorted()
 
     /** Prices as they stood on [date]. */
     fun on(date: LocalDate): PricesOnDate {
@@ -60,8 +65,7 @@ class HistoricalPrices(
     /** FX rates for the exact date, or else the nearest prior date in the pass. */
     private fun nearestFxRates(dateStr: String): FxPairResults? {
         fxCache[dateStr]?.let { return it }
-        return fxCache.keys
-            .sorted()
+        return fxDates
             .lastOrNull { it <= dateStr }
             ?.let { fxCache[it] }
     }
@@ -109,32 +113,31 @@ class PricesOnDate internal constructor(
         return if (tradeCcy.code == currency.code) {
             price
         } else {
-            converted(price, IsoCurrencyPair(tradeCcy.code, currency.code), isCash)
+            converted(price, IsoCurrencyPair(tradeCcy.code, currency.code))
         }
     }
 
-    /** [price] converted at the [fxPair] rate, 1.0 when the rate is missing. */
+    /**
+     * [price] converted at the [fxPair] rate. A missing rate fails the pass: valuing the
+     * holding unconverted would report a wrong figure as a measured one.
+     */
     private fun converted(
         price: BigDecimal,
-        fxPair: IsoCurrencyPair,
-        isCash: Boolean
+        fxPair: IsoCurrencyPair
     ): BigDecimal {
-        val rate = fxRates?.rates?.get(fxPair)?.rate
-        if (rate == null) {
-            log.warn(
-                "Missing FX rate for {} {} on {}, defaulting to 1.0",
-                if (isCash) "cash position" else "position",
-                fxPair,
-                dateStr
-            )
-        }
-        return price.multiply(rate ?: BigDecimal.ONE)
+        val rate =
+            fxRates?.rates?.get(fxPair)?.rate
+                ?: throw BusinessException("No FX rate for $fxPair as at $dateStr")
+        return price.multiply(rate)
     }
 
-    /** Close on the date, else a PRIVATE asset's latest known price, else average cost. */
+    /**
+     * Close on the date, else a PRIVATE asset's latest known price, else average cost.
+     * A row whose close is not positive is no price, so it falls back the same way.
+     */
     private fun unitPrice(pos: Position): BigDecimal? {
         val key = pos.key()
-        val onDate = priceMap[key]
+        val onDate = priceMap[key]?.takeIf { it.close.signum() > 0 }
         val latest = latestPriceIndex[key]
         return when {
             onDate != null -> {

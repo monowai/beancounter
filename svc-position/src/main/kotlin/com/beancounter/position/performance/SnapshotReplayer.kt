@@ -167,27 +167,39 @@ private class SnapshotReplay(
      * Market value, in portfolio currency, of the units an in-specie trn moved. An asset
      * with no market price is carried at average cost, which a first ADD only sets and
      * a REDUCE to zero clears, so the value is read after the trn and, failing that,
-     * [before] it.
+     * [before] it. With neither a price nor a cost basis, the trn's own amount is the
+     * value moved; only when that is zero too, or no units moved, is the flow left out.
      */
     private fun inKindValue(
         trn: Trn,
         before: InKindState
     ): BigDecimal? {
         val after = inKindState(trn) ?: return null
+        val unitsMoved = after.units.subtract(before.units)
         val unitValue = after.unitValue ?: before.unitValue
-        if (unitValue == null) {
+        return when {
+            unitValue != null -> unitsMoved.multiply(unitValue).setScale(2, RoundingMode.HALF_UP)
+            unitsMoved.signum() == 0 -> null
+            else -> tradeAmountFlow(trn, unitsMoved)
+        }
+    }
+
+    /** [trn]'s own amount in portfolio currency, signed by [unitsMoved]; null when it is zero. */
+    private fun tradeAmountFlow(
+        trn: Trn,
+        unitsMoved: BigDecimal
+    ): BigDecimal? {
+        val tradeAmount = trn.tradeAmountIn(portfolio)
+        if (tradeAmount.signum() == 0) {
             log.warn(
-                "No price or cost basis for in-specie {} of {} on {}; left out of TWR flows",
+                "No price, cost basis or amount for in-specie {} of {} on {}; left out of TWR flows",
                 trn.trnType,
                 trn.asset.code,
                 trn.tradeDate
             )
             return null
         }
-        return after.units
-            .subtract(before.units)
-            .multiply(unitValue)
-            .setScale(2, RoundingMode.HALF_UP)
+        return if (unitsMoved.signum() < 0) tradeAmount.negate() else tradeAmount
     }
 
     /** A position's units and per-unit value on a trn's trade date, in portfolio currency. */

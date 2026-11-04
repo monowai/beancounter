@@ -11,17 +11,8 @@ import java.math.RoundingMode
 private const val CASH_LEG_SCALE = 10
 private const val MONEY_SCALE = 2
 
-/** The unsigned trade amount, trade -> portfolio via tradePortfolioRate; unconverted when no rate is stored. */
-internal fun Trn.tradeAmountIn(portfolio: Portfolio): BigDecimal {
-    val amount = tradeAmount.abs()
-    if (tradeCurrency.code == portfolio.currency.code) return amount
-    val rate = tradePortfolioRate
-    return if (rate.signum() != 0) {
-        amount.multiply(rate).setScale(MONEY_SCALE, RoundingMode.HALF_UP)
-    } else {
-        amount
-    }
-}
+/** The unsigned trade amount in portfolio currency; see [tradeToPortfolio]. */
+internal fun Trn.tradeAmountIn(portfolio: Portfolio): BigDecimal = tradeToPortfolio(tradeAmount.abs(), portfolio)
 
 /**
  * The trade's signed cash leg (cash currency) in portfolio currency, through the
@@ -30,16 +21,14 @@ internal fun Trn.tradeAmountIn(portfolio: Portfolio): BigDecimal {
  */
 internal fun Trn.cashLegIn(portfolio: Portfolio): BigDecimal {
     val cashCode = (cashCurrency ?: tradeCurrency).code
-    if (cashCode == portfolio.currency.code) return cashAmount
+    if (cashCode == portfolio.currency.code) return cashAmount.setScale(MONEY_SCALE, RoundingMode.HALF_UP)
     val inTrade =
         if (cashCode == tradeCurrency.code || tradeCashRate.signum() == 0) {
             cashAmount
         } else {
             cashAmount.divide(tradeCashRate, CASH_LEG_SCALE, RoundingMode.HALF_UP)
         }
-    val inPortfolio =
-        if (tradeCurrency.code == portfolio.currency.code) inTrade else inTrade.multiply(tradePortfolioRate)
-    return inPortfolio.setScale(MONEY_SCALE, RoundingMode.HALF_UP)
+    return tradeToPortfolio(inTrade, portfolio)
 }
 
 /**
@@ -57,14 +46,25 @@ internal fun Trn.externalFlowIn(portfolio: Portfolio): BigDecimal {
             else -> tradeAmount
         }
     // Normalize sign: cashAmount sign is inconsistent across import sources, so enforce here.
-    val amount = trnType.signedFlow(rawAmount)
-    if (tradeCurrency.code == portfolio.currency.code) return amount
-    val rate = tradePortfolioRate
-    return if (rate.signum() != 0) {
-        amount.multiply(rate).setScale(MONEY_SCALE, RoundingMode.HALF_UP)
-    } else {
-        amount
-    }
+    return tradeToPortfolio(trnType.signedFlow(rawAmount), portfolio)
+}
+
+/**
+ * [amount], in trade currency, converted to portfolio currency via the trn's stored
+ * tradePortfolioRate and scaled to money. Unconverted when the currencies match or
+ * no rate is stored (a zero rate).
+ */
+private fun Trn.tradeToPortfolio(
+    amount: BigDecimal,
+    portfolio: Portfolio
+): BigDecimal {
+    val converted =
+        if (tradeCurrency.code == portfolio.currency.code || tradePortfolioRate.signum() == 0) {
+            amount
+        } else {
+            amount.multiply(tradePortfolioRate)
+        }
+    return converted.setScale(MONEY_SCALE, RoundingMode.HALF_UP)
 }
 
 /**

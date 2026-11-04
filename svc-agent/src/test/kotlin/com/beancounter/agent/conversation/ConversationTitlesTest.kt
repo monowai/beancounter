@@ -47,4 +47,11 @@ class ConversationTitlesTest {
     fun `should fall back to the question when nothing but filler remains`() {
         assertThat(ConversationTitles.provisional("  hi  ")).isEqualTo("hi")
     }
+
+    @Test
+    fun `should clip a title to the column without surrounding space`() {
+        assertThat(ConversationTitles.clip("  Index Fund Basics  ")).isEqualTo("Index Fund Basics")
+        assertThat(ConversationTitles.clip("Word ".repeat(20))).hasSizeLessThanOrEqualTo(ConversationTitles.MAX_CHARS)
+        assertThat(ConversationTitles.clip("Word ".repeat(20))).doesNotEndWith(" ")
+    }
 }

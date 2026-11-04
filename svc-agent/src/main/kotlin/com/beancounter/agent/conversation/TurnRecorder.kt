@@ -23,18 +23,18 @@ interface TurnRecorder {
  * replace the provisional title.
  */
 class ConversationRecorder(
-    private val service: ConversationService,
+    private val turns: TurnLog,
     private val titler: ConversationTitler,
     private val ownerId: String,
     private val conversationId: String,
     private val titleSeed: TitleSeed?
 ) : TurnRecorder {
     override fun answered(content: String) {
-        service.appendAssistant(ownerId, conversationId, content, null)
+        turns.appendAssistant(ownerId, conversationId, content, null)
         titleSeed?.let { titler.suggest(ownerId, conversationId, it, content) }
     }
 
     override fun failed(code: String) {
-        service.appendAssistant(ownerId, conversationId, "", code)
+        turns.appendAssistant(ownerId, conversationId, "", code)
     }
 }

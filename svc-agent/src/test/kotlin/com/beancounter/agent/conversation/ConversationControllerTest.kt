@@ -39,7 +39,10 @@ class ConversationControllerTest {
     private lateinit var mockMvc: MockMvc
 
     @Autowired
-    private lateinit var service: ConversationService
+    private lateinit var admin: ConversationAdmin
+
+    @Autowired
+    private lateinit var turnLog: TurnLog
 
     @MockitoBean
     private lateinit var owner: ConversationOwner
@@ -53,17 +56,17 @@ class ConversationControllerTest {
     @BeforeEach
     fun actAsMe() {
         whenever(owner.id()).thenReturn(me)
-        service.deleteAll(me)
-        service.deleteAll(other)
+        admin.deleteAll(me)
+        admin.deleteAll(other)
     }
 
     private fun seeded(
         ownerId: String,
         question: String
     ): String {
-        val id = service.create(ownerId).id
-        service.appendUser(ownerId, id, Question(question))
-        service.appendAssistant(ownerId, id, "answer to $question", null)
+        val id = admin.create(ownerId).id
+        turnLog.appendUser(ownerId, id, Question(question))
+        turnLog.appendAssistant(ownerId, id, "answer to $question", null)
         return id
     }
 
@@ -145,8 +148,8 @@ class ConversationControllerTest {
     @Test
     fun `should expose each conversation's kind`() {
         val chat = seeded(me, "How is my portfolio?")
-        val review = service.create(me).id
-        service.appendUser(me, review, Question("Analyse NATO"), kind = ConversationKind.HOLDING_ANALYSIS)
+        val review = admin.create(me).id
+        turnLog.appendUser(me, review, Question("Analyse NATO"), kind = ConversationKind.HOLDING_ANALYSIS)
 
         mockMvc
             .perform(get("/agent/conversations/$review").with(jwt()))
@@ -169,7 +172,7 @@ class ConversationControllerTest {
             .perform(seed("""{"turns":[]}"""))
             .andExpect(status().isCreated)
             .andExpect(jsonPath("$.data.id").isNotEmpty)
-        assertThat(service.list(me, 0, 10)).isEmpty()
+        assertThat(admin.list(me, 0, 10)).isEmpty()
     }
 
     @Test

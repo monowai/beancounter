@@ -60,16 +60,19 @@ import java.time.Duration
     includeFilters = [
         ComponentScan.Filter(
             type = FilterType.ASSIGNABLE_TYPE,
-            classes = [ConversationService::class, InFlightTurns::class]
+            classes = [ConversationAdmin::class, TurnLog::class, InFlightTurns::class]
         )
     ]
 )
-@Import(ConversationServiceTest.ClockConfig::class)
+@Import(SteppingClockConfig::class)
 // The stream records its answer on another thread; it must see committed rows.
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 class AgentConversationTest {
     @Autowired
-    private lateinit var service: ConversationService
+    private lateinit var admin: ConversationAdmin
+
+    @Autowired
+    private lateinit var turnLog: TurnLog
 
     @Autowired
     private lateinit var inFlight: InFlightTurns
@@ -95,11 +98,11 @@ class AgentConversationTest {
 
     @BeforeEach
     fun reset() {
-        service.deleteAll(me)
-        service.deleteAll("someone-else")
+        admin.deleteAll(me)
+        admin.deleteAll("someone-else")
     }
 
-    private fun controller(conversations: ConversationService = service): AgentEndpoints =
+    private fun controller(conversations: TurnLog = turnLog): AgentEndpoints =
         agentEndpoints(
             chatClient = client,
             toolSelector = mock<ToolSelector> { on { selectTools(anyOrNull()) } doReturn arrayOf() },
@@ -147,22 +150,22 @@ class AgentConversationTest {
         id: String,
         settled: (ConversationDetail) -> Boolean
     ): ConversationDetail {
-        await().atMost(Duration.ofSeconds(5)).until { settled(service.get(me, id)) }
-        return service.get(me, id)
+        await().atMost(Duration.ofSeconds(5)).until { settled(admin.get(me, id)) }
+        return admin.get(me, id)
     }
 
     private fun conversationWith(vararg turns: Pair<String, String>): String {
-        val id = service.create(me).id
+        val id = admin.create(me).id
         turns.forEach { (q, a) ->
-            service.appendUser(me, id, Question(q))
-            service.appendAssistant(me, id, a, null)
+            turnLog.appendUser(me, id, Question(q))
+            turnLog.appendAssistant(me, id, a, null)
         }
         return id
     }
 
     @Test
     fun `stream should save the question and the final answer, not the narration before tool calls`() {
-        val id = service.create(me).id
+        val id = admin.create(me).id
         streams(
             chunk("Let me check your holdings.", ToolTurnBoundaryAdvisor.BOUNDARY_FINISH_REASON),
             chunk("You are up "),
@@ -171,13 +174,13 @@ class AgentConversationTest {
 
         controller().stream(AgentQuery("How am I doing?", conversationId = id, deepThink = true)).blockLast()
 
-        val turns = service.get(me, id).messages
+        val turns = admin.get(me, id).messages
         assertThat(turns.map { it.role to it.content }).containsExactly(
             "user" to "How am I doing?",
             "assistant" to "You are up 2%."
         )
         assertThat(turns.first().deepThink).isTrue()
-        assertThat(service.get(me, id).title).isEqualTo("How am I doing?")
+        assertThat(admin.get(me, id).title).isEqualTo("How am I doing?")
     }
 
     @Test
@@ -201,14 +204,14 @@ class AgentConversationTest {
 
     @Test
     fun `stream should record a failed answer's error code`() {
-        val id = service.create(me).id
+        val id = admin.create(me).id
         val spec = mock<ChatClient.StreamResponseSpec>()
         whenever(request.stream()).thenReturn(spec)
         whenever(spec.chatResponse()).thenReturn(Flux.error(RuntimeException("429 - Too Many Requests")))
 
         controller().stream(AgentQuery("q", conversationId = id)).blockLast()
 
-        val last = service.get(me, id).messages.last()
+        val last = admin.get(me, id).messages.last()
         assertThat(last.role).isEqualTo("assistant")
         assertThat(last.error).isEqualTo("provider-rate")
         assertThat(last.content).isEmpty()
@@ -216,12 +219,12 @@ class AgentConversationTest {
 
     @Test
     fun `stream should finish and save the answer after the client disconnects`() {
-        val id = service.create(me).id
+        val id = admin.create(me).id
         val model = slowModel(chunk("You are up "))
 
         disconnectAfterFirstEvent(AgentQuery("How am I doing?", conversationId = id))
 
-        val midway = service.get(me, id)
+        val midway = admin.get(me, id)
         assertThat(midway.pending).isTrue()
         assertThat(midway.messages.map { it.role to it.content }).containsExactly("user" to "How am I doing?")
 
@@ -238,11 +241,11 @@ class AgentConversationTest {
 
     @Test
     fun `stream should record the failure after the client disconnects`() {
-        val id = service.create(me).id
+        val id = admin.create(me).id
         val model = slowModel(chunk("Let me see"))
 
         disconnectAfterFirstEvent(AgentQuery("How am I doing?", conversationId = id))
-        assertThat(service.get(me, id).pending).isTrue()
+        assertThat(admin.get(me, id).pending).isTrue()
 
         model.tryEmitError(RuntimeException("429 - Too Many Requests"))
 
@@ -261,21 +264,21 @@ class AgentConversationTest {
         disconnectAfterFirstEvent(AgentQuery("hello"))
 
         assertThat(model.currentSubscriberCount()).isZero()
-        assertThat(service.list(me, 0, 20)).isEmpty()
+        assertThat(admin.list(me, 0, 20)).isEmpty()
     }
 
     @Test
     fun `stream should refuse a conversation the caller does not own`() {
-        val theirs = service.create("someone-else").id
+        val theirs = admin.create("someone-else").id
 
         assertThatThrownBy { controller().stream(AgentQuery("q", conversationId = theirs)) }
             .isInstanceOf(NotFoundException::class.java)
-        assertThat(service.get("someone-else", theirs).messages).isEmpty()
+        assertThat(admin.get("someone-else", theirs).messages).isEmpty()
     }
 
     @Test
     fun `stream should not leave a conversation pending when the caller does not own it`() {
-        val theirs = service.create("someone-else").id
+        val theirs = admin.create("someone-else").id
 
         assertThatThrownBy { controller().stream(AgentQuery("q", conversationId = theirs)) }
             .isInstanceOf(NotFoundException::class.java)
@@ -285,14 +288,14 @@ class AgentConversationTest {
 
     @Test
     fun `stream should mark the conversation pending before the question is written`() {
-        val id = service.create(me).id
+        val id = admin.create(me).id
         slowModel(chunk("Hi "))
         // A GET that lands between the question's commit and the pending mark
         // would show an unanswered question nobody is answering; so observe
         // the flag at the moment the question is written.
         val pendingWhenWritten = mutableListOf<Boolean>()
         val observed =
-            ProxyFactory(service)
+            ProxyFactory(turnLog)
                 .apply {
                     isProxyTargetClass = true
                     addAdvice(
@@ -301,12 +304,12 @@ class AgentConversationTest {
                             call.proceed()
                         }
                     )
-                }.proxy as ConversationService
+                }.proxy as TurnLog
 
         controller(observed).stream(AgentQuery("q", conversationId = id)).next().block(Duration.ofSeconds(5))
 
         assertThat(pendingWhenWritten).containsExactly(true)
-        assertThat(service.get(me, id).messages.map { it.role }).containsExactly("user")
+        assertThat(admin.get(me, id).messages.map { it.role }).containsExactly("user")
     }
 
     @Test
@@ -315,19 +318,19 @@ class AgentConversationTest {
 
         controller().stream(AgentQuery("hello")).blockLast()
 
-        assertThat(service.list(me, 0, 20)).isEmpty()
+        assertThat(admin.list(me, 0, 20)).isEmpty()
     }
 
     @Test
     fun `query should save the question and the answer`() {
-        val id = service.create(me).id
+        val id = admin.create(me).id
         val call = mock<ChatClient.CallResponseSpec>()
         whenever(request.call()).thenReturn(call)
         whenever(call.content()).thenReturn("Up 2%.")
 
         controller().query(AgentQuery("How am I doing?", conversationId = id))
 
-        assertThat(service.get(me, id).messages.map { it.role to it.content }).containsExactly(
+        assertThat(admin.get(me, id).messages.map { it.role to it.content }).containsExactly(
             "user" to "How am I doing?",
             "assistant" to "Up 2%."
         )
@@ -335,56 +338,56 @@ class AgentConversationTest {
 
     @Test
     fun `stream should give a new conversation a generated title after its first answer`() {
-        val id = service.create(me).id
+        val id = admin.create(me).id
         streams(chunk("A pooled fund that tracks an index.", "stop"))
         titles("\"Index Fund Basics.\"")
 
         controller().stream(AgentQuery("In one sentence, what is an index fund?", conversationId = id)).blockLast()
         awaitTitles()
 
-        assertThat(service.titleOf(me, id)).isEqualTo("Index Fund Basics")
+        assertThat(turnLog.titleOf(me, id)).isEqualTo("Index Fund Basics")
     }
 
     @Test
     fun `stream should not title a hidden conversation, which no list shows`() {
-        val id = service.create(me, hidden = true).id
+        val id = admin.create(me, hidden = true).id
         streams(chunk("A pooled fund that tracks an index.", "stop"))
         titles("\"Index Fund Basics.\"")
 
         controller().stream(AgentQuery("In one sentence, what is an index fund?", conversationId = id)).blockLast()
         awaitTitles()
 
-        assertThat(service.titleOf(me, id)).isEqualTo("Index fund")
+        assertThat(turnLog.titleOf(me, id)).isEqualTo("Index fund")
     }
 
     @Test
     fun `stream should keep the provisional title when title generation fails`() {
-        val id = service.create(me).id
+        val id = admin.create(me).id
         streams(chunk("A pooled fund that tracks an index.", "stop"))
         whenever(request.call()).thenThrow(RuntimeException("429 - Too Many Requests"))
 
         controller().stream(AgentQuery("In one sentence, what is an index fund?", conversationId = id)).blockLast()
         awaitTitles()
 
-        assertThat(service.titleOf(me, id)).isEqualTo("Index fund")
+        assertThat(turnLog.titleOf(me, id)).isEqualTo("Index fund")
     }
 
     @Test
     fun `stream should not retitle a conversation that already has an answer`() {
         val id = conversationWith("What is VOO?" to "An S&P 500 ETF.")
-        service.rename(me, id, "VOO")
+        admin.rename(me, id, "VOO")
         streams(chunk("Yes.", "stop"))
         titles("Something Else")
 
         controller().stream(AgentQuery("Is it diversified?", conversationId = id)).blockLast()
         awaitTitles()
 
-        assertThat(service.titleOf(me, id)).isEqualTo("VOO")
+        assertThat(turnLog.titleOf(me, id)).isEqualTo("VOO")
     }
 
     @Test
     fun `stream should store an analysis prompt with its display label`() {
-        val id = service.create(me).id
+        val id = admin.create(me).id
         streams(chunk("NATO looks Bullish.", "stop"))
 
         controller()
@@ -396,19 +399,19 @@ class AgentConversationTest {
                 )
             ).blockLast()
 
-        val question = service.get(me, id).messages.first()
+        val question = admin.get(me, id).messages.first()
         assertThat(question.content).isEqualTo("Summarise recent news and sentiment for NATO...")
         assertThat(question.label).isEqualTo("News & Sentiment — NATO")
     }
 
     @Test
     fun `stream should store a canned question under its page's name`() {
-        val id = service.create(me).id
+        val id = admin.create(me).id
         streams(chunk("Flat on the day.", "stop"))
 
         controller().stream(AgentQuery(context = mapOf("page" to "Portfolio Review"), conversationId = id)).blockLast()
 
-        val question = service.get(me, id).messages.first()
+        val question = admin.get(me, id).messages.first()
         assertThat(question.content).startsWith("Role: You are a financial columnist")
         assertThat(question.label).isEqualTo("Portfolio Review")
     }

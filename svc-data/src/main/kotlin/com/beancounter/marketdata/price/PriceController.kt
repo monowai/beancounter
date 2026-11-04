@@ -4,6 +4,7 @@ import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.OffMarketPriceRequest
 import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.DateUtils.Companion.TODAY
 import com.beancounter.marketdata.providers.EventServiceFacade
@@ -242,7 +243,9 @@ class PriceController(
                         assetId = offMarketPriceRequest.assetId,
                         date = dateUtils.getFormattedDate(offMarketPriceRequest.date),
                         closePrice = offMarketPriceRequest.closePrice
-                    ).get()
+                    ).orElseThrow {
+                        BusinessException("No price recorded for ${offMarketPriceRequest.assetId}")
+                    }
             )
         )
 

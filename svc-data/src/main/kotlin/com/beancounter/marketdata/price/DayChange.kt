@@ -84,12 +84,7 @@ class DayChange(
         marketData.previousClose = splitAdjustedPreviousClose
         marketData.change = marketData.close.subtract(splitAdjustedPreviousClose)
         if (splitAdjustedPreviousClose.compareTo(BigDecimal.ZERO) != 0) {
-            marketData.changePercent =
-                marketData.change.divide(
-                    splitAdjustedPreviousClose,
-                    CHANGE_PERCENT_SCALE,
-                    java.math.RoundingMode.HALF_UP
-                )
+            marketData.changePercent = changePercent(marketData.change, splitAdjustedPreviousClose)
         }
         log.trace(
             "Enriched price for {} on {} (split={}, prevSplit={}, exDate={}): " +
@@ -161,5 +156,11 @@ class DayChange(
         private val MISSING_SPLIT_DROP_THRESHOLD = BigDecimal("0.70")
 
         internal const val CHANGE_PERCENT_SCALE = 6
+
+        /** [change] as a fraction of [previousClose], the one rounding rule for a day's change. */
+        internal fun changePercent(
+            change: BigDecimal,
+            previousClose: BigDecimal
+        ): BigDecimal = change.divide(previousClose, CHANGE_PERCENT_SCALE, java.math.RoundingMode.HALF_UP)
     }
 }

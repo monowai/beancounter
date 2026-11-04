@@ -22,7 +22,7 @@ class OffMarketPrices(
 ) {
     /**
      * Record [closePrice] for a PRIVATE market asset on [date], creating or revaluing that
-     * day's row. Any other asset, or no price, leaves storage alone and returns the stored row.
+     * day's row. Any other asset, or a close that is not positive, leaves storage alone and returns the stored row.
      */
     @Transactional
     fun record(
@@ -37,8 +37,8 @@ class OffMarketPrices(
                 date
             )
 
-        // For private market assets with a provided price, allow to create or update
-        if (asset.market.code == PrivateMarketDataProvider.ID && closePrice != BigDecimal.ZERO) {
+        // Only a positive close is a price; zero (at any scale) or negative writes nothing.
+        if (asset.market.code == PrivateMarketDataProvider.ID && closePrice.signum() > 0) {
             return handlePrivateMarketPrice(asset, closePrice, date, existing)
         }
 

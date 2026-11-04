@@ -69,24 +69,6 @@ class ClassificationServiceTest {
     }
 
     @Test
-    fun `isClassified reads classifications for a directly classified asset`() {
-        whenever(classificationRepository.findByAssetId("asset-1")).thenReturn(listOf(mock()))
-        whenever(exposureRepository.findByAssetId("asset-1")).thenReturn(emptyList())
-
-        assertThat(service.isClassified("asset-1", fund = false)).isTrue()
-        assertThat(service.isClassified("asset-1", fund = true)).isFalse()
-    }
-
-    @Test
-    fun `isClassified reads exposures for a fund`() {
-        whenever(classificationRepository.findByAssetId("asset-1")).thenReturn(emptyList())
-        whenever(exposureRepository.findByAssetId("asset-1")).thenReturn(listOf(mock()))
-
-        assertThat(service.isClassified("asset-1", fund = true)).isTrue()
-        assertThat(service.isClassified("asset-1", fund = false)).isFalse()
-    }
-
-    @Test
     fun `classifyAsset does not overwrite a manual classification with provider data`() {
         val asset = mock<Asset>()
         whenever(asset.id).thenReturn("asset-1")

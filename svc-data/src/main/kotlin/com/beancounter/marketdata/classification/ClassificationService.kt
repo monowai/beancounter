@@ -108,20 +108,6 @@ class ClassificationService(
      */
     fun getClassifications(assetId: String): List<AssetClassification> = classificationRepository.findByAssetId(assetId)
 
-    /**
-     * Whether the asset already carries classification data of the kind it gets: weighted
-     * exposures for a [fund], a direct sector/industry classification otherwise.
-     */
-    fun isClassified(
-        assetId: String,
-        fund: Boolean
-    ): Boolean =
-        if (fund) {
-            exposureRepository.findByAssetId(assetId).isNotEmpty()
-        } else {
-            classificationRepository.findByAssetId(assetId).isNotEmpty()
-        }
-
     companion object {
         const val STANDARD_USER = "USER"
         const val SOURCE_MANUAL = "MANUAL"

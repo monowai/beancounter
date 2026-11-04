@@ -378,6 +378,52 @@ class PrivateAssetConfigServiceTest {
     }
 
     @Test
+    fun `saveConfig keeps rental at zero when a partial update omits the stored primary residence flag`() {
+        val asset = createTestAsset()
+        val existing =
+            PrivateAssetConfig(
+                assetId = assetId,
+                isPrimaryResidence = true
+            )
+        val request = PrivateAssetConfigRequest(monthlyRentalIncome = BigDecimal("2000"))
+
+        whenever(systemUserService.getActiveUser()).thenReturn(user)
+        whenever(assetRepository.findById(assetId)).thenReturn(Optional.of(asset))
+        whenever(configRepository.findById(assetId)).thenReturn(Optional.of(existing))
+        whenever(configRepository.save(any<PrivateAssetConfig>())).thenAnswer { it.arguments[0] }
+
+        val response = configService.saveConfig(assetId, request)
+
+        assertThat(response.data.isPrimaryResidence).isTrue()
+        assertThat(response.data.monthlyRentalIncome).isEqualByComparingTo(BigDecimal.ZERO)
+    }
+
+    @Test
+    fun `saveConfig takes rental when an update clears the stored primary residence flag`() {
+        val asset = createTestAsset()
+        val existing =
+            PrivateAssetConfig(
+                assetId = assetId,
+                isPrimaryResidence = true
+            )
+        val request =
+            PrivateAssetConfigRequest(
+                monthlyRentalIncome = BigDecimal("2000"),
+                isPrimaryResidence = false
+            )
+
+        whenever(systemUserService.getActiveUser()).thenReturn(user)
+        whenever(assetRepository.findById(assetId)).thenReturn(Optional.of(asset))
+        whenever(configRepository.findById(assetId)).thenReturn(Optional.of(existing))
+        whenever(configRepository.save(any<PrivateAssetConfig>())).thenAnswer { it.arguments[0] }
+
+        val response = configService.saveConfig(assetId, request)
+
+        assertThat(response.data.isPrimaryResidence).isFalse()
+        assertThat(response.data.monthlyRentalIncome).isEqualByComparingTo(BigDecimal("2000"))
+    }
+
+    @Test
     fun `saveConfig throws when asset not owned by user`() {
         val asset = createTestAsset(ownerId = "other-user")
 

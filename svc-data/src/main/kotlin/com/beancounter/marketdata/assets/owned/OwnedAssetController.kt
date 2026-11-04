@@ -4,6 +4,7 @@ import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.AssetResponse
 import com.beancounter.common.contracts.AssetUpdateResponse
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.marketdata.assets.AssetIoDefinition
 import com.beancounter.marketdata.assets.AssetService
@@ -35,13 +36,13 @@ import org.springframework.web.multipart.MultipartFile
 
 /**
  * The caller's own assets: list, update, delete, and CSV export and import.
+ *
+ * User scope only: the owner is the signed-in user, which a service (M2M) token does not have.
  */
 @RestController
 @RequestMapping("/assets")
 @CrossOrigin
-@PreAuthorize(
-    AuthConstants.USER_OR_SYSTEM
-)
+@PreAuthorize("hasAuthority('${AuthConstants.SCOPE_USER}')")
 @Tag(
     name = "Assets",
     description = "Asset management operations"
@@ -152,7 +153,7 @@ class OwnedAssetController(
 
     @GetMapping(
         value = ["/me/export"],
-        produces = [MediaType.TEXT_PLAIN_VALUE]
+        produces = [TEXT_CSV]
     )
     @Operation(
         summary = "Export user-owned assets to CSV",
@@ -170,7 +171,7 @@ class OwnedAssetController(
         ]
     )
     fun exportAssets(response: HttpServletResponse) {
-        response.contentType = MediaType.TEXT_PLAIN_VALUE
+        response.contentType = TEXT_CSV
         response.setHeader(
             HttpHeaders.CONTENT_DISPOSITION,
             "attachment; filename=\"assets.csv\""
@@ -198,7 +199,9 @@ class OwnedAssetController(
         description = """
             Imports assets from a CSV file for the authenticated user.
             The CSV should have columns: Code, Name, Category, Currency.
-            Existing assets with the same code will be updated.
+            Existing assets with the same code will be updated. A code may appear only once
+            per file (case-insensitive); a repeat, a short row or a blank currency is a 400
+            naming the line.
         """
     )
     @ApiResponses(
@@ -218,9 +221,20 @@ class OwnedAssetController(
         @Parameter(description = "CSV file containing assets to import")
         @RequestParam("file") file: MultipartFile
     ): AssetUpdateResponse {
-        val owner = ownedAssetService.getCurrentOwnerId()
-        val assetInputs = mutableMapOf<String, AssetInput>()
+        val assetInputs = readAssets(file, ownedAssetService.getCurrentOwnerId())
+        if (assetInputs.isEmpty()) {
+            throw BusinessException("No assets to import")
+        }
+        return assetService.handle(AssetRequest(assetInputs))
+    }
 
+    /** Every asset row in [file], keyed by code; a bad row stops the read naming its line. */
+    private fun readAssets(
+        file: MultipartFile,
+        owner: String
+    ): Map<String, AssetInput> {
+        val assetInputs = mutableMapOf<String, AssetInput>()
+        val seenCodes = mutableSetOf<String>()
         val csvParser = CSVParserBuilder().withSeparator(',').build()
         val csvReader =
             CSVReaderBuilder(file.inputStream.bufferedReader())
@@ -228,25 +242,43 @@ class OwnedAssetController(
                 .build()
 
         csvReader.use { reader ->
-            val lines = reader.readAll()
-            if (lines.isEmpty()) {
-                return AssetUpdateResponse(emptyMap())
-            }
-
-            val startIndex = if (isHeaderRow(lines[0])) 1 else 0
-            for (i in startIndex until lines.size) {
-                val row = lines[i]
-                if (row.isNotEmpty() && row[0].isNotBlank()) {
-                    val assetInput = assetIoDefinition.parse(row, owner)
+            var line = 0
+            var headerChecked = false
+            var row = reader.readNext()
+            while (row != null) {
+                line++
+                val header = !headerChecked && isHeaderRow(row)
+                if (isContentRow(row)) headerChecked = true
+                if (!header && isContentRow(row)) {
+                    val assetInput = assetIoDefinition.parse(row, owner, line)
+                    requireNewCode(seenCodes, assetInput.code, line)
                     assetInputs[assetInput.code] = assetInput
                 }
+                row = reader.readNext()
             }
         }
-
-        return assetService.handle(AssetRequest(assetInputs))
+        return assetInputs
     }
+
+    // Owned codes are stored upper-cased, so a repeat differing only in case is the same asset.
+    private fun requireNewCode(
+        seenCodes: MutableSet<String>,
+        code: String,
+        line: Int
+    ) {
+        if (!seenCodes.add(code.uppercase())) {
+            throw BusinessException("Line $line: duplicate code $code")
+        }
+    }
+
+    /** A row with a code; the optional header is the first such row, after any blank lines. */
+    private fun isContentRow(row: Array<String>): Boolean = row.isNotEmpty() && row[0].isNotBlank()
 
     private fun isHeaderRow(row: Array<String>): Boolean =
         row.isNotEmpty() &&
             row[0].equals(AssetIoDefinition.Columns.Code.name, ignoreCase = true)
+
+    private companion object {
+        const val TEXT_CSV = "text/csv"
+    }
 }

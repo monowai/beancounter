@@ -1,14 +1,15 @@
 package com.beancounter.marketdata.classification.refresh
 
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.Status
 import com.beancounter.marketdata.assets.AssetRepository
-import com.beancounter.marketdata.classification.ClassificationService
 import com.beancounter.marketdata.classification.enricher.ChainedClassificationEnricher
 import com.beancounter.marketdata.classification.enricher.ClassificationEnricher
 import com.beancounter.marketdata.classification.enricher.EnrichmentResult
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -32,7 +33,6 @@ import java.util.Optional
 class ClassificationRefreshServiceTest {
     private lateinit var assetRepository: AssetRepository
     private lateinit var classificationEnricher: ClassificationEnricher
-    private lateinit var classificationService: ClassificationService
 
     private val testMarket = Market(code = "NASDAQ", name = "NASDAQ")
 
@@ -42,7 +42,6 @@ class ClassificationRefreshServiceTest {
     ) = ClassificationRefreshService(
         assetRepository,
         enricher,
-        classificationService,
         staleAfterDays = 7,
         batchLimit = batchLimit
     )
@@ -73,7 +72,6 @@ class ClassificationRefreshServiceTest {
     fun setUp() {
         assetRepository = mock()
         classificationEnricher = mock()
-        classificationService = mock()
         whenever(classificationEnricher.providerFor(any())).thenReturn(classificationEnricher)
         whenever(assetRepository.save(any<Asset>())).thenAnswer { it.getArgument<Asset>(0) }
     }
@@ -336,9 +334,8 @@ class ClassificationRefreshServiceTest {
     @Test
     fun `backfill stamps checked-at on the assets it enriches`() {
         val asset = etf("etf-1")
-        whenever(assetRepository.findAll()).thenReturn(listOf(asset))
+        whenever(assetRepository.findUnclassified(any(), any())).thenReturn(listOf(asset))
         whenever(classificationEnricher.canEnrich(any())).thenReturn(true)
-        whenever(classificationEnricher.isEtf(any())).thenReturn(true)
         whenever(classificationEnricher.enrichClassification(asset)).thenReturn(EnrichmentResult.ENRICHED)
 
         val result = service().backfill(null, 100)
@@ -349,29 +346,11 @@ class ClassificationRefreshServiceTest {
     }
 
     @Test
-    fun `backfill skips assets that are already classified`() {
-        val classified = etf("etf-classified")
-        val bare = etf("etf-bare")
-        whenever(assetRepository.findAll()).thenReturn(listOf(classified, bare))
-        whenever(classificationEnricher.canEnrich(any())).thenReturn(true)
-        whenever(classificationEnricher.isEtf(any())).thenReturn(true)
-        whenever(classificationService.isClassified("etf-classified", true)).thenReturn(true)
-        whenever(classificationEnricher.enrichClassification(bare)).thenReturn(EnrichmentResult.ENRICHED)
-
-        val result = service().backfill(null, 100)
-
-        assertThat(result.total).isEqualTo(1)
-        assertThat(classified.classificationCheckedAt).isNull()
-        assertThat(bare.classificationCheckedAt).isNotNull()
-    }
-
-    @Test
     fun `backfill counts NO_DATA and RATE_LIMITED separately from processed and errors`() {
         val noData = etf("etf-nodata")
         val rateLimited = etf("etf-ratelimited")
-        whenever(assetRepository.findAll()).thenReturn(listOf(noData, rateLimited))
+        whenever(assetRepository.findUnclassified(any(), any())).thenReturn(listOf(noData, rateLimited))
         whenever(classificationEnricher.canEnrich(any())).thenReturn(true)
-        whenever(classificationEnricher.isEtf(any())).thenReturn(true)
         whenever(classificationEnricher.enrichClassification(noData)).thenReturn(EnrichmentResult.NO_DATA)
         whenever(classificationEnricher.enrichClassification(rateLimited)).thenReturn(EnrichmentResult.RATE_LIMITED)
 
@@ -381,5 +360,49 @@ class ClassificationRefreshServiceTest {
         assertThat(result.errors).isEqualTo(0)
         assertThat(result.noData).isEqualTo(1)
         assertThat(result.rateLimited).isEqualTo(1)
+    }
+
+    @Test
+    fun `backfill rejects a limit below one`() {
+        assertThatThrownBy { service().backfill(null, 0) }
+            .isInstanceOf(BusinessException::class.java)
+            .hasMessageContaining("limit")
+    }
+
+    @Test
+    fun `backfill attempts no more than the maximum however large the limit`() {
+        val assets = (1..ClassificationRefreshService.MAX_BACKFILL_LIMIT + 1).map { equity("eq-$it") }
+        whenever(assetRepository.findUnclassified(any(), any())).thenReturn(assets)
+        whenever(classificationEnricher.canEnrich(any())).thenReturn(true)
+        whenever(classificationEnricher.enrichClassification(any())).thenReturn(EnrichmentResult.ENRICHED)
+
+        val result = service().backfill(null, Int.MAX_VALUE)
+
+        assertThat(result.total).isEqualTo(ClassificationRefreshService.MAX_BACKFILL_LIMIT)
+    }
+
+    @Test
+    fun `backfill asks the repository only for the requested category`() {
+        val categories = argumentCaptor<Collection<String>>()
+        whenever(assetRepository.findUnclassified(categories.capture(), any())).thenReturn(emptyList())
+
+        service().backfill("etf", 10)
+
+        assertThat(categories.firstValue).containsExactly("ETF")
+    }
+
+    @Test
+    fun `backfill skips a candidate no provider can enrich`() {
+        val enrichable = equity("eq-yes")
+        val unroutable = equity("eq-no")
+        whenever(assetRepository.findUnclassified(any(), any())).thenReturn(listOf(unroutable, enrichable))
+        whenever(classificationEnricher.canEnrich(enrichable)).thenReturn(true)
+        whenever(classificationEnricher.canEnrich(unroutable)).thenReturn(false)
+        whenever(classificationEnricher.enrichClassification(enrichable)).thenReturn(EnrichmentResult.ENRICHED)
+
+        val result = service().backfill(null, 10)
+
+        assertThat(result.total).isEqualTo(1)
+        assertThat(unroutable.classificationCheckedAt).isNull()
     }
 }

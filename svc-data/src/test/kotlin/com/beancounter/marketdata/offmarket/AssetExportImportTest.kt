@@ -14,10 +14,12 @@ import com.beancounter.marketdata.assets.AssetIoDefinition
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.utils.ASSET_ROOT
 import org.assertj.core.api.Assertions.assertThat
+import org.hamcrest.Matchers.containsString
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.http.MediaType
 import org.springframework.mock.web.MockMultipartFile
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf
 import org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.jwt
@@ -27,6 +29,7 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.multipart
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.content
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.header
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import tools.jackson.module.kotlin.readValue
 
@@ -88,7 +91,7 @@ class AssetExportImportTest {
                     get("$ASSET_ROOT/me/export")
                         .with(jwt().jwt(token))
                 ).andExpect(status().isOk)
-                .andExpect(content().contentType(MediaType.TEXT_PLAIN_VALUE))
+                .andExpect(content().contentType("text/csv"))
                 .andExpect(header().string("Content-Disposition", "attachment; filename=\"assets.csv\""))
                 .andReturn()
 
@@ -239,4 +242,83 @@ class AssetExportImportTest {
             .isNotNull
             .hasFieldOrPropertyWithValue("name", "Round Trip Account")
     }
+
+    @Test
+    fun `import rejects an empty file`() {
+        val token = mockAuthConfig.login(SystemUser(id = "import-empty-user"), systemUserService)
+
+        importCsv("", token)
+            .andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `import rejects a file with only a header`() {
+        val token = mockAuthConfig.login(SystemUser(id = "import-header-only-user"), systemUserService)
+
+        importCsv("Code,Name,Category,Currency", token)
+            .andExpect(status().isBadRequest)
+    }
+
+    @Test
+    fun `import accepts a header that follows blank lines`() {
+        val token = mockAuthConfig.login(SystemUser(id = "import-late-header-user"), systemUserService)
+        val csvContent = "\n\nCode,Name,Category,Currency\nLATE-HDR,Late Header,ACCOUNT,USD"
+
+        importCsv(csvContent, token)
+            .andExpect(status().isOk)
+    }
+
+    @Test
+    fun `import names the line of a row with too few columns`() {
+        val token = mockAuthConfig.login(SystemUser(id = "import-short-row-user"), systemUserService)
+        val csvContent =
+            """
+            Code,Name,Category,Currency
+            SHORT-OK,Fine Account,ACCOUNT,USD
+            SHORT-BAD,Missing Columns
+            """.trimIndent()
+
+        importCsv(csvContent, token)
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.detail").value(containsString("Line 3")))
+    }
+
+    @Test
+    fun `import names the line of a row with a blank currency`() {
+        val token = mockAuthConfig.login(SystemUser(id = "import-blank-ccy-user"), systemUserService)
+        val csvContent =
+            """
+            BLANK-CCY,No Currency,ACCOUNT,
+            """.trimIndent()
+
+        importCsv(csvContent, token)
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.detail").value(containsString("Line 1")))
+            .andExpect(jsonPath("$.detail").value(containsString("Currency")))
+    }
+
+    @Test
+    fun `import rejects a code repeated in one file`() {
+        val token = mockAuthConfig.login(SystemUser(id = "import-dup-user"), systemUserService)
+        val csvContent =
+            """
+            Code,Name,Category,Currency
+            DUP-CODE,First,ACCOUNT,USD
+            dup-code,Second,ACCOUNT,NZD
+            """.trimIndent()
+
+        importCsv(csvContent, token)
+            .andExpect(status().isBadRequest)
+            .andExpect(jsonPath("$.detail").value(containsString("Line 3: duplicate code dup-code")))
+    }
+
+    private fun importCsv(
+        csvContent: String,
+        token: Jwt
+    ) = mockMvc.perform(
+        multipart("$ASSET_ROOT/me/import")
+            .file(MockMultipartFile("file", "assets.csv", MediaType.TEXT_PLAIN_VALUE, csvContent.toByteArray()))
+            .with(jwt().jwt(token))
+            .with(csrf())
+    )
 }

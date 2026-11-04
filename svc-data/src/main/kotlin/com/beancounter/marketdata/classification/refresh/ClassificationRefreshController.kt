@@ -4,6 +4,7 @@ import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.BackfillResponse
 import com.beancounter.marketdata.classification.enricher.EnrichmentResult
 import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.Parameter
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.slf4j.LoggerFactory
 import org.springframework.http.MediaType
@@ -38,6 +39,10 @@ class ClassificationRefreshController(
     )
     fun backfillClassifications(
         @RequestParam(required = false) category: String? = null,
+        @Parameter(
+            description = "Assets to attempt, 1..${ClassificationRefreshService.MAX_BACKFILL_LIMIT}; larger is capped",
+            example = "100"
+        )
         @RequestParam(required = false, defaultValue = "100") limit: Int = 100
     ): BackfillResponse = BackfillResponse(data = classificationRefreshService.backfill(category, limit))
 

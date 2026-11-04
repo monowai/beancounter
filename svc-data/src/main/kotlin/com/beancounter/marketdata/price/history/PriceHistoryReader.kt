@@ -176,8 +176,8 @@ class PriceHistoryReader(
                     it.high = point.high
                     it.low = point.low
                     it.previousClose = point.previousClose
-                    it.change = md.change
-                    it.changePercent = md.changePercent
+                    it.change = point.change
+                    it.changePercent = point.changePercent
                     it.volume = md.volume
                     it.split = point.split
                     it.dividend = md.dividend

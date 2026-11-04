@@ -148,6 +148,31 @@ class PriceHistoryReaderBulkTest {
     }
 
     @Test
+    fun `should carry the rebased change on a bulk pre-split row`() {
+        val preSplit = LocalDate.of(2020, 8, 28)
+        val exDate = LocalDate.of(2020, 8, 31)
+        val pre =
+            MarketData(asset = AAPL, priceDate = preSplit, close = BigDecimal("500.00")).apply {
+                previousClose = BigDecimal("480.00")
+                change = BigDecimal("20.00")
+                changePercent = BigDecimal("0.041667")
+            }
+        val ex =
+            MarketData(asset = AAPL, priceDate = exDate, close = BigDecimal("125.00")).apply {
+                split = BigDecimal("4")
+            }
+        whenever(marketDataRepo.findByAssetInAndPriceDateBetween(eq(listOf(AAPL)), any(), any()))
+            .thenReturn(listOf(pre, ex))
+
+        val result = priceHistoryReader.getBulkMarketData(listOf(AAPL), listOf(preSplit, exDate))
+
+        val rebased = result["2020-08-28"]!![0]
+        assertThat(rebased.previousClose).isEqualByComparingTo(BigDecimal("120.00"))
+        assertThat(rebased.change).isEqualByComparingTo(BigDecimal("5.00"))
+        assertThat(rebased.changePercent).isEqualByComparingTo(BigDecimal("0.041667"))
+    }
+
+    @Test
     fun `should rebase bulk prices from stored split rows without calling the event provider`() {
         // The bulk read is DB-only. Asking the provider for split events per asset made a
         // cold wealth page fire two EODHD calls per asset inside this transaction and

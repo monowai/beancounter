@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.assets
 
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.AssetTraits
@@ -48,20 +49,26 @@ class AssetIoDefinition {
      * Parses a CSV row into an AssetInput for import.
      * @param row Array of column values in order: Code, Name, Category, Currency
      * @param owner The owner ID to associate with the asset
+     * @param line The row's 1-based line in the file, named in any rejection
      * @return AssetInput ready for creation
      */
     fun parse(
         row: Array<String>,
-        owner: String
+        owner: String,
+        line: Int
     ): AssetInput {
-        require(row.size >= Columns.entries.size) {
-            "Invalid row: expected ${Columns.entries.size} columns, got ${row.size}"
+        if (row.size < Columns.entries.size) {
+            throw BusinessException("Line $line: expected ${Columns.entries.size} columns, got ${row.size}")
+        }
+        val currency = row[Columns.Currency.ordinal].trim()
+        if (currency.isEmpty()) {
+            throw BusinessException("Line $line: ${Columns.Currency.name} is required")
         }
         return AssetInput(
             market = PrivateMarketEnricher.ID,
             code = row[Columns.Code.ordinal].trim(),
             name = row[Columns.Name.ordinal].trim().ifEmpty { null },
-            currency = row[Columns.Currency.ordinal].trim().ifEmpty { null },
+            currency = currency,
             category = row[Columns.Category.ordinal].trim().uppercase().ifEmpty { "ACCOUNT" },
             owner = owner
         )

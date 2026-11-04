@@ -110,6 +110,30 @@ class OffMarketPricesTest {
     }
 
     @Test
+    fun `should write nothing when a private close is zero at a non-zero scale`() {
+        val priceDate = LocalDate.of(2026, 3, 31)
+        `when`(marketDataRepo.findByAssetIdAndPriceDate(privateAsset.id, priceDate))
+            .thenReturn(Optional.empty())
+
+        val result = offMarketPrices.record(privateAsset.id, priceDate, BigDecimal("0.00"))
+
+        assertThat(result).isEmpty
+        verify(marketDataRepo, never()).save(any<MarketData>())
+    }
+
+    @Test
+    fun `should write nothing when a private close is negative`() {
+        val priceDate = LocalDate.of(2026, 3, 31)
+        `when`(marketDataRepo.findByAssetIdAndPriceDate(privateAsset.id, priceDate))
+            .thenReturn(Optional.empty())
+
+        val result = offMarketPrices.record(privateAsset.id, priceDate, BigDecimal("-1"))
+
+        assertThat(result).isEmpty
+        verify(marketDataRepo, never()).save(any<MarketData>())
+    }
+
+    @Test
     fun `should return the stored price and write nothing for a listed asset`() {
         val date = LocalDate.now()
         val marketData = MarketData(asset, date, BigDecimal.TEN)

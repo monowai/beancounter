@@ -73,20 +73,27 @@ internal class EodhdNewsServiceTest {
     // Noop by default so every pre-existing spec below is an implicit "feature off" pin: zero
     // behavior change from before this class gained embeddings.
     private val embeddingProps = NewsEmbeddingProperties()
-    private val embedder: NewsEmbedder = NoopNewsEmbedder()
-    private val topicAnchorStore = TopicAnchorStore(embedder)
-    private val service =
-        EodhdNewsService(
-            proxy,
-            config,
+    private val service = newsService()
+
+    /**
+     * Wires the real symbols / refresh / ingest / embeddings collaborators around the mocked
+     * upstream and repos, so each spec exercises the full read path. Only the embedder and its
+     * properties vary between specs.
+     */
+    private fun newsService(
+        embedder: NewsEmbedder = NoopNewsEmbedder(),
+        embeddingProps: NewsEmbeddingProperties = this.embeddingProps
+    ): EodhdNewsService {
+        val embeddings = NewsArticleEmbeddings(embedder, embeddingProps, TopicAnchorStore(embedder), articleRepo)
+        val ingest = EodhdNewsIngest(articleRepo, fetchRepo, embeddings)
+        return EodhdNewsService(
             props,
             articleRepo,
-            fetchRepo,
-            assetFinder,
-            embedder,
-            embeddingProps,
-            topicAnchorStore
+            EodhdNewsSymbols(config, assetFinder),
+            EodhdNewsRefresh(proxy, config, props, fetchRepo, ingest),
+            embeddingProps
         )
+    }
 
     @Test
     fun `cache-miss triggers a refresh against EODHD for US tickers`() {
@@ -765,19 +772,7 @@ internal class EodhdNewsServiceTest {
         // A dedicated instance with a clean-fraction threshold (0.5) — 0.90's decimal literal
         // isn't exactly representable in float32, so pinning the ">=" boundary needs a threshold
         // whose Double value survives a float32 dot-product round-trip bit-for-bit.
-        val customEmbedder = NoopNewsEmbedder()
-        val customService =
-            EodhdNewsService(
-                proxy,
-                config,
-                props,
-                articleRepo,
-                fetchRepo,
-                assetFinder,
-                customEmbedder,
-                NewsEmbeddingProperties(similarityThreshold = 0.5),
-                TopicAnchorStore(customEmbedder)
-            )
+        val customService = newsService(embeddingProps = NewsEmbeddingProperties(similarityThreshold = 0.5))
         whenever(fetchRepo.findById("AAPL.US")).thenReturn(
             Optional.of(NewsFetch("AAPL.US", LocalDateTime.now().minusMinutes(30), 3))
         )
@@ -887,18 +882,7 @@ internal class EodhdNewsServiceTest {
         val activeEmbedder = mock<NewsEmbedder>()
         whenever(activeEmbedder.active).thenReturn(true)
         whenever(activeEmbedder.modelId).thenReturn("test-model")
-        val localService =
-            EodhdNewsService(
-                proxy,
-                config,
-                props,
-                articleRepo,
-                fetchRepo,
-                assetFinder,
-                activeEmbedder,
-                embeddingProps,
-                TopicAnchorStore(activeEmbedder)
-            )
+        val localService = newsService(embedder = activeEmbedder)
         whenever(fetchRepo.findById("AAPL.US")).thenReturn(Optional.empty())
         val link = "https://example.com/news/unchanged"
         val incoming = eodhArticle(0.6, title = "Apple beats", link = link)
@@ -926,18 +910,7 @@ internal class EodhdNewsServiceTest {
         whenever(activeEmbedder.active).thenReturn(true)
         whenever(activeEmbedder.modelId).thenReturn("test-model")
         whenever(activeEmbedder.embed(any())).thenReturn(listOf(floatArrayOf(1f, 0f)))
-        val localService =
-            EodhdNewsService(
-                proxy,
-                config,
-                props,
-                articleRepo,
-                fetchRepo,
-                assetFinder,
-                activeEmbedder,
-                embeddingProps,
-                TopicAnchorStore(activeEmbedder)
-            )
+        val localService = newsService(embedder = activeEmbedder)
         whenever(fetchRepo.findById("AAPL.US")).thenReturn(Optional.empty())
         val link = "https://example.com/news/changed"
         val incoming = eodhArticle(0.6, title = "Apple beats — updated", link = link)
@@ -1032,18 +1005,7 @@ internal class EodhdNewsServiceTest {
         val activeEmbedder = mock<NewsEmbedder>()
         whenever(activeEmbedder.active).thenReturn(true)
         whenever(activeEmbedder.modelId).thenReturn("test-model")
-        val localService =
-            EodhdNewsService(
-                proxy,
-                config,
-                props,
-                articleRepo,
-                fetchRepo,
-                assetFinder,
-                activeEmbedder,
-                embeddingProps,
-                TopicAnchorStore(activeEmbedder)
-            )
+        val localService = newsService(embedder = activeEmbedder)
         whenever(fetchRepo.findById("AAPL.US")).thenReturn(Optional.empty())
         val link = "https://example.com/news/once"
         whenever(proxy.getNews(eq("AAPL.US"), any(), anyOrNull(), any()))

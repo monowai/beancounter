@@ -50,9 +50,10 @@ class ConversationAdmin(
                 conversations.saveAndFlush(
                     Conversation(ownerId = ownerId, createdAt = now, updatedAt = now, subject = subject)
                 )
-            } catch (_: DataIntegrityViolationException) {
-                conversations.findByOwnerIdAndSubject(ownerId, subject)
-                    ?: error("Conversation for subject vanished after a duplicate insert")
+            } catch (e: DataIntegrityViolationException) {
+                // A lost race leaves the winner's row to read; any other integrity failure
+                // (e.g. a value the column rejects) has no row, so surface it unchanged.
+                conversations.findByOwnerIdAndSubject(ownerId, subject) ?: throw e
             }
 
     @Transactional(readOnly = true)

@@ -1,6 +1,7 @@
 package com.beancounter.agent.conversation
 
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -8,6 +9,7 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.FilterType
 import org.springframework.context.annotation.Import
+import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 
@@ -84,5 +86,17 @@ class ConversationSubjectTest {
         val review = admin.findOrCreate(owner, "portfolio-review|A|DBS")
 
         assertThat(review.id).isNotEqualTo(chat.id)
+    }
+
+    @Test
+    fun `should surface an insert failure that is not a lost race`() {
+        val tooLong = "s".repeat(SUBJECT_COLUMN_CHARS + 1)
+
+        assertThatThrownBy { admin.findOrCreate(owner, tooLong) }
+            .isInstanceOf(DataIntegrityViolationException::class.java)
+    }
+
+    private companion object {
+        const val SUBJECT_COLUMN_CHARS = 512
     }
 }

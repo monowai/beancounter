@@ -40,9 +40,12 @@ import java.time.LocalDate
  * portfolio's split-adjusted broker holding.
  */
 @SpringMvcDbTest
-class TrnBrokerServiceProposeTest {
+class BrokerSellProposerTest {
     @MockitoBean
     private lateinit var jwtDecoder: JwtDecoder
+
+    @Autowired
+    private lateinit var brokerSellProposer: BrokerSellProposer
 
     @Autowired
     private lateinit var trnBrokerService: TrnBrokerService
@@ -153,7 +156,7 @@ class TrnBrokerServiceProposeTest {
         buy(p2, broker, asset, "60")
 
         val response =
-            trnBrokerService.proposeWeighted(
+            brokerSellProposer.proposeWeighted(
                 broker.id,
                 BrokerProposalRequest(
                     assetId = asset.id,
@@ -186,7 +189,7 @@ class TrnBrokerServiceProposeTest {
         buy(p1, broker, asset, "10")
 
         assertThatThrownBy {
-            trnBrokerService.proposeWeighted(
+            brokerSellProposer.proposeWeighted(
                 broker.id,
                 BrokerProposalRequest(
                     assetId = asset.id,
@@ -214,7 +217,7 @@ class TrnBrokerServiceProposeTest {
         )
 
         val response =
-            trnBrokerService.proposeWeighted(
+            brokerSellProposer.proposeWeighted(
                 broker.id,
                 BrokerProposalRequest(
                     assetId = asset.id,
@@ -243,7 +246,7 @@ class TrnBrokerServiceProposeTest {
         )
 
         val response =
-            trnBrokerService.proposeWeighted(
+            brokerSellProposer.proposeWeighted(
                 broker.id,
                 BrokerProposalRequest(
                     assetId = asset.id,
@@ -266,7 +269,7 @@ class TrnBrokerServiceProposeTest {
         buy(p1, broker, asset, "75")
 
         val response =
-            trnBrokerService.proposeWeighted(
+            brokerSellProposer.proposeWeighted(
                 broker.id,
                 BrokerProposalRequest(
                     assetId = asset.id,
@@ -294,7 +297,7 @@ class TrnBrokerServiceProposeTest {
         buy(p2, broker, asset, "100")
 
         val response =
-            trnBrokerService.proposeWeighted(
+            brokerSellProposer.proposeWeighted(
                 broker.id,
                 BrokerProposalRequest(
                     assetId = asset.id,
@@ -329,7 +332,7 @@ class TrnBrokerServiceProposeTest {
         )
 
         val response =
-            trnBrokerService.proposeWeighted(
+            brokerSellProposer.proposeWeighted(
                 broker.id,
                 BrokerProposalRequest(
                     assetId = asset.id,
@@ -355,7 +358,7 @@ class TrnBrokerServiceProposeTest {
         buy(p2, broker, asset, "18")
 
         val response =
-            trnBrokerService.proposeWeighted(
+            brokerSellProposer.proposeWeighted(
                 broker.id,
                 BrokerProposalRequest(
                     assetId = asset.id,
@@ -389,7 +392,7 @@ class TrnBrokerServiceProposeTest {
         buy(p2, broker, asset, "130")
 
         val response =
-            trnBrokerService.proposeWeighted(
+            brokerSellProposer.proposeWeighted(
                 broker.id,
                 BrokerProposalRequest(
                     assetId = asset.id,
@@ -421,7 +424,7 @@ class TrnBrokerServiceProposeTest {
         buy(p1, broker, asset, "40")
 
         val response =
-            trnBrokerService.proposeWeighted(
+            brokerSellProposer.proposeWeighted(
                 broker.id,
                 BrokerProposalRequest(
                     assetId = asset.id,
@@ -443,7 +446,7 @@ class TrnBrokerServiceProposeTest {
         buy(p1, broker, asset, "9")
 
         val response =
-            trnBrokerService.proposeWeighted(
+            brokerSellProposer.proposeWeighted(
                 broker.id,
                 BrokerProposalRequest(
                     assetId = asset.id,
@@ -465,7 +468,7 @@ class TrnBrokerServiceProposeTest {
         buy(p1, broker, asset, "69")
 
         val response =
-            trnBrokerService.proposeWeighted(
+            brokerSellProposer.proposeWeighted(
                 broker.id,
                 BrokerProposalRequest(
                     assetId = asset.id,
@@ -491,7 +494,7 @@ class TrnBrokerServiceProposeTest {
         buy(p1, broker, asset, "100")
 
         val first =
-            trnBrokerService.proposeWeighted(
+            brokerSellProposer.proposeWeighted(
                 broker.id,
                 BrokerProposalRequest(
                     assetId = asset.id,
@@ -502,7 +505,7 @@ class TrnBrokerServiceProposeTest {
         assertThat(first.data.trns).hasSize(1)
 
         assertThatThrownBy {
-            trnBrokerService.proposeWeighted(
+            brokerSellProposer.proposeWeighted(
                 broker.id,
                 BrokerProposalRequest(
                     assetId = asset.id,
@@ -525,7 +528,7 @@ class TrnBrokerServiceProposeTest {
         sell(p1, broker, asset, "20")
 
         val response =
-            trnBrokerService.proposeWeighted(
+            brokerSellProposer.proposeWeighted(
                 broker.id,
                 BrokerProposalRequest(
                     assetId = asset.id,
@@ -552,7 +555,7 @@ class TrnBrokerServiceProposeTest {
         buy(p1, broker, asset, "10")
 
         assertThatThrownBy {
-            trnBrokerService.proposeWeighted(
+            brokerSellProposer.proposeWeighted(
                 broker.id,
                 BrokerProposalRequest(
                     assetId = asset.id,
@@ -572,7 +575,7 @@ class TrnBrokerServiceProposeTest {
         buy(p1, broker, asset, "10")
 
         assertThatThrownBy {
-            trnBrokerService.proposeWeighted(
+            brokerSellProposer.proposeWeighted(
                 broker.id,
                 BrokerProposalRequest(
                     assetId = asset.id,
@@ -594,7 +597,7 @@ class TrnBrokerServiceProposeTest {
         val unheldAsset = asset("PWA7B")
 
         assertThatThrownBy {
-            trnBrokerService.proposeWeighted(
+            brokerSellProposer.proposeWeighted(
                 broker.id,
                 BrokerProposalRequest(
                     assetId = unheldAsset.id,
@@ -610,7 +613,7 @@ class TrnBrokerServiceProposeTest {
         login("propose-no-broker@test.com")
 
         assertThatThrownBy {
-            trnBrokerService.proposeWeighted(
+            brokerSellProposer.proposeWeighted(
                 TrnBrokerService.NO_BROKER,
                 BrokerProposalRequest(
                     assetId = "any-asset-id",

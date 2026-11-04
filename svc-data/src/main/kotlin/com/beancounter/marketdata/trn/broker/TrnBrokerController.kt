@@ -38,6 +38,7 @@ import org.springframework.web.bind.annotation.RestController
 )
 class TrnBrokerController(
     var trnBrokerService: TrnBrokerService,
+    var brokerSellProposer: BrokerSellProposer,
     var dateUtils: DateUtils
 ) {
     @GetMapping(
@@ -158,7 +159,7 @@ class TrnBrokerController(
         @Parameter(
             description = "Weighted SELL proposal request"
         ) @RequestBody request: BrokerProposalRequest
-    ): TrnResponse = trnBrokerService.proposeWeighted(brokerId, request)
+    ): TrnResponse = brokerSellProposer.proposeWeighted(brokerId, request)
 
     @GetMapping(
         value = ["/asset/{assetId}/brokers"],

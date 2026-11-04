@@ -1,34 +1,20 @@
 package com.beancounter.marketdata.trn.broker
 
-import com.beancounter.common.contracts.TrnRequest
-import com.beancounter.common.contracts.TrnResponse
-import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.NotFoundException
-import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
-import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.broker.BrokerService
-import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.trn.AssetBrokerHolding
 import com.beancounter.marketdata.trn.AssetBrokerHoldingsResponse
-import com.beancounter.marketdata.trn.BrokerHoldingPosition
-import com.beancounter.marketdata.trn.BrokerHoldingTransaction
 import com.beancounter.marketdata.trn.BrokerHoldingsResponse
-import com.beancounter.marketdata.trn.BrokerPortfolioGroup
-import com.beancounter.marketdata.trn.BrokerProposalRequest
 import com.beancounter.marketdata.trn.TrnMigrator
 import com.beancounter.marketdata.trn.TrnRepository
-import com.beancounter.marketdata.trn.TrnService
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
-import java.math.BigDecimal
-import java.math.RoundingMode
 
 /**
  * Service for broker-related transaction operations including holdings aggregation and transfers.
@@ -39,16 +25,12 @@ class TrnBrokerService(
     private val trnRepository: TrnRepository,
     private val brokerService: BrokerService,
     private val systemUserService: SystemUserService,
-    private val assetFinder: AssetFinder,
-    private val trnMigrator: TrnMigrator,
-    private val trnService: TrnService,
-    private val portfolioService: PortfolioService
+    private val trnMigrator: TrnMigrator
 ) {
     private val log = LoggerFactory.getLogger(TrnBrokerService::class.java)
 
     companion object {
         const val NO_BROKER = "NO_BROKER"
-        private const val UNLOTTED_QUANTITY_SCALE = 6
     }
 
     /**
@@ -128,23 +110,6 @@ class TrnBrokerService(
         return count
     }
 
-    private data class PortfolioTrns(
-        val portfolioId: String,
-        val portfolioCode: String,
-        val transactions: MutableList<Trn> = mutableListOf(),
-        var quantity: BigDecimal = BigDecimal.ZERO
-    )
-
-    private data class AssetAggregation(
-        val assetId: String,
-        val assetCode: String,
-        val assetName: String?,
-        val market: String,
-        val boardLot: Int,
-        var quantity: BigDecimal = BigDecimal.ZERO,
-        val portfolioMap: MutableMap<String, PortfolioTrns> = mutableMapOf()
-    )
-
     /**
      * Get aggregated holdings for a specific broker for reconciliation.
      * Calculates net quantities by asset based on settled transactions.
@@ -156,8 +121,7 @@ class TrnBrokerService(
         val (brokerIdResult, brokerName, transactions) = resolveBrokerTransactions(brokerId, user)
         log.trace("Found ${transactions.size} transactions for broker: $brokerName")
 
-        val assetMap = aggregateByAsset(transactions)
-        val holdings = buildHoldingPositions(assetMap)
+        val holdings = BrokerHoldingAggregation.holdings(transactions)
 
         log.debug("Broker holdings for $brokerName: ${holdings.size} positions")
         return BrokerHoldingsResponse(
@@ -173,7 +137,7 @@ class TrnBrokerService(
      * scoping, SETTLED-only status, and split-adjustment handling, but groups by
      * broker for a single asset instead of by asset for a single broker.
      *
-     * Unlike [buildPortfolioGroups] (used by the broker reconciliation view, which
+     * Unlike [getBrokerHoldings] (the broker reconciliation view, which
      * intentionally keeps sold-out portfolio groups for context), zero-quantity
      * portfolio groups are excluded here — this feeds a sell picker, so only
      * actionable holdings are relevant.
@@ -204,7 +168,7 @@ class TrnBrokerService(
         for ((brokerId, trns) in groups) {
             val portfolioIds = trns.map { it.portfolio.id }.toSet()
             val relevantSplits = splits.filter { it.portfolio.id in portfolioIds }
-            val holding = buildAssetHoldingPosition(assetId, trns + relevantSplits) ?: continue
+            val holding = BrokerHoldingAggregation.assetHolding(assetId, trns + relevantSplits) ?: continue
             results.add(
                 AssetBrokerHolding(
                     brokerId = brokerId,
@@ -215,133 +179,6 @@ class TrnBrokerService(
         }
 
         return AssetBrokerHoldingsResponse(data = results.sortedBy { it.brokerName })
-    }
-
-    /**
-     * Aggregate [transactions] (all for the same [assetId]) into a single
-     * [BrokerHoldingPosition], excluding zero-quantity portfolio groups. Returns
-     * null when the asset's net quantity across all groups is zero, or every
-     * portfolio group nets to zero.
-     */
-    private fun buildAssetHoldingPosition(
-        assetId: String,
-        transactions: Collection<Trn>
-    ): BrokerHoldingPosition? {
-        val agg = aggregateByAsset(transactions)[assetId] ?: return null
-        if (agg.quantity.compareTo(BigDecimal.ZERO) == 0) return null
-        val portfolioGroups =
-            buildPortfolioGroups(agg.portfolioMap.values)
-                .filter { it.quantity.compareTo(BigDecimal.ZERO) != 0 }
-        if (portfolioGroups.isEmpty()) return null
-        return BrokerHoldingPosition(
-            assetId = agg.assetId,
-            assetCode = agg.assetCode,
-            assetName = agg.assetName,
-            market = agg.market,
-            quantity = agg.quantity,
-            boardLot = agg.boardLot,
-            portfolioGroups = portfolioGroups
-        )
-    }
-
-    /**
-     * Create weighted PROPOSED SELL transactions from the broker reconciliation
-     * view — one per portfolio holding [BrokerProposalRequest.assetId] at the
-     * broker, sized as `weight` * that portfolio's split-adjusted broker holding,
-     * rounded to the asset's board lot (see [roundToLot]).
-     * No cash auto-settle fires: proposals are PROPOSED, not SETTLED.
-     */
-    fun proposeWeighted(
-        brokerId: String,
-        request: BrokerProposalRequest
-    ): TrnResponse {
-        if (request.trnType != TrnType.SELL) {
-            throw BusinessException("Only SELL proposals are supported")
-        }
-        if (request.weight <= BigDecimal.ZERO || request.weight > BigDecimal.ONE) {
-            throw BusinessException("Weight must be greater than 0 and less than or equal to 1")
-        }
-        if (request.price <= BigDecimal.ZERO) {
-            throw BusinessException("Price must be greater than 0")
-        }
-        if (brokerId == NO_BROKER) {
-            throw BusinessException("A broker is required to propose transactions")
-        }
-        val user = systemUserService.getOrThrow()
-        if (trnRepository.existsByBrokerAndAssetAndTypeAndStatus(
-                brokerId,
-                request.assetId,
-                TrnType.SELL,
-                TrnStatus.PROPOSED,
-                user
-            )
-        ) {
-            throw BusinessException("A proposed sell already exists for this asset at this broker")
-        }
-
-        val holdings = getBrokerHoldings(brokerId)
-        val position =
-            holdings.holdings.firstOrNull { it.assetId == request.assetId }
-                ?: throw NotFoundException("Asset not held at broker: ${request.assetId}")
-
-        // Resolve trade currency up front (same fallback CSV import uses via
-        // BcRowAdapter.getTradeCurrency) so FxTransactions.setRates compares
-        // like-for-like currencies instead of tripping over the TrnInput
-        // default empty tradeCurrency, which reads as an unknown "" currency.
-        val asset = assetFinder.find(request.assetId)
-        val tradeCurrencyCode = asset.accountingType?.currency?.code ?: asset.market.currency.code
-
-        val tradeDate = request.tradeDate ?: DateUtils().date
-        val created = mutableListOf<Trn>()
-        val heldGroups = position.portfolioGroups.filter { it.quantity.signum() > 0 }
-        for (group in heldGroups) {
-            val quantity =
-                roundToLot(
-                    group.quantity.multiply(request.weight),
-                    position.boardLot,
-                    group.quantity
-                )
-            if (quantity.compareTo(BigDecimal.ZERO) == 0) continue
-            val tradeAmount = quantity.multiply(request.price).setScale(2, RoundingMode.HALF_UP)
-            val trnInput =
-                TrnInput(
-                    assetId = request.assetId,
-                    trnType = TrnType.SELL,
-                    quantity = quantity,
-                    tradeCurrency = tradeCurrencyCode,
-                    price = request.price,
-                    tradeAmount = tradeAmount,
-                    cashAmount = tradeAmount,
-                    status = TrnStatus.PROPOSED,
-                    brokerId = brokerId,
-                    tradeDate = tradeDate
-                )
-            val portfolio = portfolioService.find(group.portfolioId)
-            val result = trnService.saveWithResult(portfolio, TrnRequest(portfolio.id, listOf(trnInput)))
-            created.addAll(result.trns)
-        }
-        return TrnResponse(created)
-    }
-
-    /**
-     * Round [raw] to the asset's board lot. Lot 0 = fractional allowed (6dp,
-     * HALF_UP). Otherwise the nearest whole lot multiple, capped at [held]
-     * rounded DOWN to a full lot so a proposal never oversells — a fractional
-     * holding (e.g. DRIP residue) therefore floors to fewer units than
-     * weight * held, and a holding below one lot yields zero (skipped).
-     */
-    private fun roundToLot(
-        raw: BigDecimal,
-        boardLot: Int,
-        held: BigDecimal
-    ): BigDecimal {
-        if (boardLot < 1) return raw.setScale(UNLOTTED_QUANTITY_SCALE, RoundingMode.HALF_UP)
-        val lot = boardLot.toBigDecimal()
-        val rounded = raw.divide(lot, 0, RoundingMode.HALF_UP).multiply(lot)
-        if (rounded > held) {
-            return held.divide(lot, 0, RoundingMode.DOWN).multiply(lot)
-        }
-        return rounded
     }
 
     private fun resolveBrokerTransactions(
@@ -369,110 +206,6 @@ class TrnBrokerService(
                 trades + splits
             )
         }
-
-    // Same-day tie-breaker for split-adjusted accumulation: buys/adds, then split, then sells.
-    private fun sameDayOrder(type: TrnType): Int =
-        when (type) {
-            TrnType.BUY, TrnType.ADD -> 0
-            TrnType.SPLIT -> 1
-            else -> 2
-        }
-
-    private fun aggregateByAsset(transactions: Collection<Trn>): Map<String, AssetAggregation> {
-        val assetMap = mutableMapOf<String, AssetAggregation>()
-        // Chronological order matters: a SPLIT multiplies whatever quantity is held at
-        // that point, so earlier buys scale up and later sells draw down the scaled total.
-        // Same-day events have no intra-day timestamp, so apply a deterministic order:
-        // buys/adds first, then the split, then sells/reduces — matching a broker ex-date
-        // where same-day trades settle against post-split share counts.
-        for (trn in transactions.sortedWith(compareBy({ it.tradeDate }, { sameDayOrder(it.trnType) }))) {
-            val asset = trn.asset
-            val agg =
-                assetMap.getOrPut(asset.id) {
-                    AssetAggregation(
-                        assetId = asset.id,
-                        assetCode = asset.code,
-                        assetName = asset.name,
-                        market = asset.marketCode,
-                        boardLot = asset.accountingType?.boardLot ?: 1
-                    )
-                }
-
-            val portfolioTrns =
-                agg.portfolioMap.getOrPut(trn.portfolio.id) {
-                    PortfolioTrns(
-                        portfolioId = trn.portfolio.id,
-                        portfolioCode = trn.portfolio.code
-                    )
-                }
-
-            val quantityDelta =
-                when (trn.trnType) {
-                    TrnType.BUY, TrnType.ADD -> {
-                        trn.quantity
-                    }
-                    TrnType.SELL, TrnType.REDUCE -> {
-                        trn.quantity.negate()
-                    }
-                    // SPLIT quantity is the ratio (e.g. 4 = 4:1). The delta scales the
-                    // running holding: newQty = qty * ratio, so delta = qty * (ratio - 1).
-                    TrnType.SPLIT -> {
-                        portfolioTrns.quantity
-                            .multiply(trn.quantity)
-                            .subtract(portfolioTrns.quantity)
-                    }
-                    else -> {
-                        BigDecimal.ZERO
-                    }
-                }
-            agg.quantity = agg.quantity.add(quantityDelta)
-            portfolioTrns.quantity = portfolioTrns.quantity.add(quantityDelta)
-            portfolioTrns.transactions.add(trn)
-        }
-        return assetMap
-    }
-
-    private fun buildHoldingPositions(assetMap: Map<String, AssetAggregation>): List<BrokerHoldingPosition> =
-        assetMap.values
-            .filter { it.quantity.compareTo(BigDecimal.ZERO) != 0 }
-            .sortedBy { it.assetCode }
-            .map { agg ->
-                BrokerHoldingPosition(
-                    assetId = agg.assetId,
-                    assetCode = agg.assetCode,
-                    assetName = agg.assetName,
-                    market = agg.market,
-                    quantity = agg.quantity,
-                    boardLot = agg.boardLot,
-                    portfolioGroups = buildPortfolioGroups(agg.portfolioMap.values)
-                )
-            }
-
-    private fun buildPortfolioGroups(portfolios: Collection<PortfolioTrns>): List<BrokerPortfolioGroup> =
-        portfolios
-            .sortedBy { it.portfolioCode }
-            .map { pg ->
-                BrokerPortfolioGroup(
-                    portfolioId = pg.portfolioId,
-                    portfolioCode = pg.portfolioCode,
-                    quantity = pg.quantity,
-                    transactions =
-                        pg.transactions
-                            .sortedBy { it.tradeDate }
-                            .map { trn ->
-                                BrokerHoldingTransaction(
-                                    id = trn.id,
-                                    portfolioId = trn.portfolio.id,
-                                    portfolioCode = trn.portfolio.code,
-                                    tradeDate = trn.tradeDate.toString(),
-                                    trnType = trn.trnType.name,
-                                    quantity = trn.quantity,
-                                    price = trn.price ?: BigDecimal.ZERO,
-                                    tradeAmount = trn.tradeAmount
-                                )
-                            }
-                )
-            }
 
     /**
      * Post-process transactions with asset hydration and version migration.

@@ -9,6 +9,7 @@ import com.beancounter.common.model.Market
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.marketdata.fx.FxHistoryPoint
 import com.beancounter.marketdata.fx.FxHistoryResponse
+import com.beancounter.marketdata.fx.FxHistoryService
 import com.beancounter.marketdata.fx.FxRateService
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -25,7 +26,8 @@ import java.time.LocalDate
  */
 internal class FxPairPriceServiceTest {
     private val fxRateService = mock<FxRateService>()
-    private val service = FxPairPriceService(fxRateService)
+    private val fxHistoryService = mock<FxHistoryService>()
+    private val service = FxPairPriceService(fxRateService, fxHistoryService)
 
     private val fx = Market(code = "FX", currencyId = "USD")
     private val friday = LocalDate.of(2024, 1, 19)
@@ -113,7 +115,7 @@ internal class FxPairPriceServiceTest {
 
     @Test
     fun `should backfill nothing for a pair whose currency is unknown`() {
-        whenever(fxRateService.getHistoricalRates(any(), any(), any<LocalDate>(), any<LocalDate>()))
+        whenever(fxHistoryService.getHistoricalRates(any(), any(), any<LocalDate>(), any<LocalDate>()))
             .thenThrow(BusinessException("[XYZ] is an unknown currency"))
 
         assertThat(service.backFill(getTestAsset(fx, "NZDXYZ"), friday).data).isEmpty()
@@ -121,7 +123,7 @@ internal class FxPairPriceServiceTest {
 
     @Test
     fun `should not hide an unexpected backfill failure as missing history`() {
-        whenever(fxRateService.getHistoricalRates(any(), any(), any<LocalDate>(), any<LocalDate>()))
+        whenever(fxHistoryService.getHistoricalRates(any(), any(), any<LocalDate>(), any<LocalDate>()))
             .thenThrow(IllegalStateException("boom"))
 
         assertThatThrownBy { service.backFill(getTestAsset(fx, "NZDSGD"), friday) }
@@ -138,7 +140,7 @@ internal class FxPairPriceServiceTest {
     @Test
     fun `should backfill a pair from the stored rate history`() {
         val from = LocalDate.of(2024, 1, 1)
-        whenever(fxRateService.getHistoricalRates(any(), any(), any<LocalDate>(), any<LocalDate>())).thenReturn(
+        whenever(fxHistoryService.getHistoricalRates(any(), any(), any<LocalDate>(), any<LocalDate>())).thenReturn(
             FxHistoryResponse(
                 from = "NZD",
                 to = "SGD",

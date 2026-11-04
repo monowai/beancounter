@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RestController
 @RequestMapping("/")
 class RegistrationController internal constructor(
     private val systemUserService: SystemUserService,
+    private val systemUserRegistration: SystemUserRegistration,
     private val userPreferencesService: UserPreferencesService,
     private val tokenService: TokenService,
     private val userActivity: UserActivityService
@@ -61,7 +62,7 @@ class RegistrationController internal constructor(
     @PostMapping(value = ["/register"])
     @PreAuthorize("hasAuthority('" + AuthConstants.SCOPE_USER + "')")
     fun register(): RegistrationResponse {
-        val response = systemUserService.register()
+        val response = systemUserRegistration.register()
         val preferences = userPreferencesService.getOrCreate(response.data)
         return RegistrationResponse(response.data, preferences)
     }

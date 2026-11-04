@@ -142,7 +142,7 @@ class TrnImportService(
     }
 
     private fun verifyPortfolio(portfolioId: String): Boolean {
-        if (!portfolioService.verify(portfolioId)) {
+        if (portfolioService.findOrNull(portfolioId) == null) {
             logger.debug(
                 "Portfolio {} no longer exists. Ignoring",
                 portfolioId

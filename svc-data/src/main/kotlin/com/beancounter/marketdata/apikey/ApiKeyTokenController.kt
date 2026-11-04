@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.RestController
 /**
  * Exchanges a raw BC API key for a short-lived JWT (bc-claude/MCP.md phase
  * 2). Deliberately unauthenticated - the caller authenticates by presenting
- * the key itself ([ApiKeyService.verify]), not a user JWT, so this can't
+ * the key itself ([ApiKeyVerifier.verify]), not a user JWT, so this can't
  * live under `/me` or behind the usual scope gate (see
  * ControllerAuthorizationTest's allowlist). Guarded instead by
  * [TokenRateLimiter], keyed on the forwarded client address (falling back
@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.RestController
     description = "Exchange a BC-issued API key for a short-lived JWT"
 )
 class ApiKeyTokenController(
-    private val apiKeyService: ApiKeyService,
+    private val apiKeyVerifier: ApiKeyVerifier,
     private val bcTokenIssuer: BcTokenIssuer,
     private val tokenRateLimiter: TokenRateLimiter,
     private val userActivity: UserActivityService
@@ -43,9 +43,9 @@ class ApiKeyTokenController(
         tokenRateLimiter.check(tokenRateLimiter.clientKey(servletRequest))
         val verifiedKey =
             if (request.assertion.isNotBlank()) {
-                apiKeyService.verifyDevice(request.assertion)
+                apiKeyVerifier.verifyDevice(request.assertion)
             } else {
-                apiKeyService.verify(request.apiKey)
+                apiKeyVerifier.verify(request.apiKey)
             }
         val jwt = bcTokenIssuer.mint(verifiedKey)
         userActivity.seenQuietly(verifiedKey.owner.id)

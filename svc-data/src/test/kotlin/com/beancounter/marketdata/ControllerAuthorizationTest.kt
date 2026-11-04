@@ -37,7 +37,7 @@ private val HANDLER_ANNOTATIONS =
  *   (`WebAuthFilterConfig`: "$apiPath/auth" is permitAll).
  * - [ApiKeyTokenController]: permitAll BC API-key token exchange
  *   (bc-claude/MCP.md phase 2) - the caller authenticates by presenting the
- *   key itself ([com.beancounter.marketdata.apikey.ApiKeyService.verify]),
+ *   key itself ([com.beancounter.marketdata.apikey.ApiKeyVerifier.verify]),
  *   not a user JWT, so it can't sit behind the scope gate. Guarded instead
  *   by [com.beancounter.marketdata.apikey.TokenRateLimiter].
  * - [JwksController]: permitAll JWKS publication - JWKS documents are

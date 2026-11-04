@@ -8,11 +8,10 @@ import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.marketdata.cache.CacheInvalidationProducer
-import com.beancounter.marketdata.cash.CashAutoSettleService
 import com.beancounter.marketdata.portfolio.PortfolioAccessControl
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.trn.CashTrnServices
+import com.beancounter.marketdata.trn.TrnChangeEffects
 import com.beancounter.marketdata.trn.TrnPostProcessor
 import com.beancounter.marketdata.trn.TrnRepository
 import com.beancounter.marketdata.trn.getOrThrow
@@ -39,10 +38,9 @@ import java.math.BigDecimal
 class TrnSettlementService(
     private val trnRepository: TrnRepository,
     private val fxTransactions: FxTransactions,
-    private val cashAutoSettleService: CashAutoSettleService,
+    private val trnChangeEffects: TrnChangeEffects,
     private val portfolioService: PortfolioService,
     private val portfolioAccessControl: PortfolioAccessControl,
-    private val cacheInvalidationProducer: CacheInvalidationProducer,
     private val dateUtils: DateUtils,
     private val trnPostProcessor: TrnPostProcessor
 ) {
@@ -58,10 +56,7 @@ class TrnSettlementService(
         val portfolio = portfolioService.find(portfolioId)
         val settled = trnIds.mapNotNull { settleOne(portfolio, it) }
         log.info("Settled {} transactions for portfolio {}", settled.size, portfolio.code)
-        val earliestSettled = settled.minOfOrNull { it.tradeDate }
-        if (earliestSettled != null) {
-            cacheInvalidationProducer.sendTransactionEvent(portfolio.id, earliestSettled)
-        }
+        trnChangeEffects.invalidate(portfolio.id, settled)
         return trnPostProcessor.postProcess(settled)
     }
 
@@ -115,7 +110,7 @@ class TrnSettlementService(
             "Cannot unsettle trn $trnId: status is ${parent.status}, expected SETTLED"
         }
         val siblings = unsettle(parent)
-        cacheInvalidationProducer.sendTransactionEvent(parent.portfolio.id, parent.tradeDate)
+        trnChangeEffects.invalidate(parent.portfolio.id, parent.tradeDate)
         return TrnStatusUpdateResponse(updated = parent, siblings = siblings)
     }
 
@@ -148,9 +143,7 @@ class TrnSettlementService(
             }
         }
         log.info("Unsettled {} transactions for portfolio {}", unsettled.size, portfolio.code)
-        unsettled.minOfOrNull { it.tradeDate }?.let {
-            cacheInvalidationProducer.sendTransactionEvent(portfolio.id, it)
-        }
+        trnChangeEffects.invalidate(portfolio.id, unsettled)
         return trnPostProcessor.postProcess(unsettled)
     }
 
@@ -189,9 +182,8 @@ class TrnSettlementService(
         }
         trn.status = TrnStatus.SETTLED
         trnRepository.save(trn)
-        cashAutoSettleService
-            .emitCompensatingTransfer(trn)
-            .warnings
+        trnChangeEffects
+            .syncCash(trn)
             .forEach { log.warn("Auto-settle cash for {}: {}", trn.id, it) }
         return trn
     }
@@ -203,7 +195,7 @@ class TrnSettlementService(
      * re-settle to SETTLED when the parent settles again.
      */
     fun unsettle(trn: Trn): List<String> {
-        val siblings = cashAutoSettleService.findSiblings(trn)
+        val siblings = trnChangeEffects.cashLegs(trn)
         if (siblings.isNotEmpty()) {
             siblings.forEach { it.status = TrnStatus.PROPOSED }
             trnRepository.saveAll(siblings)

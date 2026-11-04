@@ -75,7 +75,12 @@ class AlphaClassificationEnricherTest {
         alphaProxy = mock()
         classificationService = mock()
         enricher =
-            AlphaClassificationEnricher(alphaConfig, alphaProxy, classificationService, taxonomy, fundLookThrough)
+            AlphaClassificationEnricher(
+                alphaConfig,
+                alphaProxy,
+                classificationService,
+                AlphaEtfLookThrough(taxonomy, fundLookThrough)
+            )
 
         // apiKey field is set via @Value; not injected outside a Spring context, so it stays the
         // Kotlin default-initialized empty lateinit - fine, alphaProxy is mocked and does not

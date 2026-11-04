@@ -65,7 +65,7 @@ class AllocationServiceTest {
 
         val positions = TestHelpers.createTestPositions(portfolio, listOf(position))
         positions.totals[Position.In.PORTFOLIO] =
-            Totals(currency = usd, marketValue = BigDecimal("1000"))
+            Totals(currency = usd, marketValue = BigDecimal("1000"), gainOnDay = BigDecimal("10"))
 
         val pair = IsoCurrencyPair(from = "USD", to = "SGD")
         val rate = BigDecimal("1.35")
@@ -84,6 +84,7 @@ class AllocationServiceTest {
                 .moneyValues[Position.In.PORTFOLIO]!!
         assertThat(converted.currency.code).isEqualTo("SGD")
         assertThat(converted.marketValue).isEqualByComparingTo("1350")
+        assertThat(result.totals.getValue(Position.In.PORTFOLIO).gainOnDay).isEqualByComparingTo("13.5")
         // TRADE and BASE views should not be touched
         assertThat(
             result.positions.values

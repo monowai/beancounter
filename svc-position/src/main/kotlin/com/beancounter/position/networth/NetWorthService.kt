@@ -12,7 +12,8 @@ import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
-import com.beancounter.common.utils.MathUtils.Companion.HUNDRED
+import com.beancounter.common.utils.changePercent
+import com.beancounter.common.utils.percentOf
 import com.beancounter.position.composite.AssetConfigClient
 import com.beancounter.position.composite.PrivateAssetConfigDto
 import com.beancounter.position.valuation.AggregateValuationRequest
@@ -103,9 +104,9 @@ class NetWorthService(
             standaloneCompositeValue = standaloneCompositeValue,
             healthcareReserve = healthcareReserve,
             gainOnDay = gainOnDay,
-            gainOnDayPercent = changePercentage(gainOnDay, totalValue),
+            gainOnDayPercent = changePercent(gainOnDay, totalValue),
             weekChange = weekChangeAmount,
-            weekChangePercent = weekChangeAmount?.let { changePercentage(it, totalValue) },
+            weekChangePercent = weekChangeAmount?.let { changePercent(it, totalValue) },
             portfolioCount = portfolios.size,
             classificationBreakdown = classificationBreakdown(positions),
             portfolios = portfolioRows(portfolios, rates, totalValue)
@@ -210,7 +211,7 @@ class NetWorthService(
                 NetWorthClassification(
                     classification = group,
                     value = money(value),
-                    percentage = percentage(value, total)
+                    percentage = percentOf(value, total)
                 )
             }
     }
@@ -230,27 +231,11 @@ class NetWorthService(
                 code = portfolio.code,
                 name = portfolio.name,
                 value = money(value),
-                percentage = percentage(value, totalValue),
+                percentage = percentOf(value, totalValue),
                 irr = portfolio.irr,
                 gainOnDay = gainOnDay,
-                gainOnDayPercent = changePercentage(gainOnDay, money(value))
+                gainOnDayPercent = changePercent(gainOnDay, money(value))
             )
-        }
-
-    /** A day's [change] against the value before it: [current] less the change. */
-    private fun changePercentage(
-        change: BigDecimal,
-        current: BigDecimal
-    ): BigDecimal = percentage(change, current.subtract(change))
-
-    private fun percentage(
-        value: BigDecimal,
-        total: BigDecimal
-    ): BigDecimal =
-        if (total.signum() == 0) {
-            BigDecimal.ZERO.setScale(MONEY_SCALE)
-        } else {
-            value.multiply(HUNDRED).divide(total, MONEY_SCALE, RoundingMode.HALF_UP)
         }
 
     private fun money(value: BigDecimal): BigDecimal = value.setScale(MONEY_SCALE, RoundingMode.HALF_UP)

@@ -243,7 +243,10 @@ class NetWorthServiceTest {
     }
 
     @Test
-    fun `should sum gain on day only for positions with price change data`() {
+    fun `should sum gain on day over every position, as the published portfolio figure does`() {
+        // MarketValue sets gainOnDay only for a priced, non-cash position with a previous
+        // close, so an unpriced position carries zero. A price whose changePercent reads zero
+        // still moved by close - previousClose; that move counts, as it does in the totals.
         val portfolio = portfolio("p1", "SGD", marketValue = "3000")
         val priced =
             position(TestHelpers.createTestAsset("priced"), portfolio, "SGD", marketValue = "1000").apply {
@@ -251,22 +254,19 @@ class NetWorthServiceTest {
                 moneyValues[Position.In.PORTFOLIO]!!.priceData =
                     PriceData().apply { changePercent = BigDecimal("0.025") }
             }
-        val unpriced =
-            position(TestHelpers.createTestAsset("unpriced"), portfolio, "SGD", marketValue = "1000").apply {
-                moneyValues[Position.In.PORTFOLIO]!!.gainOnDay = BigDecimal("999")
-            }
-        val flat =
+        val unpriced = position(TestHelpers.createTestAsset("unpriced"), portfolio, "SGD", marketValue = "1000")
+        val noReportedChange =
             position(TestHelpers.createTestAsset("flat"), portfolio, "SGD", marketValue = "1000").apply {
                 moneyValues[Position.In.PORTFOLIO]!!.gainOnDay = BigDecimal("7")
                 moneyValues[Position.In.PORTFOLIO]!!.priceData = PriceData().apply { changePercent = BigDecimal.ZERO }
             }
-        val positions = positions(portfolio, "SGD", totalMarketValue = "3000", priced, unpriced, flat)
+        val positions = positions(portfolio, "SGD", totalMarketValue = "3000", priced, unpriced, noReportedChange)
         stubAggregated(listOf(portfolio), positions, "SGD")
         whenever(assetConfigClient.findAll()).thenReturn(emptyList())
 
         val result = netWorthService.calculate(listOf(portfolio), asAt, "SGD")
 
-        assertThat(result.gainOnDay).isEqualByComparingTo("25")
+        assertThat(result.gainOnDay).isEqualByComparingTo("32")
     }
 
     @Test

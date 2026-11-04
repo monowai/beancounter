@@ -45,7 +45,7 @@ class MarketValueUpdateProducer(
         val baseTotals = valued.totals[Position.In.BASE]
         val marketValue = baseTotals?.marketValue ?: BigDecimal.ZERO
         val irr = baseTotals?.irr ?: BigDecimal.ZERO
-        val gainOnDay = gainOnDay(valued)
+        val gainOnDay = valued.gainOnDay(Position.In.BASE)
         val valuedAt = dateUtils.getDate(valued.asAt)
 
         log.trace(
@@ -72,12 +72,6 @@ class MarketValueUpdateProducer(
             log.error("Failed to send market value update for portfolio {}: {}", payload.code, e.message)
         }
     }
-
-    /** Total gain on day: every position's BASE gainOnDay summed. */
-    private fun gainOnDay(positions: Positions): BigDecimal =
-        positions.positions.values
-            .mapNotNull { it.moneyValues[Position.In.BASE]?.gainOnDay }
-            .fold(BigDecimal.ZERO) { acc, value -> acc.add(value) }
 
     /** BASE market value summed by each position's effectiveReportCategory. */
     private fun assetClassification(positions: Positions): Map<String, BigDecimal> =

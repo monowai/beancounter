@@ -84,4 +84,67 @@ internal class NewsArticleEmbeddingsTest {
         assertThat(article.embeddingModel).isEqualTo("test-model")
         assertThat(article.derivedTopics).containsExactlyInAnyOrderElementsOf(TopicAnchors.PHRASES.keys)
     }
+
+    /** Active embedder that records the texts it is asked to embed. */
+    private class RecordingEmbedder : NewsEmbedder {
+        val texts = mutableListOf<String>()
+        override val modelId = "test-model"
+        override val active = true
+
+        override fun embed(texts: List<String>): List<FloatArray> {
+            this.texts.addAll(texts)
+            return texts.map { floatArrayOf(1f, 0f) }
+        }
+    }
+
+    private fun storedEmbedded(
+        title: String,
+        content: String
+    ) = NewsArticle(
+        externalId = "ext-1",
+        published = LocalDateTime.now(),
+        fetchedAt = LocalDateTime.now(),
+        title = title,
+        content = content,
+        summary = "stale summary",
+        embedding = EmbeddingCodec.encode(floatArrayOf(0f, 1f)),
+        embeddingModel = "test-model"
+    )
+
+    private fun prepareOne(
+        embedder: RecordingEmbedder,
+        incoming: EodhdNewsArticle,
+        stored: NewsArticle
+    ) = NewsArticleEmbeddings(embedder, NewsEmbeddingProperties(), TopicAnchorStore(NoopNewsEmbedder()))
+        .prepare(listOf("ext-1" to incoming), mapOf("ext-1" to stored))
+
+    @Test
+    fun `a content-only revision is re-embedded from the incoming title and content`() {
+        val embedder = RecordingEmbedder()
+
+        val prepared =
+            prepareOne(
+                embedder,
+                EodhdNewsArticle(title = "Headline", content = "revised body"),
+                storedEmbedded(title = "Headline", content = "original body")
+            )
+
+        assertThat(prepared.keys).containsExactly("ext-1")
+        assertThat(embedder.texts).containsExactly("Headline. revised body")
+    }
+
+    @Test
+    fun `an unchanged article keeps its stored vector`() {
+        val embedder = RecordingEmbedder()
+
+        val prepared =
+            prepareOne(
+                embedder,
+                EodhdNewsArticle(title = "Headline", content = "body"),
+                storedEmbedded(title = "Headline", content = "body")
+            )
+
+        assertThat(prepared).isEmpty()
+        assertThat(embedder.texts).isEmpty()
+    }
 }

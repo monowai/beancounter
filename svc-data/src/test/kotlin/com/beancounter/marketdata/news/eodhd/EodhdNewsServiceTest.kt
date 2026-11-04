@@ -866,7 +866,7 @@ internal class EodhdNewsServiceTest {
     // --- Ingest-time embedding skip/recompute -------------------------------------------------
 
     @Test
-    fun `ingest skips re-embedding when the stored embedding is current for title and model`() {
+    fun `ingest skips re-embedding when the stored embedding is current for text and model`() {
         val activeEmbedder = mock<NewsEmbedder>()
         whenever(activeEmbedder.active).thenReturn(true)
         whenever(activeEmbedder.modelId).thenReturn("test-model")
@@ -881,6 +881,7 @@ internal class EodhdNewsServiceTest {
                 published = LocalDateTime.now(),
                 fetchedAt = LocalDateTime.now(),
                 title = "Apple beats",
+                content = "body",
                 embedding = EmbeddingCodec.encode(floatArrayOf(1f, 0f)),
                 embeddingModel = "test-model"
             )
@@ -1004,6 +1005,7 @@ internal class EodhdNewsServiceTest {
                 published = LocalDateTime.now(),
                 fetchedAt = LocalDateTime.now(),
                 title = "Apple beats",
+                content = "body",
                 embedding = EmbeddingCodec.encode(floatArrayOf(1f, 0f)),
                 embeddingModel = "test-model"
             )

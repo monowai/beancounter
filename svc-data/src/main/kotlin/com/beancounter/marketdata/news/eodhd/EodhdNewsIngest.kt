@@ -121,7 +121,7 @@ class EodhdNewsIngest(
     ) {
         // Captured before the overwrite below — decides whether a vector carried over from a
         // previous round still describes this article.
-        val textChanged = article.title != incoming.title || article.content != incoming.content
+        val textChanged = NewsArticleEmbeddings.textChanged(article, incoming)
 
         article.externalId = externalIdOf(incoming)
         article.published = parsePublished(incoming.date)

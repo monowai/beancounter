@@ -1,7 +1,6 @@
 package com.beancounter.marketdata.news.eodhd
 
 import com.beancounter.marketdata.news.NewsArticle
-import com.beancounter.marketdata.news.NewsArticleRepo
 import com.beancounter.marketdata.news.embedding.EmbeddingCodec
 import com.beancounter.marketdata.news.embedding.NewsEmbedder
 import com.beancounter.marketdata.news.embedding.NewsEmbeddingProperties
@@ -20,37 +19,35 @@ import org.springframework.stereotype.Component
 class NewsArticleEmbeddings(
     private val newsEmbedder: NewsEmbedder,
     private val embeddingProperties: NewsEmbeddingProperties,
-    private val topicAnchorStore: TopicAnchorStore,
-    private val newsArticleRepo: NewsArticleRepo
+    private val topicAnchorStore: TopicAnchorStore
 ) {
     private val log = LoggerFactory.getLogger(NewsArticleEmbeddings::class.java)
 
     /**
      * Batch-embeds the [fresh] articles (keyed by external id) that actually need a (re)computed
-     * vector, skipping any whose stored row already carries an embedding for the current
-     * [NewsEmbedder.modelId] with an unchanged title — EODHD republishes the same article on every
-     * poll, so without this every refresh would re-embed its whole feed. A no-op entirely when
-     * [newsEmbedder] is inactive (the default), so the noop path never touches the repo for this.
+     * vector, skipping any whose stored row in [existing] already carries an embedding for the
+     * current [NewsEmbedder.modelId] and unchanged text (see [textChanged]) — EODHD republishes
+     * the same article on every poll, so without this every refresh would re-embed its whole
+     * feed. A no-op entirely when [newsEmbedder] is inactive (the default). [existing] is the
+     * ingest's one preload of the stored rows, so this issues no queries of its own.
      *
-     * The rows loaded here for the currency check are carried out in [Prepared.existing] so the
-     * upsert does not re-query every `external_id` a second time — 2N lookups per embed-enabled
-     * refresh instead of N.
+     * @return fresh vectors by external id; an article absent from it keeps its stored vector.
      */
-    fun prepare(fresh: List<Pair<String, EodhdNewsArticle>>): Prepared {
-        if (!newsEmbedder.active || fresh.isEmpty()) return Prepared()
-
-        val candidates =
-            fresh.map { (externalId, incoming) ->
-                Candidate(externalId, incoming, newsArticleRepo.findByExternalId(externalId).orElse(null))
-            }
-        val existing = candidates.mapNotNull { c -> c.existing?.let { c.externalId to it } }.toMap()
-        val toEmbed = candidates.filterNot { isEmbeddingCurrent(it.existing, it.incoming.title) }
-        return if (toEmbed.isEmpty()) Prepared(existing = existing) else embed(toEmbed, existing)
+    fun prepare(
+        fresh: List<Pair<String, EodhdNewsArticle>>,
+        existing: Map<String, NewsArticle>
+    ): Map<String, ArticleEmbedding> {
+        if (!newsEmbedder.active) return emptyMap()
+        val toEmbed =
+            fresh
+                .map { (externalId, incoming) -> Candidate(externalId, incoming, existing[externalId]) }
+                .filterNot { isEmbeddingCurrent(it.existing, it.incoming) }
+        return if (toEmbed.isEmpty()) emptyMap() else embed(toEmbed)
     }
 
     /**
-     * Writes [embedding] onto [article]. [textChanged] is whether the incoming payload moved the
-     * article's title or content on, captured by the caller before it overwrote them.
+     * Writes [embedding] onto [article]. [textChanged] is [Companion.textChanged] for the incoming
+     * payload, captured by the caller before it overwrote the article's title and content.
      */
     fun applyTo(
         article: NewsArticle,
@@ -58,7 +55,7 @@ class NewsArticleEmbeddings(
         textChanged: Boolean
     ) {
         // Only present when prepare() actually (re)computed a vector this round — a
-        // skip-recompute hit (title + model unchanged) leaves the article's existing
+        // skip-recompute hit (text + model unchanged) leaves the article's existing
         // embedding/embeddingModel/derivedTopics untouched.
         if (embedding != null) {
             article.embedding = EmbeddingCodec.encode(embedding.vector)
@@ -79,11 +76,8 @@ class NewsArticleEmbeddings(
         }
     }
 
-    private fun embed(
-        toEmbed: List<Candidate>,
-        existing: Map<String, NewsArticle>
-    ): Prepared {
-        val texts = toEmbed.map { embeddingText(it.incoming, it.existing?.summary) }
+    private fun embed(toEmbed: List<Candidate>): Map<String, ArticleEmbedding> {
+        val texts = toEmbed.map { embeddingText(it.incoming) }
         val vectors = newsEmbedder.embed(texts)
         if (vectors.size != texts.size) {
             // Partial-batch failure (or a provider that doesn't honour request order/size).
@@ -96,41 +90,27 @@ class NewsArticleEmbeddings(
                 vectors.size,
                 texts.size
             )
-            return Prepared(existing = existing)
+            return emptyMap()
         }
 
-        return Prepared(
-            embeddings =
-                toEmbed
-                    .zip(vectors) { candidate, vector ->
-                        candidate.externalId to ArticleEmbedding(vector, newsEmbedder.modelId)
-                    }.toMap(),
-            existing = existing
-        )
+        return toEmbed
+            .zip(vectors) { candidate, vector ->
+                candidate.externalId to ArticleEmbedding(vector, newsEmbedder.modelId)
+            }.toMap()
     }
 
     private fun isEmbeddingCurrent(
         existing: NewsArticle?,
-        incomingTitle: String
+        incoming: EodhdNewsArticle
     ): Boolean =
         existing != null &&
             existing.embedding != null &&
             existing.embeddingModel == newsEmbedder.modelId &&
-            existing.title == incomingTitle
+            !textChanged(existing, incoming)
 
-    private fun embeddingText(
-        incoming: EodhdNewsArticle,
-        existingSummary: String?
-    ): String {
-        val tail = existingSummary?.takeIf { it.isNotBlank() } ?: incoming.content
-        return "${incoming.title}. $tail".take(EMBEDDING_TEXT_MAX_CHARS)
-    }
-
-    /** Per-refresh ingest scratch: fresh vectors by externalId, plus the rows already loaded for them. */
-    class Prepared(
-        val embeddings: Map<String, ArticleEmbedding> = emptyMap(),
-        val existing: Map<String, NewsArticle> = emptyMap()
-    )
+    /** Built from the same fields [textChanged] compares, so a vector describes what is stored. */
+    private fun embeddingText(incoming: EodhdNewsArticle): String =
+        "${incoming.title}. ${incoming.content}".take(EMBEDDING_TEXT_MAX_CHARS)
 
     class ArticleEmbedding(
         val vector: FloatArray,
@@ -144,7 +124,16 @@ class NewsArticleEmbeddings(
     )
 
     companion object {
-        // Cap on the "title. summary-or-content" text sent to the embedder per article — the
+        /**
+         * The one definition of "this article's text moved on": the title or content differs. It
+         * decides both whether a stored vector is still current and whether ingest clears one.
+         */
+        fun textChanged(
+            stored: NewsArticle,
+            incoming: EodhdNewsArticle
+        ): Boolean = stored.title != incoming.title || stored.content != incoming.content
+
+        // Cap on the "title. content" text sent to the embedder per article — the
         // model truncates internally anyway, and this keeps the request payload small.
         private const val EMBEDDING_TEXT_MAX_CHARS = 512
     }

@@ -7,6 +7,7 @@ import com.beancounter.marketdata.news.NewsArticleTicker
 import com.beancounter.marketdata.news.NewsFetch
 import com.beancounter.marketdata.news.NewsFetchRepo
 import com.beancounter.marketdata.providers.eodhd.model.EodhdNewsArticle
+import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Component
 import java.time.LocalDateTime
@@ -32,10 +33,14 @@ class EodhdNewsIngest(
         symbol: String,
         articles: List<EodhdNewsArticle>
     ) {
-        val keyed = articles.map { externalIdOf(it) to it }
-        val prepared = embeddings.prepare(keyed)
+        val keyed = newestPerExternalId(articles)
+        if (keyed.size < articles.size) {
+            log.debug("News for {}: kept the latest of {} repeated copies", symbol, articles.size - keyed.size)
+        }
+        val existing = preload(keyed.map { it.first })
+        val fresh = embeddings.prepare(keyed, existing)
         for ((externalId, incoming) in keyed) {
-            saveOrMerge(symbol, incoming, prepared.embeddings[externalId], prepared.existing[externalId])
+            saveOrMerge(symbol, incoming, fresh[externalId], existing[externalId])
         }
         newsFetchRepo.save(NewsFetch(symbol, LocalDateTime.now(dateUtils.zoneId), articles.size))
     }
@@ -55,6 +60,28 @@ class EodhdNewsIngest(
         newsFetchRepo.save(existing)
     }
 
+    /**
+     * EODHD can list one article twice in a response (a revision republished under the same link).
+     * Keep the latest-dated copy — the revision a re-poll would converge on — so the article is
+     * embedded and saved once; equal dates keep the first listed.
+     */
+    private fun newestPerExternalId(articles: List<EodhdNewsArticle>): List<Pair<String, EodhdNewsArticle>> =
+        articles
+            .groupBy { externalIdOf(it) }
+            .map { (externalId, copies) -> externalId to copies.maxBy { parsePublished(it.date) } }
+
+    /**
+     * One query for every stored row this fetch touches, shared by the embedding currency check
+     * and the upsert. The id list is one EODHD response, capped by `provider-limit` (EODHD itself
+     * serves at most 1000), so it stays far below the database's bind-parameter limit unchunked.
+     */
+    private fun preload(externalIds: List<String>): Map<String, NewsArticle> =
+        if (externalIds.isEmpty()) {
+            emptyMap()
+        } else {
+            newsArticleRepo.findAllByExternalIdIn(externalIds).associateBy { it.externalId }
+        }
+
     /** EODHD's link is the dedup key; a blank one falls back to the date+title pair. */
     private fun externalIdOf(incoming: EodhdNewsArticle): String =
         incoming.link.ifBlank { "${incoming.date}|${incoming.title}" }
@@ -70,11 +97,9 @@ class EodhdNewsIngest(
         symbol: String,
         incoming: EodhdNewsArticle,
         embedding: NewsArticleEmbeddings.ArticleEmbedding?,
-        preloaded: NewsArticle?
+        existing: NewsArticle?
     ) {
         val externalId = externalIdOf(incoming)
-        // Reuses the row NewsArticleEmbeddings.prepare already loaded, when it loaded one.
-        val existing = preloaded ?: newsArticleRepo.findByExternalId(externalId).orElse(null)
         val article =
             existing ?: NewsArticle(
                 externalId = externalId,
@@ -100,7 +125,7 @@ class EodhdNewsIngest(
     ) {
         // Captured before the overwrite below — decides whether a vector carried over from a
         // previous round still describes this article.
-        val textChanged = article.title != incoming.title || article.content != incoming.content
+        val textChanged = NewsArticleEmbeddings.textChanged(article, incoming)
 
         article.externalId = externalIdOf(incoming)
         article.published = parsePublished(incoming.date)
@@ -148,4 +173,8 @@ class EodhdNewsIngest(
                 LocalDateTime.now(ZoneOffset.UTC)
             }
         }
+
+    private companion object {
+        val log = LoggerFactory.getLogger(EodhdNewsIngest::class.java)
+    }
 }

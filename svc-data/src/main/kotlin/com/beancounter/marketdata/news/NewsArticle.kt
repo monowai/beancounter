@@ -36,7 +36,7 @@ import java.time.LocalDateTime
 data class NewsArticle(
     @Column(name = "external_id", nullable = false, length = 2048)
     var externalId: String = "",
-    // No default: the one call site that omits it (EodhdNewsService.saveOrMerge, for
+    // No default: the one call site that omits it (EodhdNewsIngest.saveOrMerge, for
     // a brand-new row) immediately overwrites both this and fetchedAt via
     // applyIncoming() before the entity is ever saved.
     @Column(nullable = false)
@@ -77,7 +77,7 @@ data class NewsArticle(
     /**
      * Little-endian float32 embedding vector (see [EmbeddingCodec]), computed by [NewsEmbedder]
      * at ingest. Null until the feature is enabled and this row has been (re)embedded — see
-     * [com.beancounter.marketdata.news.eodhd.EodhdNewsService]'s ingest seam.
+     * [com.beancounter.marketdata.news.eodhd.NewsArticleEmbeddings].
      *
      * No `@Lob`: a plain `byte[]` column maps to `VARBINARY`, which `PostgreSQLDialect` resolves
      * to `bytea` (matching the V35 migration). `@Lob` would push Hibernate onto the LOB streaming
@@ -96,7 +96,7 @@ data class NewsArticle(
     /**
      * Topics derived from anchor-phrase cosine similarity ([TopicAnchors]), distinct from the
      * vendor's sparse EODHD [tags]. Backs the same topic filter as `tags` (see
-     * [com.beancounter.marketdata.news.eodhd.EodhdNewsService]'s `matchesTopic`), closing the
+     * [com.beancounter.marketdata.news.eodhd.NewsBriefing]'s `matchesTopic`), closing the
      * coverage gap when EODHD ships no tags at all.
      */
     @ElementCollection(fetch = FetchType.EAGER)

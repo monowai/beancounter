@@ -84,7 +84,7 @@ internal class EodhdNewsServiceTest {
         embedder: NewsEmbedder = NoopNewsEmbedder(),
         embeddingProps: NewsEmbeddingProperties = this.embeddingProps
     ): EodhdNewsService {
-        val embeddings = NewsArticleEmbeddings(embedder, embeddingProps, TopicAnchorStore(embedder), articleRepo)
+        val embeddings = NewsArticleEmbeddings(embedder, embeddingProps, TopicAnchorStore(embedder))
         val ingest = EodhdNewsIngest(articleRepo, fetchRepo, embeddings)
         return EodhdNewsService(
             props,
@@ -99,7 +99,6 @@ internal class EodhdNewsServiceTest {
     fun `cache-miss triggers a refresh against EODHD for US tickers`() {
         whenever(fetchRepo.findById("AAPL.US")).thenReturn(Optional.empty())
         whenever(proxy.getNews(eq("AAPL.US"), any(), anyOrNull(), any())).thenReturn(listOf(eodhArticle(0.8)))
-        whenever(articleRepo.findByExternalId(any())).thenReturn(Optional.empty())
         whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(emptyList())
 
         service.getNewsSentiment("AAPL")
@@ -118,7 +117,6 @@ internal class EodhdNewsServiceTest {
         whenever(fetchRepo.findById(index)).thenReturn(Optional.empty())
         whenever(fetchRepo.findById(sector)).thenReturn(Optional.empty())
         whenever(proxy.getNews(any(), any(), anyOrNull(), any())).thenReturn(listOf(eodhArticle(0.6)))
-        whenever(articleRepo.findByExternalId(any())).thenReturn(Optional.empty())
         // findByTickersAfter joins on the ticker link, so a stored row always carries one of the
         // requested symbols — the fixture mirrors that contract.
         whenever(articleRepo.findByTickersAfter(any(), any()))
@@ -148,7 +146,6 @@ internal class EodhdNewsServiceTest {
         whenever(fetchRepo.findById("TOPIC:STOCK_MARKETS")).thenReturn(Optional.empty())
         whenever(proxy.getNewsByTopic(eq("stock markets"), any(), any(), eq("demo")))
             .thenReturn(listOf(eodhArticle(0.6, title = "Markets rally")))
-        whenever(articleRepo.findByExternalId(any())).thenReturn(Optional.empty())
         whenever(articleRepo.findByTickersAfter(any(), any()))
             .thenReturn(listOf(storedArticle(polarity = 0.6, title = "Markets rally", ticker = "TOPIC:STOCK_MARKETS")))
 
@@ -183,7 +180,6 @@ internal class EodhdNewsServiceTest {
         whenever(fetchRepo.findById(expectedKey)).thenReturn(Optional.empty())
         whenever(proxy.getNewsByTopic(eq(longTopic), any(), any(), eq("demo")))
             .thenReturn(listOf(eodhArticle(0.6, title = "Policy roundup")))
-        whenever(articleRepo.findByExternalId(any())).thenReturn(Optional.empty())
         whenever(articleRepo.findByTickersAfter(any(), any()))
             .thenReturn(listOf(storedArticle(polarity = 0.6, title = "Policy roundup", ticker = expectedKey)))
 
@@ -271,7 +267,6 @@ internal class EodhdNewsServiceTest {
         // rendezvous count never reaches the batch size. Deterministic — no sleeps or timing windows.
         val symbols = listOf("AAPL.US", "MSFT.US", "GOOG.US")
         symbols.forEach { whenever(fetchRepo.findById(it)).thenReturn(Optional.empty()) }
-        whenever(articleRepo.findByExternalId(any())).thenReturn(Optional.empty())
         whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(emptyList())
 
         val rendezvous = CyclicBarrier(symbols.size)
@@ -312,7 +307,6 @@ internal class EodhdNewsServiceTest {
             .thenReturn(Asset(code = "BRK.B", market = Market(code = "US"), priceSymbol = "BRK-B"))
         whenever(fetchRepo.findById("BRK-B.US")).thenReturn(Optional.empty())
         whenever(proxy.getNews(eq("BRK-B.US"), any(), anyOrNull(), any())).thenReturn(listOf(eodhArticle(0.5)))
-        whenever(articleRepo.findByExternalId(any())).thenReturn(Optional.empty())
         whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(emptyList())
 
         service.getNewsSentiment("BRK.B")
@@ -328,7 +322,6 @@ internal class EodhdNewsServiceTest {
             .thenReturn(Market(code = "LON", aliases = mapOf("eodhd" to "LSE")))
         whenever(fetchRepo.findById("BARC.LSE")).thenReturn(Optional.empty())
         whenever(proxy.getNews(eq("BARC.LSE"), any(), anyOrNull(), any())).thenReturn(listOf(eodhArticle(0.5)))
-        whenever(articleRepo.findByExternalId(any())).thenReturn(Optional.empty())
         whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(emptyList())
 
         service.getNewsSentiment("BARC", market = "LON")
@@ -529,7 +522,6 @@ internal class EodhdNewsServiceTest {
                 sentiment = EodhdArticleSentiment(polarity = BigDecimal("0.2"))
             )
         whenever(proxy.getNews(eq("AAPL.US"), any(), anyOrNull(), any())).thenReturn(listOf(broken))
-        whenever(articleRepo.findByExternalId(any())).thenReturn(Optional.empty())
         whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(emptyList())
 
         // Must not throw.
@@ -559,7 +551,6 @@ internal class EodhdNewsServiceTest {
                 sentiment = EodhdArticleSentiment(polarity = BigDecimal("0.2"))
             )
         whenever(proxy.getNews(eq("AAPL.US"), any(), anyOrNull(), any())).thenReturn(listOf(noOffset))
-        whenever(articleRepo.findByExternalId(any())).thenReturn(Optional.empty())
         whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(emptyList())
 
         service.getNewsSentiment("AAPL")
@@ -603,10 +594,8 @@ internal class EodhdNewsServiceTest {
                 fetchedAt = LocalDateTime.now(),
                 title = "winner inserted first"
             )
-        whenever(articleRepo.findByExternalId(eq("https://example.com/news/race")))
-            // First call: no row exists yet (we read before save).
-            // Second call (after the constraint violation): the winning row exists.
-            .thenReturn(Optional.empty(), Optional.of(winner))
+        // The preload finds no row; after the constraint violation the winning row exists.
+        whenever(articleRepo.findByExternalId(eq("https://example.com/news/race"))).thenReturn(Optional.of(winner))
         // First save throws — simulates the unique-constraint collision with the racing transaction.
         whenever(articleRepo.save(any<NewsArticle>()))
             .thenThrow(DataIntegrityViolationException("uk_news_article_external"))
@@ -636,8 +625,7 @@ internal class EodhdNewsServiceTest {
                 title = "old title",
                 content = "old"
             )
-        whenever(articleRepo.findByExternalId(eq("https://example.com/news/123")))
-            .thenReturn(Optional.of(existing))
+        whenever(articleRepo.findAllByExternalIdIn(any())).thenReturn(listOf(existing))
         whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(emptyList())
 
         // Snapshot the id BEFORE invoking the service. `NewsArticle.id` is auto-initialised via
@@ -878,7 +866,7 @@ internal class EodhdNewsServiceTest {
     // --- Ingest-time embedding skip/recompute -------------------------------------------------
 
     @Test
-    fun `ingest skips re-embedding when the stored embedding is current for title and model`() {
+    fun `ingest skips re-embedding when the stored embedding is current for text and model`() {
         val activeEmbedder = mock<NewsEmbedder>()
         whenever(activeEmbedder.active).thenReturn(true)
         whenever(activeEmbedder.modelId).thenReturn("test-model")
@@ -893,10 +881,11 @@ internal class EodhdNewsServiceTest {
                 published = LocalDateTime.now(),
                 fetchedAt = LocalDateTime.now(),
                 title = "Apple beats",
+                content = "body",
                 embedding = EmbeddingCodec.encode(floatArrayOf(1f, 0f)),
                 embeddingModel = "test-model"
             )
-        whenever(articleRepo.findByExternalId(eq(link))).thenReturn(Optional.of(existing))
+        whenever(articleRepo.findAllByExternalIdIn(any())).thenReturn(listOf(existing))
         whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(emptyList())
 
         localService.getNewsSentiment("AAPL")
@@ -924,7 +913,7 @@ internal class EodhdNewsServiceTest {
                 embedding = EmbeddingCodec.encode(floatArrayOf(1f, 0f)),
                 embeddingModel = "test-model"
             )
-        whenever(articleRepo.findByExternalId(eq(link))).thenReturn(Optional.of(existing))
+        whenever(articleRepo.findAllByExternalIdIn(any())).thenReturn(listOf(existing))
         whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(emptyList())
 
         localService.getNewsSentiment("AAPL")
@@ -955,7 +944,7 @@ internal class EodhdNewsServiceTest {
                 embeddingModel = "test-model",
                 derivedTopics = mutableSetOf("EARNINGS")
             )
-        whenever(articleRepo.findByExternalId(eq(link))).thenReturn(Optional.of(existing))
+        whenever(articleRepo.findAllByExternalIdIn(any())).thenReturn(listOf(existing))
         whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(emptyList())
 
         service.getNewsSentiment("AAPL")
@@ -986,7 +975,7 @@ internal class EodhdNewsServiceTest {
                 embeddingModel = "test-model",
                 derivedTopics = mutableSetOf("EARNINGS")
             )
-        whenever(articleRepo.findByExternalId(eq(link))).thenReturn(Optional.of(existing))
+        whenever(articleRepo.findAllByExternalIdIn(any())).thenReturn(listOf(existing))
         whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(emptyList())
 
         service.getNewsSentiment("AAPL")
@@ -1000,8 +989,8 @@ internal class EodhdNewsServiceTest {
 
     @Test
     fun `an embed-enabled refresh reads each article row once`() {
-        // The currency check has to load the row anyway; saveOrMerge reuses that instance instead
-        // of issuing a second findByExternalId per article.
+        // The currency check and saveOrMerge share the ingest's one preload instead of each
+        // issuing a findByExternalId per article.
         val activeEmbedder = mock<NewsEmbedder>()
         whenever(activeEmbedder.active).thenReturn(true)
         whenever(activeEmbedder.modelId).thenReturn("test-model")
@@ -1016,15 +1005,17 @@ internal class EodhdNewsServiceTest {
                 published = LocalDateTime.now(),
                 fetchedAt = LocalDateTime.now(),
                 title = "Apple beats",
+                content = "body",
                 embedding = EmbeddingCodec.encode(floatArrayOf(1f, 0f)),
                 embeddingModel = "test-model"
             )
-        whenever(articleRepo.findByExternalId(eq(link))).thenReturn(Optional.of(existing))
+        whenever(articleRepo.findAllByExternalIdIn(any())).thenReturn(listOf(existing))
         whenever(articleRepo.findByTickersAfter(any(), any())).thenReturn(emptyList())
 
         localService.getNewsSentiment("AAPL")
 
-        verify(articleRepo, times(1)).findByExternalId(eq(link))
+        verify(articleRepo, times(1)).findAllByExternalIdIn(any())
+        verify(articleRepo, never()).findByExternalId(any())
     }
 
     // --- Derived-topic filtering ---------------------------------------------------------------

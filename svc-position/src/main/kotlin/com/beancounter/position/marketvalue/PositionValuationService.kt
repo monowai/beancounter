@@ -206,6 +206,9 @@ class PositionValuationService(
             baseTotals.marketValue = baseTotals.marketValue.add(baseMoneyValues.marketValue)
             refTotals.marketValue = refTotals.marketValue.add(refMoneyValues.marketValue)
             tradeTotals.marketValue = tradeTotals.marketValue.add(tradeMoneyValues.marketValue)
+            // TRADE totals can mix trade currencies, so they carry no change on day.
+            baseTotals.gainOnDay = baseTotals.gainOnDay.add(baseMoneyValues.gainOnDay)
+            refTotals.gainOnDay = refTotals.gainOnDay.add(refMoneyValues.gainOnDay)
         }
     }
 

@@ -86,18 +86,21 @@ class PositionValuationServiceTest {
             .`when`(classificationClient.getClassifications(any()))
             .thenReturn(BulkClassificationResponse())
         Mockito.lenient().`when`(irrCalculator.minHoldingDays).thenReturn(365)
-        val gains = Gains()
         valuationDataSource =
             ValuationDataSource(priceService, fxRateService, fxUtils, classificationClient, tokenService)
-        valuationService =
-            PositionValuationService(
-                marketValue = MarketValue(gains, DateUtils()),
-                gains = gains,
-                dateUtils = DateUtils(),
-                positionIrr = PositionIrr(irrCalculator),
-                valuationDataSource = valuationDataSource,
-                calculationSupport = calculationSupport
-            )
+        valuationService = service(calculationSupport)
+    }
+
+    private fun service(support: PositionCalculationSupport): PositionValuationService {
+        val gains = Gains()
+        return PositionValuationService(
+            marketValue = MarketValue(gains, DateUtils()),
+            gains = gains,
+            dateUtils = DateUtils(),
+            positionIrr = PositionIrr(irrCalculator),
+            valuationDataSource = valuationDataSource,
+            calculationSupport = support
+        )
     }
 
     @AfterEach
@@ -226,6 +229,32 @@ class PositionValuationServiceTest {
         // Then
         assertThat(result).isNotNull()
         verify(priceService).getPrices(any(), any())
+    }
+
+    @Test
+    fun `should total the change on day in the base and portfolio views`() {
+        whenever(tokenService.bearerToken).thenReturn("Token Value")
+        val asset = TestHelpers.createTestAsset("DayMover", US.code)
+        val assetInputs = setOf(TestHelpers.createTestAssetInput(US.code, asset.code))
+        val position = TestHelpers.createTestPosition(asset, portfolio)
+        position.quantityValues.purchased = BigDecimal("100")
+        val positions = TestHelpers.createTestPositions(portfolio, listOf(position))
+        val marketData = TestHelpers.createTestMarketData(asset, BigDecimal("10.00"))
+        marketData.previousClose = BigDecimal("9.00")
+        whenever(fxUtils.buildRequest(any(), any())).thenReturn(FxRequest())
+        whenever(priceService.getPrices(any(), any())).thenReturn(PriceResponse(listOf(marketData)))
+        whenever(fxRateService.getRates(any(), any())).thenReturn(FxResponse())
+        whenever(irrCalculator.calculate(any())).thenReturn(0.0)
+
+        val result =
+            service(PositionCalculationSupport()).value(positions, assetInputs)
+
+        listOf(Position.In.BASE, Position.In.PORTFOLIO).forEach { view ->
+            val totals = result.totals.getValue(view)
+            assertThat(totals.gainOnDay).isEqualByComparingTo("100")
+            assertThat(totals.getGainOnDayPercent()).isEqualByComparingTo("11.11")
+        }
+        assertThat(result.totals.getValue(Position.In.TRADE).gainOnDay).isEqualByComparingTo("0")
     }
 
     @Test

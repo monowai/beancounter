@@ -306,7 +306,8 @@ class AllocationService(
                 sales = currentTotals.sales.multiply(rate),
                 cash = currentTotals.cash.multiply(rate),
                 income = currentTotals.income.multiply(rate),
-                gain = currentTotals.gain.multiply(rate)
+                gain = currentTotals.gain.multiply(rate),
+                gainOnDay = currentTotals.gainOnDay.multiply(rate)
                 // irr is a percentage, not converted
             )
 

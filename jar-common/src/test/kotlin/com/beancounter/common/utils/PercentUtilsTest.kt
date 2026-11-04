@@ -159,4 +159,14 @@ class PercentUtilsTest {
         assertThat(percentUtils.scalePercent(BigDecimal("123.456")))
             .isEqualTo(BigDecimal("123.46"))
     }
+
+    @Test
+    fun `should express a day's change against the value before it`() {
+        assertThat(changePercent(BigDecimal("100"), BigDecimal("1000"))).isEqualTo(BigDecimal("11.11"))
+    }
+
+    @Test
+    fun `should report no change when there was no value before it`() {
+        assertThat(changePercent(BigDecimal("50"), BigDecimal("50"))).isEqualTo(BigDecimal("0.00"))
+    }
 }

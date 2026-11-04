@@ -52,19 +52,6 @@ class IrrCalculator(
 
         // NPV calculation constants
         private const val UNITY_BASE = 1.0 // Base value for (1 + rate) calculations
-
-        /**
-         * An IRR exists only when the cash-flow series can cross zero NPV:
-         * at least two flows, with an outflow you invest and an inflow you get
-         * back. All other series (empty, single, all-positive, all-negative,
-         * all-zero) have no real root, and their IRR is undefined.
-         *
-         * Not the negation of [isStrictlySameSign]: that guard lets a one-signed
-         * series holding a zero flow through to simple ROI, which this rejects.
-         * Merging them would change the IRR such a series reports.
-         */
-        fun isDefined(cashFlows: List<CashFlow>): Boolean =
-            cashFlows.size >= 2 && cashFlows.any { it.amount > 0.0 } && cashFlows.any { it.amount < 0.0 }
     }
 
     /**

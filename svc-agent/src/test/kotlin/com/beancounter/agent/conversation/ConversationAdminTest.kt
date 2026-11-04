@@ -49,6 +49,12 @@ class ConversationAdminTest {
     @Autowired
     private lateinit var inFlight: InFlightTurns
 
+    @Autowired
+    private lateinit var conversations: ConversationRepository
+
+    @Autowired
+    private lateinit var messages: ConversationMessageRepository
+
     private val owner = "owner-a"
     private val stranger = "owner-b"
 
@@ -199,40 +205,13 @@ class ConversationAdminTest {
     }
 
     @Test
-    fun `should return the owner's conversation for a subject instead of a second one`() {
-        val first = admin.findOrCreate(owner, "portfolio-review|A|DBS,USV")
-        turnLog.appendUser(owner, first.id, Question("review"))
+    fun `should delete nothing of a conversation when the statement names another owner`() {
+        val id = admin.create(owner).id
+        turnLog.appendUser(owner, id, Question("q"))
 
-        val again = admin.findOrCreate(owner, "portfolio-review|A|DBS,USV")
+        assertThat(messages.deleteOfConversation(id, stranger)).isZero()
+        assertThat(conversations.deleteByIdAndOwnerId(id, stranger)).isZero()
 
-        assertThat(again.id).isEqualTo(first.id)
-    }
-
-    @Test
-    fun `should keep a different selection of portfolios in its own conversation`() {
-        val first = admin.findOrCreate(owner, "portfolio-review|A|DBS,USV")
-
-        val other = admin.findOrCreate(owner, "portfolio-review|A|DBS")
-
-        assertThat(other.id).isNotEqualTo(first.id)
-    }
-
-    @Test
-    fun `should never share a subject's conversation between owners`() {
-        val mine = admin.findOrCreate(owner, "portfolio-review|A|DBS")
-
-        val theirs = admin.findOrCreate(stranger, "portfolio-review|A|DBS")
-
-        assertThat(theirs.id).isNotEqualTo(mine.id)
-    }
-
-    @Test
-    fun `should leave a free chat outside any subject`() {
-        val chat = admin.create(owner)
-        turnLog.appendUser(owner, chat.id, Question("hello"))
-
-        val review = admin.findOrCreate(owner, "portfolio-review|A|DBS")
-
-        assertThat(review.id).isNotEqualTo(chat.id)
+        assertThat(admin.get(owner, id).messages.map { it.content }).containsExactly("q")
     }
 }

@@ -42,8 +42,11 @@ class TurnLog(
 
     /**
      * Open a turn in one transaction: the replayable [history] before it,
-     * [question] recorded, and — while the conversation has no answer and is
-     * listed — the seed its first answer is titled from.
+     * [question] recorded, and — while the conversation is listed, has never
+     * been answered and still has the provisional title its first question
+     * gave it — the seed its answer is titled from. Read from every stored
+     * turn, not the trimmed [history]: answers that failed after the first
+     * one must not ask for a title again, and a title the user chose wins.
      */
     fun openTurn(
         ownerId: String,
@@ -53,10 +56,14 @@ class TurnLog(
         maxHistory: Int
     ): OpenedTurn {
         val conversation = locked(ownerId, id)
-        val stored = replayable(id, maxHistory)
+        val turns = messages.findByConversationIdOrderBySeq(id)
+        val stored = replayable(turns, maxHistory)
         ask(conversation, question, kind)
+        val firstQuestion = turns.firstOrNull { it.role == ROLE_USER }?.let { it.label ?: it.content }
+        val provisional = ConversationTitles.provisional(firstQuestion ?: question.subject)
         // A hidden conversation is never listed, so a title would be an LLM call for nothing.
-        val awaitingTitle = stored.none { it.role == ROLE_ASSISTANT } && !conversation.hidden
+        val answered = turns.any { it.role == ROLE_ASSISTANT && it.said }
+        val awaitingTitle = !answered && conversation.title == provisional && !conversation.hidden
         val seed =
             TitleSeed(
                 conversation.title,
@@ -105,14 +112,17 @@ class TurnLog(
      * the model never said that text.
      */
     private fun replayable(
-        id: String,
+        turns: List<ConversationMessage>,
         maxTurns: Int
     ): List<ChatTurn> =
-        messages
-            .findByConversationIdOrderBySeq(id)
-            .filter { it.error == null && it.content.isNotEmpty() }
+        turns
+            .filter { it.said }
             .takeLast(maxTurns)
             .map { ChatTurn(it.role, it.content) }
+
+    /** Whether the turn holds text that was actually said, rather than a failed or empty answer. */
+    private val ConversationMessage.said: Boolean
+        get() = error == null && content.isNotEmpty()
 
     /** The owner's conversation, row-locked so appends to one conversation number their turns in turn. */
     private fun locked(

@@ -8,6 +8,7 @@ import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest
 import org.springframework.context.annotation.ComponentScan
 import org.springframework.context.annotation.FilterType
 import org.springframework.context.annotation.Import
+import org.springframework.jdbc.core.JdbcTemplate
 import org.springframework.transaction.annotation.Propagation
 import org.springframework.transaction.annotation.Transactional
 import java.util.concurrent.CountDownLatch
@@ -42,6 +43,9 @@ class ConversationConcurrencyTest {
     @Autowired
     private lateinit var turnLog: TurnLog
 
+    @Autowired
+    private lateinit var jdbc: JdbcTemplate
+
     private val owner = "owner-concurrent"
 
     @AfterEach
@@ -73,5 +77,37 @@ class ConversationConcurrencyTest {
         val turns = admin.get(owner, id).messages
         assertThat(turns).hasSize(writers * turnsEach)
         assertThat(turns.map { it.content }.toSet()).hasSize(writers * turnsEach)
+    }
+
+    @Test
+    fun `should start one conversation when two first requests for a subject race`() {
+        val racers = 4
+        val rounds = 10
+        val pool = Executors.newFixedThreadPool(racers)
+        val failures = java.util.concurrent.ConcurrentLinkedQueue<Throwable>()
+        repeat(rounds) { round ->
+            val start = CountDownLatch(1)
+            val ids =
+                (1..racers).map {
+                    pool.submit<String?> {
+                        start.await()
+                        runCatching { admin.findOrCreate(owner, "subject-$round").id }
+                            .onFailure { failures.add(it) }
+                            .getOrNull()
+                    }
+                }
+            start.countDown()
+            assertThat(ids.map { it.get(10, TimeUnit.SECONDS) }.toSet()).hasSize(1)
+            val rows =
+                jdbc.queryForObject(
+                    "select count(*) from conversation where owner_id = ? and subject = ?",
+                    Int::class.java,
+                    owner,
+                    "subject-$round"
+                )
+            assertThat(rows).isEqualTo(1)
+        }
+        pool.shutdown()
+        assertThat(failures).isEmpty()
     }
 }

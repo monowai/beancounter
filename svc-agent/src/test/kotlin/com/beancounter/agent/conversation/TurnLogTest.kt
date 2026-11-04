@@ -36,6 +36,9 @@ class TurnLogTest {
     @Autowired
     private lateinit var turnLog: TurnLog
 
+    @Autowired
+    private lateinit var messages: ConversationMessageRepository
+
     private val owner = "owner-a"
     private val stranger = "owner-b"
 
@@ -234,5 +237,59 @@ class TurnLogTest {
         turnLog.applyGeneratedTitle(owner, id, provisional = "Index fund", generated = "  Index Fund Basics  ")
 
         assertThat(turnLog.titleOf(owner, id)).isEqualTo("Index Fund Basics")
+    }
+
+    @Test
+    fun `should not seed a title again once one was generated, however many answers fail after it`() {
+        val id = admin.create(owner).id
+        val first = turnLog.openTurn(owner, id, Question("Index funds"), ConversationKind.CHAT, 2)
+        turnLog.appendAssistant(owner, id, "They track an index.", null)
+        turnLog.applyGeneratedTitle(owner, id, first.titleSeed!!.provisional, "Index Fund Basics")
+        repeat(2) {
+            turnLog.openTurn(owner, id, Question("And bonds?"), ConversationKind.CHAT, 2)
+            turnLog.appendAssistant(owner, id, "", "LLM_TIMEOUT")
+        }
+
+        val next = turnLog.openTurn(owner, id, Question("And gold?"), ConversationKind.CHAT, 2)
+
+        assertThat(next.history.map { it.role }).containsOnly("user")
+        assertThat(next.titleSeed).isNull()
+    }
+
+    @Test
+    fun `should not seed a title the user already chose before the first answer`() {
+        val id = admin.create(owner).id
+        turnLog.openTurn(owner, id, Question("Index funds"), ConversationKind.CHAT, 6)
+        turnLog.appendAssistant(owner, id, "", "LLM_TIMEOUT")
+        admin.rename(owner, id, "My funds")
+
+        val next = turnLog.openTurn(owner, id, Question("And bonds?"), ConversationKind.CHAT, 6)
+
+        assertThat(next.titleSeed).isNull()
+    }
+
+    @Test
+    fun `should keep seeding a title while the only answer failed and none was generated`() {
+        val id = admin.create(owner).id
+        turnLog.openTurn(owner, id, Question("Full prompt", label = "Index funds"), ConversationKind.CHAT, 6)
+        turnLog.appendAssistant(owner, id, "", "LLM_TIMEOUT")
+
+        val next = turnLog.openTurn(owner, id, Question("And bonds?"), ConversationKind.CHAT, 6)
+
+        assertThat(next.titleSeed).isEqualTo(TitleSeed("Index funds", listOf("Full prompt", "And bonds?")))
+    }
+
+    @Test
+    fun `should number turns appended within one transaction in order`() {
+        // @DataJpaTest runs the test in one transaction. No caller appends twice
+        // in one, but if one did, each append's row-lock query auto-flushes the
+        // turn saved before it, so the count behind the next number sees it.
+        val id = admin.create(owner).id
+        turnLog.appendUser(owner, id, Question("first"))
+        turnLog.appendAssistant(owner, id, "answer", null)
+        turnLog.appendUser(owner, id, Question("second"))
+
+        assertThat(messages.findByConversationIdOrderBySeq(id).map { it.seq to it.content })
+            .containsExactly(0 to "first", 1 to "answer", 2 to "second")
     }
 }

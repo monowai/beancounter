@@ -37,14 +37,19 @@ interface ConversationRepository : JpaRepository<Conversation, String> {
         pageable: Pageable
     ): List<Conversation>
 
-    fun findFirstByOwnerIdAndSubjectOrderByUpdatedAtDesc(
+    /** The owner's one conversation about [subject]; `(owner_id, subject)` is unique. */
+    fun findByOwnerIdAndSubject(
         ownerId: String,
         subject: String
     ): Conversation?
 
+    /** Delete [id] only if [ownerId] owns it: the owner guard is in the statement. */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("delete from Conversation c where c.id = :id")
-    fun deleteOne(id: String): Int
+    @Query("delete from Conversation c where c.id = :id and c.ownerId = :ownerId")
+    fun deleteByIdAndOwnerId(
+        id: String,
+        ownerId: String
+    ): Int
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("delete from Conversation c where c.ownerId = :ownerId")
@@ -83,9 +88,16 @@ interface ConversationMessageRepository : JpaRepository<ConversationMessage, Str
 
     fun existsByConversationId(conversationId: String): Boolean
 
+    /** Delete the turns of [conversationId] only if [ownerId] owns it. */
     @Modifying(clearAutomatically = true, flushAutomatically = true)
-    @Query("delete from ConversationMessage m where m.conversationId = :conversationId")
-    fun deleteOfConversation(conversationId: String): Int
+    @Query(
+        "delete from ConversationMessage m where m.conversationId in " +
+            "(select c.id from Conversation c where c.id = :conversationId and c.ownerId = :ownerId)"
+    )
+    fun deleteOfConversation(
+        conversationId: String,
+        ownerId: String
+    ): Int
 
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query(

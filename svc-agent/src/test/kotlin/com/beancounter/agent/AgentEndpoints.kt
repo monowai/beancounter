@@ -2,9 +2,9 @@ package com.beancounter.agent
 
 import com.beancounter.agent.config.AgentScopeAuthorizer
 import com.beancounter.agent.conversation.ConversationOwner
-import com.beancounter.agent.conversation.ConversationService
 import com.beancounter.agent.conversation.ConversationTitler
 import com.beancounter.agent.conversation.InFlightTurns
+import com.beancounter.agent.conversation.TurnLog
 import com.beancounter.agent.health.ServiceHealthChecker
 import com.beancounter.agent.holding.HoldingAnalysisOpening
 import com.beancounter.agent.holding.HoldingFactsSource
@@ -47,7 +47,7 @@ fun agentEndpoints(
     chatModelSelector: ChatModelSelector = mock { on { selectFor(anyOrNull(), any()) } doAnswer { "model" } },
     environment: Environment = MockEnvironment(),
     scopeAuthorizer: AgentScopeAuthorizer = mock { on { verified() } doAnswer { true } },
-    conversations: ConversationService = mock(),
+    conversations: TurnLog = mock(),
     conversationOwner: ConversationOwner = mock(),
     conversationTitler: ConversationTitler = mock(),
     inFlightTurns: InFlightTurns = InFlightTurns(),

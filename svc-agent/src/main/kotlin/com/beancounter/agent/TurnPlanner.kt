@@ -2,7 +2,7 @@ package com.beancounter.agent
 
 import com.beancounter.agent.conversation.ConversationKind
 import com.beancounter.agent.conversation.ConversationOwner
-import com.beancounter.agent.conversation.ConversationService
+import com.beancounter.agent.conversation.TurnLog
 import com.beancounter.agent.review.AssetReviewCache
 import com.beancounter.agent.review.AssetReviewKey
 import com.beancounter.agent.tools.ToolSelector
@@ -49,7 +49,7 @@ data class ReviewTurn(
 @Component
 class TurnPlanner(
     private val pageQuerySelector: PageQuerySelector,
-    private val conversations: ConversationService,
+    private val conversations: TurnLog,
     private val conversationOwner: ConversationOwner,
     private val reviewCache: AssetReviewCache,
     private val routing: ModelRouting,

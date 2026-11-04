@@ -1,5 +1,6 @@
 package com.beancounter.agent.conversation
 
+import com.beancounter.common.exception.NotFoundException
 import jakarta.persistence.LockModeType
 import org.springframework.data.domain.Pageable
 import org.springframework.data.jpa.repository.JpaRepository
@@ -66,6 +67,14 @@ interface ConversationRepository : JpaRepository<Conversation, String> {
         generated: String
     ): Int
 }
+
+/** The owner's conversation [id]; one belonging to someone else is not found, so its existence is not disclosed. */
+fun ConversationRepository.owned(
+    ownerId: String,
+    id: String
+): Conversation =
+    findByIdAndOwnerId(id, ownerId)
+        ?: throw NotFoundException("Conversation not found: $id")
 
 interface ConversationMessageRepository : JpaRepository<ConversationMessage, String> {
     fun findByConversationIdOrderBySeq(conversationId: String): List<ConversationMessage>

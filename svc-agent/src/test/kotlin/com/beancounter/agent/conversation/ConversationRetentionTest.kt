@@ -13,15 +13,18 @@ import java.time.Duration
     includeFilters = [
         ComponentScan.Filter(
             type = FilterType.ASSIGNABLE_TYPE,
-            classes = [ConversationService::class, ConversationRetention::class, InFlightTurns::class]
+            classes = [ConversationAdmin::class, TurnLog::class, ConversationRetention::class, InFlightTurns::class]
         )
     ],
     properties = ["agent.conversations.retention-days=90", "agent.conversations.purge-cron=-"]
 )
-@Import(ConversationServiceTest.ClockConfig::class)
+@Import(SteppingClockConfig::class)
 class ConversationRetentionTest {
     @Autowired
-    private lateinit var service: ConversationService
+    private lateinit var admin: ConversationAdmin
+
+    @Autowired
+    private lateinit var turnLog: TurnLog
 
     @Autowired
     private lateinit var retention: ConversationRetention
@@ -31,15 +34,15 @@ class ConversationRetentionTest {
 
     @Test
     fun `should purge only conversations idle beyond the configured retention days`() {
-        val stale = service.create("me").id
-        service.appendUser("me", stale, Question("old"))
+        val stale = admin.create("me").id
+        turnLog.appendUser("me", stale, Question("old"))
         clock.advance(Duration.ofDays(89))
-        val recent = service.create("me").id
-        service.appendUser("me", recent, Question("recent"))
+        val recent = admin.create("me").id
+        turnLog.appendUser("me", recent, Question("recent"))
         clock.advance(Duration.ofDays(2))
 
         retention.purge()
 
-        assertThat(service.list("me", 0, 20).map { it.id }).containsExactly(recent)
+        assertThat(admin.list("me", 0, 20).map { it.id }).containsExactly(recent)
     }
 }

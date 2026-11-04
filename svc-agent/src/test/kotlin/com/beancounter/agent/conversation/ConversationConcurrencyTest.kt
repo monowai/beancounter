@@ -22,7 +22,7 @@ import java.util.concurrent.TimeUnit
     includeFilters = [
         ComponentScan.Filter(
             type = FilterType.ASSIGNABLE_TYPE,
-            classes = [ConversationService::class, InFlightTurns::class]
+            classes = [ConversationAdmin::class, TurnLog::class, InFlightTurns::class]
         )
     ],
     properties = [
@@ -32,23 +32,26 @@ import java.util.concurrent.TimeUnit
         "spring.jpa.hibernate.ddl-auto=validate"
     ]
 )
-@Import(ConversationServiceTest.ClockConfig::class)
+@Import(SteppingClockConfig::class)
 // Each append commits in its own transaction, as it does in production.
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 class ConversationConcurrencyTest {
     @Autowired
-    private lateinit var service: ConversationService
+    private lateinit var admin: ConversationAdmin
+
+    @Autowired
+    private lateinit var turnLog: TurnLog
 
     private val owner = "owner-concurrent"
 
     @AfterEach
     fun reset() {
-        service.deleteAll(owner)
+        admin.deleteAll(owner)
     }
 
     @Test
     fun `should keep every turn when two writers append to one conversation at once`() {
-        val id = service.create(owner).id
+        val id = admin.create(owner).id
         val writers = 4
         val turnsEach = 10
         val start = CountDownLatch(1)
@@ -58,7 +61,7 @@ class ConversationConcurrencyTest {
             pool.submit {
                 start.await()
                 repeat(turnsEach) { t ->
-                    runCatching { service.appendUser(owner, id, Question("w$w-$t")) }.onFailure { failures.add(it) }
+                    runCatching { turnLog.appendUser(owner, id, Question("w$w-$t")) }.onFailure { failures.add(it) }
                 }
             }
         }
@@ -67,7 +70,7 @@ class ConversationConcurrencyTest {
         assertThat(pool.awaitTermination(30, TimeUnit.SECONDS)).isTrue()
 
         assertThat(failures).isEmpty()
-        val turns = service.get(owner, id).messages
+        val turns = admin.get(owner, id).messages
         assertThat(turns).hasSize(writers * turnsEach)
         assertThat(turns.map { it.content }.toSet()).hasSize(writers * turnsEach)
     }

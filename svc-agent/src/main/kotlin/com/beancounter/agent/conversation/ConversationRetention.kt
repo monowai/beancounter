@@ -14,14 +14,14 @@ import java.time.Duration
  */
 @Component
 class ConversationRetention(
-    private val service: ConversationService,
+    private val admin: ConversationAdmin,
     @Value($$"${agent.conversations.retention-days}") private val retentionDays: Long
 ) {
     private val log = LoggerFactory.getLogger(ConversationRetention::class.java)
 
     @Scheduled(cron = $$"${agent.conversations.purge-cron}")
     fun purge() {
-        val purged = service.purgeIdleLongerThan(Duration.ofDays(retentionDays))
+        val purged = admin.purgeIdleLongerThan(Duration.ofDays(retentionDays))
         log.info("Purged {} conversations idle longer than {} days", purged, retentionDays)
     }
 }

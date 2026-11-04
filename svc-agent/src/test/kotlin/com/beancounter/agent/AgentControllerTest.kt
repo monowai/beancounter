@@ -370,7 +370,7 @@ class AgentControllerTest {
         whenever(callResponse.chatResponse()).thenReturn(null)
         whenever(callResponse.content()).thenReturn("Up 2%.")
         val conversations =
-            mock<com.beancounter.agent.conversation.ConversationService> {
+            mock<com.beancounter.agent.conversation.TurnLog> {
                 on { openTurn(any(), any(), any(), any(), any()) } doReturn
                     com.beancounter.agent.conversation.OpenedTurn(
                         emptyList(),

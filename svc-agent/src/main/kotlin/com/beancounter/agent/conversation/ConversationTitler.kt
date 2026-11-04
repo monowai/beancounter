@@ -28,7 +28,7 @@ class ConversationTitler(
     @Qualifier("fastChatClient")
     private val fastChatClient: ChatClient?,
     @Autowired(required = false) private val chatClient: ChatClient?,
-    private val service: ConversationService,
+    private val turns: TurnLog,
     @Qualifier("conversationTitleScope") private val scope: CoroutineScope
 ) {
     private val log = LoggerFactory.getLogger(ConversationTitler::class.java)
@@ -59,7 +59,7 @@ class ConversationTitler(
                             .call()
                             .content()
                     )
-                if (title != null) service.applyGeneratedTitle(ownerId, conversationId, seed.provisional, title)
+                if (title != null) turns.applyGeneratedTitle(ownerId, conversationId, seed.provisional, title)
             } catch (
                 @Suppress("TooGenericExceptionCaught")
                 e: Exception
@@ -82,7 +82,7 @@ class ConversationTitler(
             ?.trim('"', '\'', '*', '`')
             ?.trimEnd('.', '!', '?', ':')
             ?.trim()
-            ?.take(ConversationService.TITLE_MAX_CHARS)
+            ?.take(ConversationTitles.MAX_CHARS)
             ?.takeIf { it.isNotBlank() }
 }
 

@@ -8,13 +8,14 @@ import com.beancounter.agent.LlmMetrics
 import com.beancounter.agent.SystemPromptSelector
 import com.beancounter.agent.agentEndpoints
 import com.beancounter.agent.config.AgentScopeAuthorizer
+import com.beancounter.agent.conversation.ConversationAdmin
 import com.beancounter.agent.conversation.ConversationOwner
-import com.beancounter.agent.conversation.ConversationService
-import com.beancounter.agent.conversation.ConversationServiceTest
 import com.beancounter.agent.conversation.ConversationTitler
 import com.beancounter.agent.conversation.InFlightTurns
 import com.beancounter.agent.conversation.Question
 import com.beancounter.agent.conversation.SteppingClock
+import com.beancounter.agent.conversation.SteppingClockConfig
+import com.beancounter.agent.conversation.TurnLog
 import com.beancounter.agent.health.ServiceHealthChecker
 import com.beancounter.agent.tools.ToolSelector
 import org.assertj.core.api.Assertions.assertThat
@@ -53,7 +54,7 @@ import java.time.Duration
     includeFilters = [
         ComponentScan.Filter(
             type = FilterType.ASSIGNABLE_TYPE,
-            classes = [ConversationService::class, InFlightTurns::class, AssetReviewCacheService::class]
+            classes = [ConversationAdmin::class, TurnLog::class, InFlightTurns::class, AssetReviewCacheService::class]
         )
     ],
     properties = [
@@ -64,12 +65,15 @@ import java.time.Duration
         "beancounter.agent.review-cache.max-age=PT8H"
     ]
 )
-@Import(ConversationServiceTest.ClockConfig::class)
+@Import(SteppingClockConfig::class)
 // The stream records on another thread; it must see committed rows.
 @Transactional(propagation = Propagation.NOT_SUPPORTED)
 class AssetReviewCacheTest {
     @Autowired
-    private lateinit var conversations: ConversationService
+    private lateinit var admin: ConversationAdmin
+
+    @Autowired
+    private lateinit var turnLog: TurnLog
 
     @Autowired
     private lateinit var cache: AssetReviewCacheService
@@ -100,8 +104,8 @@ class AssetReviewCacheTest {
     @BeforeEach
     fun reset() {
         repository.deleteAll()
-        conversations.deleteAll("owner-me")
-        conversations.deleteAll("owner-other")
+        admin.deleteAll("owner-me")
+        admin.deleteAll("owner-other")
         me = "owner-me"
         whenever(request.stream()).thenAnswer {
             streamCalls++
@@ -127,7 +131,7 @@ class AssetReviewCacheTest {
             systemPromptSelector = mock<SystemPromptSelector> { on { selectFor(anyOrNull()) } doAnswer { "prompt" } },
             chatModelSelector = modelSelector,
             environment = environment,
-            conversations = conversations,
+            conversations = turnLog,
             conversationOwner = owner,
             clock = clock,
             reviewCache = reviewCache
@@ -314,9 +318,9 @@ class AssetReviewCacheTest {
 
     @Test
     fun `a review asked inside a conversation with earlier turns should never be cached`() {
-        val id = conversations.create(me).id
-        conversations.appendUser(me, id, Question("What is NATO?"))
-        conversations.appendAssistant(me, id, "An ETF.", null)
+        val id = admin.create(me).id
+        turnLog.appendUser(me, id, Question("What is NATO?"))
+        turnLog.appendAssistant(me, id, "An ETF.", null)
 
         streamed(review(conversationId = id))
 
@@ -353,15 +357,15 @@ class AssetReviewCacheTest {
     fun `a cached review should still be recorded to the caller's own conversation`() {
         streamed(review())
         me = "owner-other"
-        val id = conversations.create(me, hidden = true).id
+        val id = admin.create(me, hidden = true).id
 
         val events = streamed(review(conversationId = id))
 
         assertThat(streamCalls).isEqualTo(1)
         assertThat(doneOf(events)["cached"]).isEqualTo(true)
-        assertThat(conversations.get(me, id).messages.map { it.role to it.content }).containsExactly(
+        assertThat(admin.get(me, id).messages.map { it.role to it.content }).containsExactly(
             "user" to
-                conversations
+                admin
                     .get(me, id)
                     .messages
                     .first()
@@ -369,26 +373,26 @@ class AssetReviewCacheTest {
             "assistant" to "NATO looks steady."
         )
         assertThat(
-            conversations
+            admin
                 .get(me, id)
                 .messages
                 .first()
                 .label
         ).isEqualTo("Asset Review")
-        assertThat(conversations.get(me, id).pending).isFalse()
+        assertThat(admin.get(me, id).pending).isFalse()
     }
 
     @Test
     fun `a cached blocking review should still be recorded to the named conversation`() {
         controller().query(review())
-        val id = conversations.create(me, hidden = true).id
+        val id = admin.create(me, hidden = true).id
 
         controller().query(review(conversationId = id))
 
         assertThat(callCalls).isEqualTo(1)
-        assertThat(conversations.get(me, id).messages.map { it.role }).containsExactly("user", "assistant")
+        assertThat(admin.get(me, id).messages.map { it.role }).containsExactly("user", "assistant")
         assertThat(
-            conversations
+            admin
                 .get(me, id)
                 .messages
                 .last()
@@ -437,12 +441,12 @@ class AssetReviewCacheTest {
 
     @Test
     fun `a shared review recorded to a conversation should carry the server label, not the caller's`() {
-        val id = conversations.create(me, hidden = true).id
+        val id = admin.create(me, hidden = true).id
 
         streamed(review(conversationId = id).copy(label = "evil label"))
 
         assertThat(
-            conversations
+            admin
                 .get(me, id)
                 .messages
                 .first()

@@ -1,7 +1,7 @@
 package com.beancounter.agent.review
 
-import com.beancounter.agent.conversation.ConversationServiceTest
 import com.beancounter.agent.conversation.SteppingClock
+import com.beancounter.agent.conversation.SteppingClockConfig
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -17,7 +17,7 @@ import java.time.LocalDate
     ],
     properties = ["beancounter.agent.review-cache.enabled=false"]
 )
-@Import(ConversationServiceTest.ClockConfig::class)
+@Import(SteppingClockConfig::class)
 class AssetReviewCacheDisabledTest {
     @Autowired
     private lateinit var cache: AssetReviewCacheService

@@ -23,7 +23,7 @@ class Conversation(
     val id: String = KeyGenUtils().id,
     @Column(nullable = false, length = 36)
     val ownerId: String,
-    @Column(nullable = false, length = ConversationService.TITLE_MAX_CHARS)
+    @Column(nullable = false, length = ConversationTitles.MAX_CHARS)
     var title: String = "",
     @Column(nullable = false)
     val createdAt: Instant,

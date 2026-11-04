@@ -33,9 +33,10 @@ class EodhdNewsIngest(
         articles: List<EodhdNewsArticle>
     ) {
         val keyed = articles.map { externalIdOf(it) to it }
-        val prepared = embeddings.prepare(keyed)
+        val existing = preload(keyed.map { it.first })
+        val fresh = embeddings.prepare(keyed, existing)
         for ((externalId, incoming) in keyed) {
-            saveOrMerge(symbol, incoming, prepared.embeddings[externalId], prepared.existing[externalId])
+            saveOrMerge(symbol, incoming, fresh[externalId], existing[externalId])
         }
         newsFetchRepo.save(NewsFetch(symbol, LocalDateTime.now(dateUtils.zoneId), articles.size))
     }
@@ -55,6 +56,18 @@ class EodhdNewsIngest(
         newsFetchRepo.save(existing)
     }
 
+    /**
+     * One query for every stored row this fetch touches, shared by the embedding currency check
+     * and the upsert. The id list is one EODHD response, capped by `provider-limit` (EODHD itself
+     * serves at most 1000), so it stays far below the database's bind-parameter limit unchunked.
+     */
+    private fun preload(externalIds: List<String>): Map<String, NewsArticle> =
+        if (externalIds.isEmpty()) {
+            emptyMap()
+        } else {
+            newsArticleRepo.findAllByExternalIdIn(externalIds).associateBy { it.externalId }
+        }
+
     /** EODHD's link is the dedup key; a blank one falls back to the date+title pair. */
     private fun externalIdOf(incoming: EodhdNewsArticle): String =
         incoming.link.ifBlank { "${incoming.date}|${incoming.title}" }
@@ -70,11 +83,9 @@ class EodhdNewsIngest(
         symbol: String,
         incoming: EodhdNewsArticle,
         embedding: NewsArticleEmbeddings.ArticleEmbedding?,
-        preloaded: NewsArticle?
+        existing: NewsArticle?
     ) {
         val externalId = externalIdOf(incoming)
-        // Reuses the row NewsArticleEmbeddings.prepare already loaded, when it loaded one.
-        val existing = preloaded ?: newsArticleRepo.findByExternalId(externalId).orElse(null)
         val article =
             existing ?: NewsArticle(
                 externalId = externalId,

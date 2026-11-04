@@ -13,8 +13,11 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import org.springframework.dao.DataIntegrityViolationException
 import java.time.LocalDateTime
 import java.util.Optional
 
@@ -23,17 +26,14 @@ import java.util.Optional
  * read the state that reaches the repository.
  */
 internal class EodhdNewsIngestTest {
-    private val articleRepo =
-        mock<NewsArticleRepo>().also {
-            whenever(it.findByExternalId(any())).thenReturn(Optional.empty())
-        }
+    private val articleRepo = mock<NewsArticleRepo>()
     private val fetchRepo = mock<NewsFetchRepo>()
     private val embedder = NoopNewsEmbedder()
     private val ingest =
         EodhdNewsIngest(
             articleRepo,
             fetchRepo,
-            NewsArticleEmbeddings(embedder, NewsEmbeddingProperties(), TopicAnchorStore(embedder), articleRepo)
+            NewsArticleEmbeddings(embedder, NewsEmbeddingProperties(), TopicAnchorStore(embedder))
         )
 
     @Test
@@ -61,5 +61,59 @@ internal class EodhdNewsIngestTest {
         val fetch = argumentCaptor<NewsFetch>().also { verify(fetchRepo).save(it.capture()) }.firstValue
         assertThat(fetch.articlesFound).isEqualTo(7)
         assertThat(fetch.lastFetchedAt).isAfter(LocalDateTime.now().minusMinutes(1))
+    }
+
+    @Test
+    fun `one fetch preloads every stored row in a single query and merges into it`() {
+        val stored =
+            NewsArticle(
+                externalId = "https://example.com/a",
+                published = LocalDateTime.now(),
+                fetchedAt = LocalDateTime.now(),
+                title = "old"
+            )
+        whenever(articleRepo.findAllByExternalIdIn(any())).thenReturn(listOf(stored))
+        val incoming =
+            listOf("a", "b", "c").map {
+                EodhdNewsArticle(
+                    date = "2026-05-15T05:00:00+00:00",
+                    title = "new $it",
+                    link = "https://example.com/$it"
+                )
+            }
+
+        ingest.saveArticles("AAPL.US", incoming)
+
+        verify(articleRepo, times(1)).findAllByExternalIdIn(any())
+        verify(articleRepo, never()).findByExternalId(any())
+        val saved = argumentCaptor<NewsArticle>().also { verify(articleRepo, times(3)).save(it.capture()) }.allValues
+        assertThat(saved.map { it.externalId })
+            .containsExactly("https://example.com/a", "https://example.com/b", "https://example.com/c")
+        assertThat(saved.first().id).isEqualTo(stored.id)
+        assertThat(saved.first().title).isEqualTo("new a")
+    }
+
+    @Test
+    fun `an insert race on the same external id merges into the row the other transaction saved`() {
+        val winner =
+            NewsArticle(
+                externalId = "https://example.com/race",
+                published = LocalDateTime.now(),
+                fetchedAt = LocalDateTime.now(),
+                title = "winner"
+            )
+        whenever(articleRepo.findByExternalId("https://example.com/race")).thenReturn(Optional.of(winner))
+        whenever(articleRepo.save(any<NewsArticle>()))
+            .thenThrow(DataIntegrityViolationException("uk_news_article_external"))
+            .thenAnswer { it.arguments[0] }
+
+        ingest.saveArticles(
+            "AAPL.US",
+            listOf(EodhdNewsArticle(title = "incoming", link = "https://example.com/race"))
+        )
+
+        val saved = argumentCaptor<NewsArticle>().also { verify(articleRepo, times(2)).save(it.capture()) }.allValues
+        assertThat(saved.last().id).isEqualTo(winner.id)
+        assertThat(saved.last().title).isEqualTo("incoming")
     }
 }

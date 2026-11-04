@@ -31,10 +31,7 @@ import java.util.Optional
  */
 internal class EodhdNewsRefreshTest {
     private val proxy = mock<EodhdProxy>()
-    private val articleRepo =
-        mock<NewsArticleRepo>().also {
-            whenever(it.findByExternalId(any())).thenReturn(Optional.empty())
-        }
+    private val articleRepo = mock<NewsArticleRepo>()
     private val fetchRepo = mock<NewsFetchRepo>()
     private val config =
         EodhdConfig(mock<MarketService>()).also {
@@ -50,7 +47,7 @@ internal class EodhdNewsRefreshTest {
             EodhdNewsIngest(
                 articleRepo,
                 fetchRepo,
-                NewsArticleEmbeddings(embedder, NewsEmbeddingProperties(), TopicAnchorStore(embedder), articleRepo)
+                NewsArticleEmbeddings(embedder, NewsEmbeddingProperties(), TopicAnchorStore(embedder))
             )
         )
 

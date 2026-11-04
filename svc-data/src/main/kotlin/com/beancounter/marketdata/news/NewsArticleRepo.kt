@@ -16,6 +16,9 @@ import java.util.Optional
 interface NewsArticleRepo : CrudRepository<NewsArticle, String> {
     fun findByExternalId(externalId: String): Optional<NewsArticle>
 
+    /** Ingest preload: every stored row for one fetch's external ids, in a single query. */
+    fun findAllByExternalIdIn(externalIds: Collection<String>): List<NewsArticle>
+
     @Query(
         "SELECT DISTINCT a FROM NewsArticle a JOIN a.tickerLinks t " +
             "WHERE t.ticker IN :tickers AND a.published >= :since " +

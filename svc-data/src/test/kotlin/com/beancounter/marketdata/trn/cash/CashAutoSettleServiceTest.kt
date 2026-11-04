@@ -29,6 +29,7 @@ import com.beancounter.marketdata.assets.figi.FigiProxy
 import com.beancounter.marketdata.broker.BrokerRepository
 import com.beancounter.marketdata.broker.BrokerSettlementAccount
 import com.beancounter.marketdata.broker.BrokerSettlementAccountRepository
+import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.cash.AutoSettleBackfill
 import com.beancounter.marketdata.cash.CashAutoSettleService
 import com.beancounter.marketdata.fx.FxRateService
@@ -41,6 +42,10 @@ import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
 import org.mockito.kotlin.any
+import org.mockito.kotlin.clearInvocations
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.verify
+import org.mockito.kotlin.verifyNoMoreInteractions
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.security.oauth2.jwt.JwtDecoder
@@ -71,6 +76,9 @@ class CashAutoSettleServiceTest {
 
     @MockitoBean
     private lateinit var fxTransactions: FxTransactions
+
+    @MockitoBean
+    private lateinit var cacheInvalidationProducer: CacheInvalidationProducer
 
     @Autowired
     private lateinit var assetService: AssetService
@@ -693,6 +701,99 @@ class CashAutoSettleServiceTest {
     }
 
     @Test
+    fun `settling trades with a funding link invalidates both portfolios once from the earliest date`() {
+        mockAuthConfig.login(testUser, systemUserService)
+        val earliest = LocalDate.now().minusDays(3)
+        val b1 = buildBuy(invest, BigDecimal("-1000"), TrnStatus.PROPOSED, LocalDate.now().minusDays(1))
+        val b2 = buildBuy(invest, BigDecimal("-1500"), TrnStatus.PROPOSED, earliest)
+        clearInvocations(cacheInvalidationProducer)
+
+        trnSettlementService.settleTransactions(invest.id, listOf(b1.id, b2.id))
+
+        verifyInvalidated(invest.id to earliest, master.id to earliest)
+    }
+
+    @Test
+    fun `unsettling a trade with a funding link invalidates both portfolios`() {
+        mockAuthConfig.login(testUser, systemUserService)
+        val tradeDate = LocalDate.now().minusDays(2)
+        val buy = buildBuy(invest, BigDecimal("-1000"), tradeDate = tradeDate)
+        clearInvocations(cacheInvalidationProducer)
+
+        trnSettlementService.unsettle(buy.id)
+
+        verifyInvalidated(invest.id to tradeDate, master.id to tradeDate)
+    }
+
+    @Test
+    fun `bulk unsettle with a funding link invalidates both portfolios once from the earliest date`() {
+        mockAuthConfig.login(testUser, systemUserService)
+        val earliest = LocalDate.now().minusDays(4)
+        val b1 = buildBuy(invest, BigDecimal("-1000"), tradeDate = earliest)
+        val b2 = buildBuy(invest, BigDecimal("-1500"), tradeDate = LocalDate.now().minusDays(1))
+        clearInvocations(cacheInvalidationProducer)
+
+        trnSettlementService.unsettleTransactions(invest.id, listOf(b1.id, b2.id))
+
+        verifyInvalidated(invest.id to earliest, master.id to earliest)
+    }
+
+    @Test
+    fun `editing a trade later invalidates the funding portfolio from its replaced cash legs`() {
+        mockAuthConfig.login(testUser, systemUserService)
+        val original = LocalDate.now().minusDays(5)
+        val buy = buildBuy(invest, BigDecimal("-2000"), tradeDate = original)
+        clearInvocations(cacheInvalidationProducer)
+        val moved = LocalDate.now().minusDays(1)
+
+        trnService.patch(
+            invest,
+            buy.id,
+            TrnInput(
+                assetId = aaplAsset.id,
+                cashAssetId = usdCashAsset.id,
+                trnType = TrnType.BUY,
+                quantity = BigDecimal("1"),
+                price = BigDecimal("2000"),
+                tradeAmount = BigDecimal("2000"),
+                tradeCurrency = "USD",
+                cashCurrency = "USD",
+                cashAmount = BigDecimal("-2000"),
+                tradeCashRate = BigDecimal.ONE,
+                tradeDate = moved,
+                status = TrnStatus.SETTLED
+            )
+        )
+
+        verifyInvalidated(invest.id to moved, master.id to original)
+    }
+
+    @Test
+    fun `settling a trade with no funding link invalidates only its own portfolio`() {
+        mockAuthConfig.login(testUser, systemUserService)
+        val tradeDate = LocalDate.now().minusDays(1)
+        val buy = buildBuy(master, BigDecimal("-100"), TrnStatus.PROPOSED, tradeDate)
+        clearInvocations(cacheInvalidationProducer)
+
+        trnSettlementService.settleTransactions(master.id, listOf(buy.id))
+
+        verifyInvalidated(master.id to tradeDate)
+    }
+
+    @Test
+    fun `deleting a cash leg invalidates the funding portfolio it lives in`() {
+        mockAuthConfig.login(testUser, systemUserService)
+        val tradeDate = LocalDate.now().minusDays(2)
+        val buy = buildBuy(invest, BigDecimal("-1000"), tradeDate = tradeDate)
+        val masterLeg = findAutoSiblings(buy).single { it.portfolio.id == master.id }
+        clearInvocations(cacheInvalidationProducer)
+
+        trnService.deleteWithSiblings(masterLeg.id)
+
+        verifyInvalidated(master.id to tradeDate)
+    }
+
+    @Test
     fun `unsettle on already PROPOSED trn throws IllegalArgumentException`() {
         mockAuthConfig.login(testUser, systemUserService)
         val buy = buildBuy(invest, BigDecimal("-1000"))
@@ -934,7 +1035,8 @@ class CashAutoSettleServiceTest {
     private fun buildBuy(
         portfolio: Portfolio,
         cashAmount: BigDecimal,
-        status: TrnStatus = TrnStatus.SETTLED
+        status: TrnStatus = TrnStatus.SETTLED,
+        tradeDate: LocalDate = LocalDate.now()
     ): Trn =
         trnService
             .save(
@@ -953,12 +1055,22 @@ class CashAutoSettleServiceTest {
                             cashCurrency = "USD",
                             cashAmount = cashAmount,
                             tradeCashRate = BigDecimal.ONE,
-                            tradeDate = LocalDate.now(),
+                            tradeDate = tradeDate,
                             status = status
                         )
                     )
                 )
             ).single()
+
+    /** The producer was asked for exactly these TRANSACTION invalidations, in this order. */
+    private fun verifyInvalidated(vararg expected: Pair<String, LocalDate>) {
+        inOrder(cacheInvalidationProducer) {
+            expected.forEach { (portfolioId, fromDate) ->
+                verify(cacheInvalidationProducer).sendTransactionEvent(portfolioId, fromDate)
+            }
+        }
+        verifyNoMoreInteractions(cacheInvalidationProducer)
+    }
 
     private fun findAutoSiblings(parent: Trn): List<Trn> =
         trnRepository

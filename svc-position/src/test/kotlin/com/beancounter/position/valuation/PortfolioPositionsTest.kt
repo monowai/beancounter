@@ -64,8 +64,7 @@ class PortfolioPositionsTest {
                 failedPortfolio.set(it.getArgument<Portfolio>(0).code)
                 throw BusinessException("bc-data unavailable")
             }
-            // Held well past the failure's logging and propagation, so no permit frees up first.
-            Thread.sleep(IN_FLIGHT_MILLIS)
+            Thread.sleep(READ_MILLIS)
             TrnResponse(emptyList())
         }
         val logger = LoggerFactory.getLogger(PortfolioPositions::class.java) as Logger
@@ -89,6 +88,5 @@ class PortfolioPositionsTest {
     private companion object {
         const val PORTFOLIOS = 20
         const val READ_MILLIS = 100L
-        const val IN_FLIGHT_MILLIS = 1_000L
     }
 }

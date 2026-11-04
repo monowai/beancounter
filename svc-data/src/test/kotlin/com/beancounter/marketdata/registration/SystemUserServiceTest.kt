@@ -44,6 +44,9 @@ class SystemUserServiceTest {
     lateinit var systemUserService: SystemUserService
 
     @Autowired
+    lateinit var systemUserRegistration: SystemUserRegistration
+
+    @Autowired
     lateinit var authUtilService: AuthUtilService
 
     @Autowired
@@ -63,7 +66,7 @@ class SystemUserServiceTest {
             auth0User,
             AuthUtilService.AuthProvider.AUTH0
         )
-        assertThrows(BusinessException::class.java) { systemUserService.register() }
+        assertThrows(BusinessException::class.java) { systemUserRegistration.register() }
     }
 
     @Test
@@ -77,7 +80,7 @@ class SystemUserServiceTest {
             auth0User,
             AuthUtilService.AuthProvider.AUTH0
         )
-        val result = systemUserService.register()
+        val result = systemUserRegistration.register()
         assertThat(result)
             .isNotNull
             .hasFieldOrPropertyWithValue(
@@ -108,7 +111,7 @@ class SystemUserServiceTest {
             googleUser,
             AuthUtilService.AuthProvider.GOOGLE
         )
-        val result = systemUserService.register()
+        val result = systemUserRegistration.register()
         assertThat(result)
             .isNotNull
             .hasFieldOrPropertyWithValue(
@@ -130,7 +133,7 @@ class SystemUserServiceTest {
     fun `should not allow unauthenticated user to register`() {
         mockAuthConfig.logout()
         assertThrows(UnauthorizedException::class.java) {
-            systemUserService.register()
+            systemUserRegistration.register()
         }
     }
 
@@ -143,7 +146,7 @@ class SystemUserServiceTest {
             ),
             AuthUtilService.AuthProvider.AUTH0
         )
-        systemUserService.register()
+        systemUserRegistration.register()
         authUtilService.authenticate(
             SystemUser(
                 email = USER_EMAIL,
@@ -151,7 +154,7 @@ class SystemUserServiceTest {
             ),
             AuthUtilService.AuthProvider.GOOGLE
         )
-        assertThat(systemUserService.register())
+        assertThat(systemUserRegistration.register())
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 EMAIL,
@@ -178,7 +181,7 @@ class SystemUserServiceTest {
             ),
             AuthUtilService.AuthProvider.GOOGLE
         )
-        systemUserService.register()
+        systemUserRegistration.register()
         authUtilService.authenticate(
             SystemUser(
                 email = GMAIL,
@@ -186,7 +189,7 @@ class SystemUserServiceTest {
             ),
             AuthUtilService.AuthProvider.AUTH0
         )
-        assertThat(systemUserService.register())
+        assertThat(systemUserRegistration.register())
             .isNotNull
             .hasFieldOrPropertyWithValue(
                 EMAIL,
@@ -214,7 +217,7 @@ class SystemUserServiceTest {
             auth0User,
             AuthUtilService.AuthProvider.AUTH0
         )
-        val first = systemUserService.register().data
+        val first = systemUserRegistration.register().data
         assertThat(first.active).isTrue()
 
         // Simulate the offboarding soft-delete: mark inactive in the DB and drop
@@ -232,7 +235,7 @@ class SystemUserServiceTest {
         assertThat(systemUserService.getActiveUser(includeInactive = true)).isNotNull
 
         // Signing up again reactivates the SAME account, not a new row.
-        val second = systemUserService.register().data
+        val second = systemUserRegistration.register().data
         assertThat(second.id).isEqualTo(first.id)
         assertThat(second.active).isTrue()
         assertThat(systemUserRepository.findById(first.id).get().active).isTrue()
@@ -249,14 +252,14 @@ class SystemUserServiceTest {
             systemUser
         )
         assertThrows(BusinessException::class.java) {
-            systemUserService.register()
+            systemUserRegistration.register()
         }
         assertThat(systemUserService.isServiceAccount()).isTrue()
         assertThat(systemUserService.getOrThrow()).isNotNull
 
         // Make sure we can't register a system account.
         assertThrows(BusinessException::class.java) {
-            systemUserService.register()
+            systemUserRegistration.register()
         }
     }
 }

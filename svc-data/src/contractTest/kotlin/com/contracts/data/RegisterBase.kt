@@ -6,6 +6,7 @@ import com.beancounter.auth.TokenService
 import com.beancounter.common.contracts.RegistrationResponse
 import com.beancounter.common.model.UserPreferences
 import com.beancounter.marketdata.MarketDataBoot
+import com.beancounter.marketdata.registration.SystemUserRegistration
 import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.registration.UserPreferencesService
 import io.restassured.RestAssured
@@ -41,6 +42,9 @@ class RegisterBase {
     lateinit var systemUserService: SystemUserService
 
     @MockitoBean
+    lateinit var systemUserRegistration: SystemUserRegistration
+
+    @MockitoBean
     lateinit var userPreferencesService: UserPreferencesService
 
     @Autowired
@@ -54,7 +58,7 @@ class RegisterBase {
         val jwt = authUtilService.authenticate(systemUser)
         val userPreferences = UserPreferences(owner = systemUser)
         Mockito
-            .`when`(systemUserService.register())
+            .`when`(systemUserRegistration.register())
             .thenReturn(RegistrationResponse(systemUser))
         Mockito
             .`when`(userPreferencesService.getOrCreate(systemUser))

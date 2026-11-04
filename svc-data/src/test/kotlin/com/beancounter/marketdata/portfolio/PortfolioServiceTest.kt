@@ -5,7 +5,7 @@ import com.beancounter.auth.TokenService
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.Portfolio
 import com.beancounter.marketdata.SpringMvcDbTest
-import com.beancounter.marketdata.registration.SystemUserService
+import com.beancounter.marketdata.registration.SystemUserRegistration
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -27,12 +27,12 @@ class PortfolioServiceTest {
     private lateinit var portfolioService: PortfolioService
 
     @Autowired
-    private lateinit var systemUserService: SystemUserService
+    private lateinit var systemUserRegistration: SystemUserRegistration
 
     @Test
     fun maintainPortfolioForServiceAccount() {
         Mockito.`when`(tokenService.isServiceToken).thenReturn(true)
-        assertThat(systemUserService.registerSystemAccount("beancounter:system")).isNotNull
+        assertThat(systemUserRegistration.registerSystemAccount("beancounter:system")).isNotNull
 
         val results =
             portfolioService.save(
@@ -83,7 +83,7 @@ class PortfolioServiceTest {
     @Test
     fun `update preserves valuation fields and applies cashPortfolioId`() {
         Mockito.`when`(tokenService.isServiceToken).thenReturn(true)
-        assertThat(systemUserService.registerSystemAccount("beancounter:system")).isNotNull
+        assertThat(systemUserRegistration.registerSystemAccount("beancounter:system")).isNotNull
 
         val created =
             portfolioService
@@ -138,10 +138,10 @@ class PortfolioServiceTest {
     fun `portfolios returns target user portfolios when service caller supplies systemUserId`() {
         Mockito.`when`(tokenService.isServiceToken).thenReturn(true)
         // Create a system account so portfolioService.save can stamp ownership.
-        systemUserService.registerSystemAccount("beancounter:system")
+        systemUserRegistration.registerSystemAccount("beancounter:system")
         val ownerId = "owner-${java.util.UUID.randomUUID()}"
         val owner =
-            systemUserService.save(
+            systemUserRegistration.save(
                 com.beancounter.common.model
                     .SystemUser(id = ownerId, email = "$ownerId@test")
             )

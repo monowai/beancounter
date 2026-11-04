@@ -59,6 +59,20 @@ class EventLoaderTest {
     }
 
     @Test
+    fun `should still load other assets and backfill when one asset fails`() {
+        holding("AAA", "BBB", "CCC")
+        whenever(priceService.getEvents(any())).thenReturn(
+            PriceResponse(listOf(TestHelpers.createTestMarketData(priceDate = date)))
+        )
+        whenever(priceService.getEvents("BBB")).thenThrow(IllegalStateException("provider down"))
+
+        eventLoader.loadEvents(portfolio.id, TestHelpers.TEST_DATE)
+
+        assertThat(invocations(eventStore, "save")).isEqualTo(2)
+        assertThat(invocations(backFillService, "backFillEvents")).isEqualTo(1)
+    }
+
+    @Test
     fun `should not backfill when no asset loads an event`() {
         holding("AAA", "BBB")
         whenever(priceService.getEvents(any())).thenReturn(PriceResponse(emptyList()))

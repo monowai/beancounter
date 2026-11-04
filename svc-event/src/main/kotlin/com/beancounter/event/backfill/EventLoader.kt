@@ -75,7 +75,7 @@ class EventLoader(
         val totalEvents =
             Executors.newFixedThreadPool(POSITION_LOAD_THREADS).use { executor ->
                 executor
-                    .invokeAll(positions.map { position -> Callable { load(position, date, authContext) } })
+                    .invokeAll(positions.map { position -> Callable { loadContained(position, date, authContext) } })
                     .sumOf { it.get() }
             }
         if (totalEvents > 0) {
@@ -84,6 +84,16 @@ class EventLoader(
         }
         return totalEvents
     }
+
+    /** One asset's failure is logged and counts as no events; the other assets still load. */
+    private fun loadContained(
+        position: Position,
+        date: LocalDate,
+        authContext: OpenIdResponse
+    ): Int =
+        runCatching { load(position, date, authContext) }
+            .onFailure { log.warn("Event load failed, asset: ${position.asset.id}, date: $date", it) }
+            .getOrDefault(0)
 
     private fun load(
         position: Position,

@@ -2,6 +2,7 @@ package com.beancounter.event.backfill
 
 import com.beancounter.auth.model.AuthConstants
 import com.beancounter.client.services.PortfolioServiceClient
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.event.corporate.CorporateEventResponses
 import com.beancounter.event.corporate.CorporateEventStore
@@ -11,7 +12,6 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse
 import io.swagger.v3.oas.annotations.responses.ApiResponses
 import io.swagger.v3.oas.annotations.tags.Tag
 import org.slf4j.LoggerFactory
-import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.web.bind.annotation.CrossOrigin
@@ -19,11 +19,9 @@ import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestParam
-import org.springframework.web.bind.annotation.ResponseStatus
 import org.springframework.web.bind.annotation.RestController
 
 private const val STATUS = "status"
-private const val ACCEPTED = "accepted"
 private const val COMPLETED = "completed"
 private const val PORTFOLIO_ID = "portfolioId"
 private const val PORTFOLIOS = "portfolios"
@@ -61,7 +59,6 @@ class CorporateEventIngestController(
         value = ["/backfill/{portfolioId}"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
-    @ResponseStatus(HttpStatus.ACCEPTED)
     @Operation(
         summary = "Process corporate events for a specific portfolio",
         description = """
@@ -71,7 +68,7 @@ class CorporateEventIngestController(
             * Finds all corporate events that occurred between the specified dates
             * Identifies which assets in the portfolio were affected
             * Generates dividend or split transactions for each affected position
-            * Returns immediately (asynchronous processing)
+            * Runs synchronously and returns once every date in the range is processed
 
             Use this when you want to process events for a single portfolio.
         """
@@ -79,8 +76,8 @@ class CorporateEventIngestController(
     @ApiResponses(
         value = [
             ApiResponse(
-                responseCode = "202",
-                description = "Processing accepted and started"
+                responseCode = "200",
+                description = "Processing completed for the portfolio"
             ),
             ApiResponse(
                 responseCode = "404",
@@ -100,7 +97,7 @@ class CorporateEventIngestController(
         )
         @RequestParam(required = false) fromDate: String = DateUtils.TODAY,
         @Parameter(
-            description = "End date for event processing (YYYY-MM-DD format, defaults to fromDate)",
+            description = "End date for event processing (YYYY-MM-DD format, defaults to today)",
             example = "2024-01-31"
         )
         @RequestParam(required = false) toDate: String = DateUtils.TODAY
@@ -111,7 +108,7 @@ class CorporateEventIngestController(
             toDate
         )
         return mapOf(
-            STATUS to ACCEPTED,
+            STATUS to COMPLETED,
             PORTFOLIO_ID to portfolioId,
             FROM_DATE to fromDate,
             TO_DATE to toDate
@@ -151,7 +148,7 @@ class CorporateEventIngestController(
         )
         @RequestParam(required = false) fromDate: String = DateUtils.TODAY,
         @Parameter(
-            description = "End date for event processing (YYYY-MM-DD format, defaults to fromDate)",
+            description = "End date for event processing (YYYY-MM-DD format, defaults to today)",
             example = "2024-01-31"
         )
         @RequestParam(required = false) toDate: String = DateUtils.TODAY
@@ -191,6 +188,7 @@ class CorporateEventIngestController(
             * Retrieves corporate events for assets held in portfolios
             * Stores the events in the local database
             * Processes events from the specified date to today
+            * Runs synchronously and returns once every portfolio is loaded
 
             This is typically the first step in the corporate event workflow.
         """
@@ -200,6 +198,10 @@ class CorporateEventIngestController(
             ApiResponse(
                 responseCode = "200",
                 description = "Events loaded successfully"
+            ),
+            ApiResponse(
+                responseCode = "400",
+                description = "fromDate is after today"
             )
         ]
     )
@@ -210,6 +212,7 @@ class CorporateEventIngestController(
         )
         @RequestParam(required = false) fromDate: String = DateUtils.TODAY
     ): Map<String, Any> {
+        requireNotAfterToday(FROM_DATE, fromDate)
         eventLoader.loadEvents(fromDate)
         return mapOf(
             STATUS to COMPLETED,
@@ -222,7 +225,6 @@ class CorporateEventIngestController(
         value = ["/load/{portfolioId}"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
-    @ResponseStatus(HttpStatus.ACCEPTED)
     @Operation(
         summary = "Load corporate events for a specific portfolio",
         description = """
@@ -232,7 +234,8 @@ class CorporateEventIngestController(
             * Identifies assets held in the specified portfolio
             * Retrieves corporate events for those assets from external sources
             * Stores the events in the local database
-            * Processes events for the specified date
+            * Processes events from the specified date to today
+            * Runs synchronously and returns once the load has finished
 
             Use this when you want to load events for a single portfolio.
         """
@@ -240,8 +243,12 @@ class CorporateEventIngestController(
     @ApiResponses(
         value = [
             ApiResponse(
-                responseCode = "202",
-                description = "Event loading accepted and started"
+                responseCode = "200",
+                description = "Events loaded for the portfolio"
+            ),
+            ApiResponse(
+                responseCode = "400",
+                description = "asAt is after today"
             ),
             ApiResponse(
                 responseCode = "404",
@@ -256,17 +263,18 @@ class CorporateEventIngestController(
         )
         @PathVariable portfolioId: String,
         @Parameter(
-            description = "Date for loading events (YYYY-MM-DD format, defaults to today)",
+            description = "First date to load events from, up to today (YYYY-MM-DD format, defaults to today)",
             example = "2024-01-15"
         )
         @RequestParam(required = false) asAt: String = DateUtils.TODAY
     ): Map<String, Any> {
+        requireNotAfterToday(AS_AT, asAt)
         eventLoader.loadEvents(
             portfolioId,
             asAt
         )
         return mapOf(
-            STATUS to ACCEPTED,
+            STATUS to COMPLETED,
             PORTFOLIO_ID to portfolioId,
             AS_AT to asAt
         )
@@ -314,5 +322,15 @@ class CorporateEventIngestController(
         assetEventLoader.load(assetId, date)
         // Return all events for this asset after loading
         return eventStore.getAssetEvents(assetId)
+    }
+
+    /** Loading runs from the date up to today, so a later date has nothing to load. */
+    private fun requireNotAfterToday(
+        name: String,
+        date: String
+    ) {
+        if (dateUtils.getDate(date).isAfter(dateUtils.date)) {
+            throw BusinessException("$name $date is after today; events load from a date up to today")
+        }
     }
 }

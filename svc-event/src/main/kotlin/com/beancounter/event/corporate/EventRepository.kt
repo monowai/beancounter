@@ -36,6 +36,12 @@ interface EventRepository : CrudRepository<CorporateEvent, String> {
         end: LocalDate?
     ): Collection<CorporateEvent>
 
+    fun findByAssetIdAndRecordDateBetweenOrderByRecordDateAsc(
+        assetId: String,
+        start: LocalDate,
+        end: LocalDate
+    ): Collection<CorporateEvent>
+
     @Query(
         "select e from CorporateEvent e " +
             "where e.recordDate >= ?1 order by e.recordDate desc "

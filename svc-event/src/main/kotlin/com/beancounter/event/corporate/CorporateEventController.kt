@@ -2,6 +2,7 @@ package com.beancounter.event.corporate
 
 import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.event.CorporateEvent
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.event.distribution.EventDistribution
 import io.swagger.v3.oas.annotations.Operation
@@ -83,7 +84,6 @@ class CorporateEventController(
         value = ["/{eventId}"],
         produces = [MediaType.APPLICATION_JSON_VALUE]
     )
-    @ResponseStatus(HttpStatus.ACCEPTED)
     @Operation(
         summary = "Reprocess a corporate event",
         description = """
@@ -91,9 +91,9 @@ class CorporateEventController(
             This endpoint:
 
             * Finds the event by its unique identifier
-            * Processes the event to generate dividend or split transactions
-            * Returns the event details
-            * Returns immediately (asynchronous processing)
+            * Generates a proposed dividend or split transaction for each portfolio that
+              held the asset on the record date, sent once the work commits
+            * Runs synchronously and returns the event once distribution has finished
 
             Use this to reprocess events that may have failed or need to be regenerated.
         """
@@ -101,8 +101,12 @@ class CorporateEventController(
     @ApiResponses(
         value = [
             ApiResponse(
-                responseCode = "202",
-                description = "Event reprocessing accepted and started"
+                responseCode = "200",
+                description = "Event reprocessed"
+            ),
+            ApiResponse(
+                responseCode = "400",
+                description = "Malformed payDate"
             ),
             ApiResponse(
                 responseCode = "404",
@@ -125,7 +129,8 @@ class CorporateEventController(
         @RequestParam(required = false) payDate: String? = null
     ): CorporateEventResponse {
         val event = eventStore[eventId]
-        eventDistribution.processEvent(event.data, payDate)
+        val overridePayDate = payDate?.let { dateUtils.getDate(it).toString() }
+        eventDistribution.processEvent(event.data, overridePayDate)
         return event
     }
 
@@ -234,7 +239,8 @@ class CorporateEventController(
         summary = "Get corporate events for an asset",
         description = """
             Retrieves corporate events for a specific asset, optionally filtered by date range.
-            If fromDate and toDate are not provided, returns all events for the asset.
+            Supply both fromDate and toDate to filter by record date, or neither to return
+            all events for the asset. Supplying only one is rejected with 400.
 
             Use this for:
             * Analyzing events in a specific time period
@@ -274,7 +280,7 @@ class CorporateEventController(
             ),
             ApiResponse(
                 responseCode = "400",
-                description = "Invalid date format"
+                description = "Invalid date format, or only one of fromDate and toDate supplied"
             )
         ]
     )
@@ -295,15 +301,17 @@ class CorporateEventController(
         )
         @RequestParam(required = false) toDate: String? = null
     ): CorporateEventResponses {
-        if (fromDate == null || toDate == null) {
+        if (fromDate.isNullOrBlank() && toDate.isNullOrBlank()) {
             return eventStore.getAssetEvents(assetId)
         }
-        val startDate = dateUtils.getDate(fromDate)
-        val endDate = dateUtils.getDate(toDate)
-        val events =
-            eventStore
-                .findInRange(startDate, endDate)
-                .filter { it.assetId == assetId }
-        return CorporateEventResponses(events)
+        if (fromDate.isNullOrBlank() || toDate.isNullOrBlank()) {
+            throw BusinessException("fromDate and toDate must be supplied together")
+        }
+        val start = dateUtils.getDate(fromDate)
+        val end = dateUtils.getDate(toDate)
+        if (start.isAfter(end)) {
+            throw BusinessException("fromDate $fromDate is after toDate $toDate")
+        }
+        return CorporateEventResponses(eventStore.findInRange(assetId, start, end))
     }
 }

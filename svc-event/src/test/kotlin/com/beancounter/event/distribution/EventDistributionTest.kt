@@ -23,6 +23,7 @@ import org.mockito.kotlin.anyOrNull
 import org.mockito.kotlin.doAnswer
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.isNull
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.util.Optional
@@ -64,8 +65,12 @@ class EventDistributionTest {
         }
 
         eventDistribution =
-            EventDistribution(positionService, CorporateEventStore(eventRepository, keyGenUtils), eventMetrics)
-        eventDistribution.setEventPublisher(eventPublisher)
+            EventDistribution(
+                positionService,
+                CorporateEventStore(eventRepository, keyGenUtils),
+                eventMetrics,
+                eventPublisher
+            )
 
         testCorporateEvent = TestHelpers.createTestCorporateEvent()
         testTrustedEventInput = TrustedEventInput(testCorporateEvent)
@@ -184,5 +189,16 @@ class EventDistributionTest {
         verify(positionService).process(secondPortfolio, savedEvent, overridePayDate)
         verify(eventPublisher).send(testTrustedTrnEvent)
         verify(eventPublisher).send(secondTrustedTrnEvent)
+    }
+
+    @Test
+    fun `should send at once when called outside a transaction`() {
+        val savedEvent = testCorporateEvent.copy(id = "no-transaction-event")
+        whenever(positionService.findWhereHeld(any(), any())).thenReturn(PortfoliosResponse(listOf(testPortfolio)))
+        whenever(positionService.process(any(), any(), anyOrNull())).thenReturn(testTrustedTrnEvent)
+
+        eventDistribution.processEvent(savedEvent)
+
+        verify(eventPublisher, times(1)).send(testTrustedTrnEvent)
     }
 }

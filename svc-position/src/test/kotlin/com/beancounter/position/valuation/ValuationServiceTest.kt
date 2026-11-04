@@ -2,6 +2,7 @@ package com.beancounter.position.valuation
 
 import com.beancounter.auth.TokenService
 import com.beancounter.client.FxService
+import com.beancounter.client.services.StaticService
 import com.beancounter.client.services.TrnService
 import com.beancounter.common.contracts.FxPairResults
 import com.beancounter.common.contracts.FxResponse
@@ -90,6 +91,9 @@ class ValuationServiceTest {
     @Mock
     private lateinit var earmarkService: EarmarkService
 
+    @Mock
+    private lateinit var staticService: StaticService
+
     @Captor
     private lateinit var portfolioCaptor: ArgumentCaptor<Portfolio>
 
@@ -111,6 +115,11 @@ class ValuationServiceTest {
             .lenient()
             .`when`(fxRateService.getRates(any(), any()))
             .thenReturn(FxResponse())
+
+        Mockito
+            .lenient()
+            .`when`(staticService.getCurrency(any()))
+            .thenAnswer { Currency(it.getArgument<String>(0)) }
 
         marketValueUpdateProducer = Mockito.spy(MarketValueUpdateProducer(streamBridge, dateUtils))
         valuationService =
@@ -768,6 +777,9 @@ class ValuationServiceTest {
             )
         )
 
+        val sgd = Currency("SGD", "Singapore Dollar", "S$")
+        whenever(staticService.getCurrency("SGD")).thenReturn(sgd)
+
         // When - request aggregation in SGD
         val result =
             valuationService.getAggregatedPositions(
@@ -777,6 +789,8 @@ class ValuationServiceTest {
         // Then - the aggregate reports in SGD and its PORTFOLIO bucket is
         // denominated in the target currency.
         assertThat(result.data.portfolio.currency.code).isEqualTo("SGD")
+        assertThat(result.data.portfolio.currency.name).isEqualTo(sgd.name)
+        assertThat(result.data.portfolio.currency.symbol).isEqualTo(sgd.symbol)
         assertThat(result.data.portfolio.id).isEqualTo(usdPortfolio.id)
         val agg =
             result.data.positions.values
@@ -1379,7 +1393,7 @@ class ValuationServiceTest {
         ValuationService(
             positionValuationService = positionValuationService,
             portfolioPositions = PortfolioPositions(trnService, positionService, earmarkService, tokenService),
-            portfolioConsolidation = PortfolioConsolidation(fxRateService, tokenService),
+            portfolioConsolidation = PortfolioConsolidation(fxRateService, tokenService, staticService),
             marketValueUpdateProducer = marketValueUpdateProducer,
             tokenService = tokenService,
             cacheTtlSeconds = cacheTtlSeconds

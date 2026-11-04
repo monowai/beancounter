@@ -31,13 +31,14 @@ data class AggregateValuationRequest(
 
     /**
      * The portfolio the aggregate reports as: the first one, owner and ids included,
-     * in the target currency when one is requested and differs from its own.
+     * in the target currency when one is requested and differs from its own. The target
+     * code is resolved through [currency] so it carries its real name and symbol.
      */
-    fun contextPortfolio(): Portfolio {
+    fun contextPortfolio(currency: (String) -> Currency): Portfolio {
         val first = portfolios.first()
         val target = targetCurrency
         return if (!target.isNullOrBlank() && !first.currency.code.equals(target, ignoreCase = true)) {
-            first.copy(currency = Currency(target))
+            first.copy(currency = currency(target))
         } else {
             first
         }

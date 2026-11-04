@@ -2,6 +2,7 @@ package com.beancounter.position.valuation
 
 import com.beancounter.auth.TokenService
 import com.beancounter.client.FxService
+import com.beancounter.client.services.StaticService
 import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Currency
@@ -31,7 +32,8 @@ import java.time.LocalDate
 @Component
 class PortfolioConsolidation(
     private val fxRateService: FxService,
-    private val tokenService: TokenService
+    private val tokenService: TokenService,
+    private val staticService: StaticService
 ) {
     private val averageCost = AverageCost()
 
@@ -43,7 +45,10 @@ class PortfolioConsolidation(
         request: AggregateValuationRequest,
         perPortfolio: List<Pair<Portfolio, Positions>>
     ): Positions {
-        val contextPortfolio = request.contextPortfolio()
+        val contextPortfolio =
+            request.contextPortfolio { code ->
+                staticService.getCurrency(code) ?: throw BusinessException("Unknown currency $code")
+            }
         // The cost buckets are accumulated in each source portfolio's own
         // currency. When the aggregate reports in a different currency (or
         // spans portfolios with differing currencies) those costs must be

@@ -131,10 +131,13 @@ class PricesOnDate internal constructor(
         return price.multiply(rate ?: BigDecimal.ONE)
     }
 
-    /** Close on the date, else a PRIVATE asset's latest known price, else average cost. */
+    /**
+     * Close on the date, else a PRIVATE asset's latest known price, else average cost.
+     * A row whose close is not positive is no price, so it falls back the same way.
+     */
     private fun unitPrice(pos: Position): BigDecimal? {
         val key = pos.key()
-        val onDate = priceMap[key]
+        val onDate = priceMap[key]?.takeIf { it.close.signum() > 0 }
         val latest = latestPriceIndex[key]
         return when {
             onDate != null -> {

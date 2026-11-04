@@ -50,6 +50,7 @@ private const val AS_AT = "asAt"
 class CorporateEventIngestController(
     private val backFillService: BackFillService,
     private val eventLoader: EventLoader,
+    private val assetEventLoader: AssetEventLoader,
     private val eventStore: CorporateEventStore,
     private val portfolioService: PortfolioServiceClient,
     private val dateUtils: DateUtils
@@ -310,7 +311,7 @@ class CorporateEventIngestController(
         @RequestParam(required = false) asAt: String = DateUtils.TODAY
     ): CorporateEventResponses {
         val date = dateUtils.getDate(asAt)
-        eventLoader.loadEventsForAsset(assetId, date)
+        assetEventLoader.load(assetId, date)
         // Return all events for this asset after loading
         return eventStore.getAssetEvents(assetId)
     }

@@ -1,49 +1,37 @@
 package com.beancounter.event.backfill
 
+import com.beancounter.auth.client.LoginService
 import com.beancounter.auth.model.OpenIdResponse
-import com.beancounter.common.event.CorporateEvent
-import com.beancounter.common.model.MarketData.Companion.isSplit
+import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
-import com.beancounter.common.model.TrnType
 import com.beancounter.common.telemetry.runBlockingTraced
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.event.distribution.PositionService
 import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
-import org.springframework.beans.factory.annotation.Value
 import org.springframework.stereotype.Service
 import java.time.LocalDate
 import java.util.concurrent.Callable
-import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
 /**
- * Loads corporate events for portfolios.
- * Scans both backwards and forwards using the same daysToAdd value
- * to catch missed events and pre-load upcoming events.
+ * Loads corporate events for portfolios: for each date from the requested one to
+ * today, stores every held asset's events, then backfills the portfolio's stored
+ * events for that date once.
  */
 @Service
 class EventLoader(
-    config: EventLoaderConfig,
-    @Value($$"${beancounter.events.dividend.days-to-add:10}")
-    private val daysToAdd: Long = 10,
-    private val dateUtils: DateUtils = DateUtils()
+    private val portfolioService: PortfolioServiceClient,
+    private val positionService: PositionService,
+    private val backFillService: BackFillService,
+    private val dateSplitter: DateSplitter,
+    private val loginService: LoginService,
+    private val assetEventLoader: AssetEventLoader
 ) {
-    private val portfolioService = config.sharedConfig.portfolioService
-    private val positionService = config.serviceConfig.positionService
-    private val eventStore = config.serviceConfig.eventStore
-    private val priceService = config.serviceConfig.priceService
-    private val backFillService = config.serviceConfig.backFillService
-    private val dateSplitter = config.authConfig.dateSplitter
-    private val loginService = config.authConfig.loginService
-
-    // private val authContext: OpenIdResponse = loginService.loginM2m()
-
     fun loadEvents(date: String) {
         val portfolios = portfolioService.portfolios
-        log.info(
-            "Loading events from date: $date (window: +/- $daysToAdd days) for ${portfolios.data.size} portfolios"
-        )
+        log.info("Loading events from date: $date for ${portfolios.data.size} portfolios")
         for (portfolio in portfolios.data) {
             loadEvents(portfolio.id, date)
             log.info("Completed event load for ${portfolio.code}")
@@ -77,84 +65,48 @@ class EventLoader(
         authContext: OpenIdResponse
     ): Int {
         loginService.setAuthContext(authContext)
-        val positionResponse = positionService.getPositions(portfolio, date.toString())
-        if (positionResponse.data.positions.values
-                .isEmpty()
-        ) {
+        val positions =
+            positionService
+                .getPositions(portfolio, date.toString())
+                .data.positions.values
+        if (positions.isEmpty()) {
             return 0
         }
-
-        var totalEvents = 0
-        val executor: ExecutorService = Executors.newFixedThreadPool(POSITION_LOAD_THREADS)
-        val tasks: List<Callable<Int>> =
-            positionResponse.data.positions.values.map { position ->
-                Callable {
-                    val events = load(position, date, authContext)
-                    if (events != 0) {
-                        backFillService.backFillEvents(portfolio.id, date.toString())
-                        log.trace("Published: $events nominal events")
-                    }
-                    totalEvents += events
-                    events
-                }
+        val totalEvents =
+            Executors.newFixedThreadPool(POSITION_LOAD_THREADS).use { executor ->
+                executor
+                    .invokeAll(positions.map { position -> Callable { loadContained(position, date, authContext) } })
+                    .sumOf { it.get() }
             }
-
-        executor.invokeAll(tasks)
-        executor.shutdown()
-
         if (totalEvents > 0) {
-            log.debug(
-                "portfolio: ${portfolio.code}, id: ${portfolio.id}. Dispatched: $totalEvents nominal events, date: $date"
-            )
+            backFillService.backFillEvents(portfolio.id, date.toString())
+            log.debug("portfolio: ${portfolio.code}/${portfolio.id}, events: $totalEvents, date: $date")
         }
-
         return totalEvents
     }
+
+    /** One asset's failure is logged and counts as no events; the other assets still load. */
+    private fun loadContained(
+        position: Position,
+        date: LocalDate,
+        authContext: OpenIdResponse
+    ): Int =
+        runCatching { load(position, date, authContext) }
+            .onFailure { log.warn("Event load failed, asset: ${position.asset.id}, date: $date", it) }
+            .getOrDefault(0)
 
     private fun load(
         position: Position,
         date: LocalDate,
         authContext: OpenIdResponse
     ): Int {
-        var eventCount = 0
-        if (positionService.includePosition(position)) {
-            loginService.setAuthContext(authContext)
-            eventCount = loadEventsForAsset(position.asset.id, date)
-            if (eventCount != 0) {
-                log.debug("Loaded events: $eventCount, asset: ${position.asset.id}, name: ${position.asset.name}")
-            }
+        if (!positionService.includePosition(position)) {
+            return 0
         }
-        return eventCount
-    }
-
-    /**
-     * Load events for a specific asset from external sources.
-     * This is the core method that fetches events from the price service
-     * and stores them in the database.
-     */
-    fun loadEventsForAsset(
-        assetId: String,
-        date: LocalDate = dateUtils.date
-    ): Int {
-        var eventCount = 0
-        val events = priceService.getEvents(assetId)
-        val windowStart = date.minusDays(daysToAdd)
-        val windowEnd = date.plusDays(daysToAdd)
-        for (priceResponse in events.data) {
-            val eventDate = priceResponse.priceDate
-            // Check if event falls within the window (date - daysToAdd to date + daysToAdd inclusive)
-            if (!eventDate.isBefore(windowStart) && !eventDate.isAfter(windowEnd)) {
-                eventCount++
-                eventStore.save(
-                    CorporateEvent(
-                        trnType = if (isSplit(priceResponse)) TrnType.SPLIT else TrnType.DIVI,
-                        recordDate = priceResponse.priceDate,
-                        assetId = assetId,
-                        rate = priceResponse.dividend,
-                        split = priceResponse.split
-                    )
-                )
-            }
+        loginService.setAuthContext(authContext)
+        val eventCount = assetEventLoader.load(position.asset.id, date)
+        if (eventCount != 0) {
+            log.debug("Loaded events: $eventCount, asset: ${position.asset.id}, name: ${position.asset.name}")
         }
         return eventCount
     }

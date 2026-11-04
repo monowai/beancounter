@@ -12,6 +12,7 @@ import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.slf4j.LoggerFactory
+import java.math.BigDecimal
 import java.time.LocalDate
 
 /**
@@ -40,6 +41,14 @@ class PositionIrrTest {
 
         assertThat(irr).isEqualByComparingTo("0")
         assertThat(appender.list.filter { it.level.isGreaterOrEqual(Level.WARN) }).isEmpty()
+    }
+
+    @Test
+    fun `should report the IRR without binary floating-point noise`() {
+        // 127 back on 100 inside the holding threshold: a 27% simple return.
+        val irr = positionIrr.of(flows(-100.0, 127.0))
+
+        assertThat(irr).isEqualTo(BigDecimal("0.27"))
     }
 
     private fun flows(

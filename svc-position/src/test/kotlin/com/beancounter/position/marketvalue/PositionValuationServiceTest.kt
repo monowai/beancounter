@@ -424,7 +424,7 @@ class PositionValuationServiceTest {
         // For long holding periods, the IRR should be calculated (different from ROI)
         // Called 3 times for trade/base/portfolio
         verify(calculationSupport, org.mockito.kotlin.times(3))
-            .updateTotals(any(), any(), org.mockito.kotlin.eq(expectedRoi), org.mockito.kotlin.eq(BigDecimal(0.27)))
+            .updateTotals(any(), any(), org.mockito.kotlin.eq(expectedRoi), org.mockito.kotlin.eq(BigDecimal("0.27")))
     }
 
     @Test
@@ -474,7 +474,7 @@ class PositionValuationServiceTest {
         // Then - verify updateTotals was called with XIRR (not ROI) since held > 365 days
         // Should use opened date (500 days ago) to determine holding period
         verify(calculationSupport, org.mockito.kotlin.times(3))
-            .updateTotals(any(), any(), org.mockito.kotlin.eq(expectedRoi), org.mockito.kotlin.eq(BigDecimal(0.18)))
+            .updateTotals(any(), any(), org.mockito.kotlin.eq(expectedRoi), org.mockito.kotlin.eq(BigDecimal("0.18")))
     }
 
     @Test
@@ -579,6 +579,6 @@ class PositionValuationServiceTest {
 
         // updateTotals should be called for gains calculation (3 times: trade/base/portfolio)
         verify(calculationSupport, org.mockito.kotlin.times(3))
-            .updateTotals(any(), any(), org.mockito.kotlin.eq(expectedRoi), org.mockito.kotlin.eq(BigDecimal(0.55)))
+            .updateTotals(any(), any(), org.mockito.kotlin.eq(expectedRoi), org.mockito.kotlin.eq(BigDecimal("0.55")))
     }
 }

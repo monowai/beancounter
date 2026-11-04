@@ -84,7 +84,8 @@ class PositionIrr(
      * IRR of [periodicCashFlows]. Zero is a real answer: a 0% return, or a series with no
      * IRR (no sign change, no cost basis), which [IrrCalculator.calculate] logs itself.
      */
-    fun of(periodicCashFlows: PeriodicCashFlows): BigDecimal = BigDecimal(irrCalculator.calculate(periodicCashFlows))
+    fun of(periodicCashFlows: PeriodicCashFlows): BigDecimal =
+        BigDecimal.valueOf(irrCalculator.calculate(periodicCashFlows))
 
     companion object {
         private const val COST_BASIS_SHORTFALL_TOLERANCE = 0.01

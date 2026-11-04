@@ -222,7 +222,7 @@ class AggregatePerformanceComposer(
         if (flows.size < 2) return null
         val periodic = PeriodicCashFlows()
         periodic.addAll(flows)
-        return BigDecimal(irrCalculator.calculate(periodic)).setScale(XIRR_SCALE, RoundingMode.HALF_UP)
+        return BigDecimal.valueOf(irrCalculator.calculate(periodic)).setScale(XIRR_SCALE, RoundingMode.HALF_UP)
     }
 
     private data class DisplaySnapshot(

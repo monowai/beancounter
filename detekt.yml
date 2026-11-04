@@ -17,8 +17,9 @@
 # - FunctionOnlyReturningConstant: ignores Spring request mappings and Spring AI
 #   @Tool methods. The framework needs a function there, and a stub controller or a
 #   view redirect returns a constant by design.
-# - TooManyFunctions: ignores @Query and @Bean functions. A Spring Data repository
-#   declares queries, not behaviour, and a config class has one @Bean per bean.
+# - TooManyFunctions: ignores @Query, @Bean and Spring AI @Tool functions. A Spring
+#   Data repository declares queries, not behaviour, a config class has one @Bean per
+#   bean, and a tool class exposes one @Tool per capability the model can call.
 # - LongParameterList: ignores @Entity classes, whose constructor is the table's
 #   columns.
 # - LongParameterList: excludes MdFactory (provider precedence order),
@@ -213,7 +214,7 @@ complexity:
     ignoreDeprecated: false
     ignorePrivate: false
     ignoreOverridden: false
-    ignoreAnnotatedFunctions: ['Query', 'Bean']
+    ignoreAnnotatedFunctions: ['Query', 'Bean', 'Tool']
 
 coroutines:
   active: true

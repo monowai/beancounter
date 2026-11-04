@@ -30,6 +30,7 @@ internal class PriceRefreshBenchmarkTest {
     private val spy = getTestAsset(US, "SPY")
     private val assetFinder = mock<AssetFinder>()
     private val marketDataService = mock<MarketDataService>()
+    private val utilityService = mock<MarketDataUtilityService>()
     private val priceService = mock<PriceService>()
 
     private fun priceRefresh(benchmarks: List<String>): PriceRefresh {
@@ -42,6 +43,7 @@ internal class PriceRefreshBenchmarkTest {
         return PriceRefresh(
             assetFinder,
             marketDataService,
+            utilityService,
             priceService,
             DateUtils(),
             benchmarks

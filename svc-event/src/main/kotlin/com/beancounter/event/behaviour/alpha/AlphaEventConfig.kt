@@ -19,7 +19,7 @@ class AlphaEventConfig {
     @Bean
     fun alphaEventAdapter(
         taxService: TaxService,
-        @Value("\${beancounter.events.dividend.days-to-add:${AlphaEventAdapter.DEFAULT_DAYS_TO_ADD}}")
+        @Value($$"${beancounter.events.dividend.days-to-add:$${AlphaEventAdapter.DEFAULT_DAYS_TO_ADD}}")
         daysToAdd: Long
     ): AlphaEventAdapter = AlphaEventAdapter(taxService, daysToAdd)
 }

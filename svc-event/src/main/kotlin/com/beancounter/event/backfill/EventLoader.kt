@@ -25,7 +25,7 @@ import java.util.concurrent.Executors
 @Service
 class EventLoader(
     config: EventLoaderConfig,
-    @Value("\${beancounter.events.dividend.days-to-add:10}")
+    @Value($$"${beancounter.events.dividend.days-to-add:10}")
     private val daysToAdd: Long = 10,
     private val dateUtils: DateUtils = DateUtils()
 ) {

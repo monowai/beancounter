@@ -33,7 +33,7 @@ class PositionService(
     private lateinit var tokenService: TokenService
     private val cashUtils = CashUtils()
 
-    @Value("\${position.url:http://localhost:9500/api}")
+    @Value($$"${position.url:http://localhost:9500/api}")
     private lateinit var positionUrl: String
 
     @Autowired

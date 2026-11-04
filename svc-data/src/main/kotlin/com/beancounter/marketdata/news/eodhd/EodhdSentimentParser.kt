@@ -31,10 +31,10 @@ data class SentimentPoint(
  *
  * The map only carries symbols EODHD has coverage for — a requested ticker with no articles is
  * simply absent, which is not an error. Keys are upper-cased so a caller can match them against
- * its own `CODE.EXCHANGE` tickers regardless of how EODHD echoes the symbol. Individual malformed points (non-numeric `normalized`,
- * unparseable `date`) are dropped with a WARN so one bad element never costs the whole batch;
- * a body that is not a JSON object at all throws [IllegalArgumentException] so the caller can
- * count the batch as failed.
+ * its own `CODE.EXCHANGE` tickers regardless of how EODHD echoes the symbol. Individual
+ * malformed points (non-numeric `normalized`, unparseable `date`) are dropped with a WARN so
+ * one bad element never costs the whole batch; a body that is not a JSON object at all throws
+ * [IllegalArgumentException] so the caller can count the batch as failed.
  */
 object EodhdSentimentParser {
     private val log = LoggerFactory.getLogger(EodhdSentimentParser::class.java)

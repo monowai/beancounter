@@ -5,16 +5,21 @@ import com.beancounter.common.utils.DateUtils
 import com.fasterxml.jackson.annotation.JsonIgnore
 
 /**
- * Represents a foreign exchange request for obtaining currency conversion rates for specified currency pairs on a given date.
- * This class stores a collection of unique currency pairs for which rates are requested and provides functionality to add currency pairs
- * related to various financial transactions like portfolio, cash management, and base currency operations.
+ * Represents a foreign exchange request for obtaining currency conversion rates for specified
+ * currency pairs on a given date. This class stores a collection of unique currency pairs for
+ * which rates are requested and provides functionality to add currency pairs related to various
+ * financial transactions like portfolio, cash management, and base currency operations.
  *
- * The currency pairs are stored in a way that ensures there are no duplicates, preserving the integrity of the request.
+ * The currency pairs are stored in a way that ensures there are no duplicates, preserving the
+ * integrity of the request.
  *
  * Usage:
- * - `add(isoCurrencyPair: IsoCurrencyPair?)`: Adds a new currency pair to the request if it isn't already present.
- * - `addTradePf(tradePf: IsoCurrencyPair?)`: Adds a currency pair related to portfolio transactions and ensures it's included in the rate request.
- * - `addTradeBase(tradeBase: IsoCurrencyPair?)`: Adds a currency pair used as the base in transactions.
+ * - `add(isoCurrencyPair: IsoCurrencyPair?)`: Adds a new currency pair to the request if it
+ *   isn't already present.
+ * - `addTradePf(tradePf: IsoCurrencyPair?)`: Adds a currency pair related to portfolio
+ *   transactions and ensures it's included in the rate request.
+ * - `addTradeBase(tradeBase: IsoCurrencyPair?)`: Adds a currency pair used as the base in
+ *   transactions.
  * - `addTradeCash(tradeCash: IsoCurrencyPair?)`: Adds a currency pair related to cash transactions.
  *
  * @property rateDate The date for which the exchange rates are requested, defaulting to today.

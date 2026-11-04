@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.assets.figi
 
+import com.beancounter.common.model.Market
 import com.beancounter.marketdata.assets.AssetRepository
 import com.beancounter.marketdata.markets.MarketService
 import org.slf4j.LoggerFactory
@@ -37,12 +38,7 @@ class FigiBackfillService(
         limit: Int,
         after: String? = null
     ): FigiBackfillResult {
-        val figiMarkets =
-            marketService
-                .getMarketMap()
-                .values
-                .filter { it.aliases[FigiProxy.FIGI] != null }
-                .associateBy { it.code }
+        val figiMarkets = figiMarkets()
         val candidates =
             assetRepository.findWithoutCompositeFigi(
                 figiMarkets.keys,
@@ -56,7 +52,8 @@ class FigiBackfillService(
         var lastId = after
         var failed: String? = null
         for (asset in candidates) {
-            // Outside the catch: the query only returns these markets, so a miss is a bug, not a provider error.
+            // Outside the catch: the query only returns these markets, so a miss is a bug,
+            // not a provider error.
             val market = figiMarkets.getValue(asset.marketCode)
             val compositeFigi =
                 try {
@@ -99,6 +96,14 @@ class FigiBackfillService(
         )
         return result
     }
+
+    /** Markets OpenFIGI can resolve, keyed by market code. */
+    private fun figiMarkets(): Map<String, Market> =
+        marketService
+            .getMarketMap()
+            .values
+            .filter { it.aliases[FigiProxy.FIGI] != null }
+            .associateBy { it.code }
 
     companion object {
         const val MAX_LIMIT = 200

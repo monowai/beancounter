@@ -94,22 +94,7 @@ class WebAuthFilterConfig {
 
     @Bean
     fun configureBcSecurity(http: HttpSecurity): SecurityFilterChain {
-        val corsConfiguration = CorsConfiguration()
-        corsConfiguration.allowedHeaders = headers
-        corsConfiguration.allowedOrigins = origins
-        corsConfiguration.allowedMethods =
-            listOf(
-                "GET",
-                "POST",
-                "PUT",
-                "DELETE",
-                "PUT",
-                "OPTIONS",
-                "PATCH",
-                "DELETE"
-            )
-        corsConfiguration.allowCredentials = true
-
+        val corsConfiguration = corsConfiguration()
         http
             .authorizeHttpRequests { auth ->
                 auth.requestMatchers("$actuatorPath/health/**").permitAll() // Anonymous probing
@@ -168,8 +153,17 @@ class WebAuthFilterConfig {
             }.oauth2ResourceServer { resourceServer ->
                 resourceServer.jwt(Customizer.withDefaults())
             }
-        corsConfiguration.exposedHeaders = exposedHeaders
         return http.build()
+    }
+
+    private fun corsConfiguration(): CorsConfiguration {
+        val corsConfiguration = CorsConfiguration()
+        corsConfiguration.allowedHeaders = headers
+        corsConfiguration.allowedOrigins = origins
+        corsConfiguration.allowedMethods = listOf("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH")
+        corsConfiguration.allowCredentials = true
+        corsConfiguration.exposedHeaders = exposedHeaders
+        return corsConfiguration
     }
 
     /**

@@ -35,13 +35,13 @@ import org.springframework.web.multipart.MultipartFile
 
 /**
  * The caller's own assets: list, update, delete, and CSV export and import.
+ *
+ * User scope only: the owner is the signed-in user, which a service (M2M) token does not have.
  */
 @RestController
 @RequestMapping("/assets")
 @CrossOrigin
-@PreAuthorize(
-    AuthConstants.USER_OR_SYSTEM
-)
+@PreAuthorize("hasAuthority('${AuthConstants.SCOPE_USER}')")
 @Tag(
     name = "Assets",
     description = "Asset management operations"

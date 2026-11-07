@@ -106,6 +106,7 @@ class WatchlistQuotes(
             addedPrice = addedPrice,
             addedOn = item.addedOn,
             targetPrice = target,
+            targetOn = targetOn,
             currency = item.asset.watchlistCurrency(),
             price = price,
             priceDate = latest?.priceDate,

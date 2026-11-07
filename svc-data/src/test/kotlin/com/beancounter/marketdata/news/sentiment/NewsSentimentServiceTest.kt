@@ -84,6 +84,11 @@ internal class NewsSentimentServiceTest {
     private val absentId = "snt-absent"
     private val failingId = "snt-failing"
 
+    // Relative to today: refresh keeps only points inside its look-back window, so a fixed date
+    // ages out of it.
+    private val latestDay: LocalDate get() = dateUtils.date.minusDays(1)
+    private val priorDay: LocalDate get() = dateUtils.date.minusDays(2)
+
     @BeforeEach
     fun setUp() {
         repo.deleteAll()
@@ -112,9 +117,9 @@ internal class NewsSentimentServiceTest {
         whenever(eodhdProxy.getSentiments(eq("SNTA.US"), any(), any()))
             .thenReturn(
                 """
-                {"SNTA.US":[{"date":"2026-10-06","count":$count,"normalized":$normalized},
-                            {"date":"2026-10-05","count":25,"normalized":0.807}],
-                 "TSCO.LSE":[{"date":"2026-10-05","count":3,"normalized":0.5133}]}
+                {"SNTA.US":[{"date":"$latestDay","count":$count,"normalized":$normalized},
+                            {"date":"$priorDay","count":25,"normalized":0.807}],
+                 "TSCO.LSE":[{"date":"$priorDay","count":3,"normalized":0.5133}]}
                 """.trimIndent()
             )
     }
@@ -127,7 +132,7 @@ internal class NewsSentimentServiceTest {
 
         val rows = repo.findByAssetIdInAndPriceDateGreaterThanEqualOrderByPriceDateAsc(listOf(coveredId), epoch)
         assertThat(rows).hasSize(2)
-        assertThat(rows.last().priceDate).isEqualTo(LocalDate.parse("2026-10-06"))
+        assertThat(rows.last().priceDate).isEqualTo(latestDay)
         assertThat(rows.last().articleCount).isEqualTo(27)
         assertThat(rows.last().normalized).isEqualByComparingTo(BigDecimal("0.8937"))
         assertThat(rows.last().symbol).isEqualTo("SNTA.US")
@@ -149,7 +154,7 @@ internal class NewsSentimentServiceTest {
     @Test
     fun `refresh persists rows when EODHD echoes the symbol in a different case`() {
         whenever(eodhdProxy.getSentiments(eq("SNTA.US"), any(), any()))
-            .thenReturn("""{"snta.us":[{"date":"2026-10-06","count":9,"normalized":0.25}]}""")
+            .thenReturn("""{"snta.us":[{"date":"$latestDay","count":9,"normalized":0.25}]}""")
 
         service.refresh()
 
@@ -170,7 +175,7 @@ internal class NewsSentimentServiceTest {
         val rows =
             repo
                 .findByAssetIdInAndPriceDateGreaterThanEqualOrderByPriceDateAsc(listOf(coveredId), epoch)
-                .filter { it.priceDate == LocalDate.parse("2026-10-06") }
+                .filter { it.priceDate == latestDay }
         assertThat(rows).hasSize(1)
         assertThat(rows.single().articleCount).isEqualTo(30)
         assertThat(rows.single().normalized).isEqualByComparingTo(BigDecimal("0.75"))

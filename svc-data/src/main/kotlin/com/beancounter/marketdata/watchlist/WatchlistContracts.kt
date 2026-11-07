@@ -40,8 +40,8 @@ data class WatchlistView(
  * today's share basis: [addedPrice] and [targetPrice] are rebased across splits since they were
  * entered. Percentages are fractions (0.25 = 25%), matching MarketData.changePercent.
  * Price-derived fields are null when the asset has no price; [toTarget] is also null without a
- * target. [targetHitOn] is the close date the target was reached on; null while it is armed or
- * without a target.
+ * target. [targetOn] is the date the target was set; null without a target. [targetHitOn] is
+ * the close date the target was reached on; null while it is armed or without a target.
  */
 data class WatchlistItemView(
     val id: String,
@@ -50,6 +50,8 @@ data class WatchlistItemView(
     @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
     val addedOn: LocalDate,
     val targetPrice: BigDecimal?,
+    @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    val targetOn: LocalDate?,
     val currency: Currency,
     val price: BigDecimal?,
     @param:JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")

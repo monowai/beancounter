@@ -450,6 +450,18 @@ class WatchlistControllerTest {
     }
 
     @Test
+    fun `should report the date the target was set and drop it with the target`() {
+        val itemId = addedId(mapOf("assetId" to asset("WLTARGETSET").id, "addedPrice" to 10))
+        assertThat(item(itemId).path("targetOn").isNull).isTrue()
+
+        val set = call(patch(ITEM, itemId), tokenA, status().isOk, mapOf("targetPrice" to 15)).path("data")
+        assertThat(set.path("targetOn").asString()).isEqualTo(dateUtils.date.toString())
+
+        val cleared = call(patch(ITEM, itemId), tokenA, status().isOk, mapOf("clearTarget" to true)).path("data")
+        assertThat(cleared.path("targetOn").isNull).isTrue()
+    }
+
+    @Test
     fun `should return 400 when clearing and setting target together`() {
         val itemId = addedId(mapOf("assetId" to asset("WLAMBIG").id, "addedPrice" to 10))
 

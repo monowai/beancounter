@@ -16,18 +16,18 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 /**
- * Unit tests for [TreasuryYieldFetcher] — the cached FRED `fredgraph.csv` parse layer shared by
+ * Unit tests for [FredSeriesFetcher] — the cached FRED `fredgraph.csv` parse layer shared by
  * [TreasuryYieldService] and [MacroRefreshSchedule].
  */
-class TreasuryYieldFetcherTest {
+class FredSeriesFetcherTest {
     private val today = LocalDate.of(2026, 10, 7)
 
-    private fun fetcherReturning(csv: String): Pair<TreasuryYieldFetcher, FredGateway> {
+    private fun fetcherReturning(csv: String): Pair<FredSeriesFetcher, FredGateway> {
         val gateway = mock<FredGateway>()
         whenever(gateway.getSeriesCsv(any(), any())).thenReturn(csv)
         val dateUtils = mock<DateUtils>()
         whenever(dateUtils.date).thenReturn(today)
-        return TreasuryYieldFetcher(gateway, dateUtils) to gateway
+        return FredSeriesFetcher(gateway, dateUtils) to gateway
     }
 
     @Test
@@ -36,7 +36,7 @@ class TreasuryYieldFetcherTest {
 
         fetcher.fetch("DGS10")
 
-        verify(gateway).getSeriesCsv("DGS10", today.minusDays(TreasuryYieldFetcher.WINDOW_DAYS))
+        verify(gateway).getSeriesCsv("DGS10", today.minusDays(FredSeriesFetcher.WINDOW_DAYS))
     }
 
     @Test
@@ -83,7 +83,7 @@ class TreasuryYieldFetcherTest {
     @Test
     fun `non-blank body with no parseable rows is logged as a warning`() {
         val (fetcher, _) = fetcherReturning("<html>rate limited</html>")
-        val logger = LoggerFactory.getLogger(TreasuryYieldFetcher::class.java) as Logger
+        val logger = LoggerFactory.getLogger(FredSeriesFetcher::class.java) as Logger
         val appender = ListAppender<ILoggingEvent>().apply { start() }
         logger.addAppender(appender)
         try {

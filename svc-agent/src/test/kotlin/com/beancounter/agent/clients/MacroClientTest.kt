@@ -2,6 +2,7 @@ package com.beancounter.agent.clients
 
 import com.beancounter.auth.TokenService
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.hamcrest.Matchers.allOf
 import org.hamcrest.Matchers.containsString
 import org.junit.jupiter.api.Test
@@ -90,7 +91,38 @@ class MacroClientTest {
         server.verify()
     }
 
+    @Test
+    fun `getCalendar requests the calendar endpoint with bearer header`() {
+        val (client, server) = clientWithServer()
+        server
+            .expect(method(HttpMethod.GET))
+            .andExpect(requestTo(containsString("/macro/calendar")))
+            .andExpect(header("Authorization", BEARER))
+            .andRespond(withSuccess(CALENDAR_JSON, MediaType.APPLICATION_JSON))
+
+        val result = client.getCalendar()
+
+        assertThat(result["country"]).isEqualTo("US")
+        server.verify()
+    }
+
+    @Test
+    fun `getCalendar throws when the response body is missing`() {
+        val (client, server) = clientWithServer()
+        server
+            .expect(method(HttpMethod.GET))
+            .andExpect(requestTo(containsString("/macro/calendar")))
+            .andRespond(withSuccess())
+
+        assertThatThrownBy { client.getCalendar() }
+            .isInstanceOf(IllegalStateException::class.java)
+            .hasMessageContaining("/macro/calendar")
+        server.verify()
+    }
+
     private companion object {
+        const val CALENDAR_JSON =
+            """{"asOf":"2026-11-10","country":"US","recent":[],"upcoming":[]}"""
         const val BASE_URL = "http://bc-data"
         const val BEARER = "Bearer test"
         const val INDICATORS_JSON =

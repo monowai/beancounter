@@ -9,12 +9,12 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 /**
- * Unit tests for [TreasuryYieldService] with [TreasuryYieldFetcher] mocked. Pins the sparse
+ * Unit tests for [TreasuryYieldService] with [FredSeriesFetcher] mocked. Pins the sparse
  * point-selection and changeBps arithmetic, and the "omit rather than fail" contract for a
  * maturity with no upstream data.
  */
 class TreasuryYieldServiceTest {
-    private val fetcher = mock<TreasuryYieldFetcher>()
+    private val fetcher = mock<FredSeriesFetcher>()
     private val service = TreasuryYieldService(fetcher)
 
     private val today = LocalDate.of(2026, 9, 9)
@@ -22,7 +22,7 @@ class TreasuryYieldServiceTest {
     private fun point(
         daysAgo: Long,
         value: String
-    ): YieldPoint = YieldPoint(today.minusDays(daysAgo), BigDecimal(value))
+    ): SeriesPoint = SeriesPoint(today.minusDays(daysAgo), BigDecimal(value))
 
     @Test
     fun `projects latest, lookback and changeBps for each maturity`() {

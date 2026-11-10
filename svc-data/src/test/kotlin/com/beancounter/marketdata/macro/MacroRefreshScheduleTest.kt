@@ -9,7 +9,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 
 /**
- * Pure-unit coverage for [MacroRefreshSchedule]. Confirms `refresh()` fires all four warm-up /
+ * Pure-unit coverage for [MacroRefreshSchedule]. Confirms `refresh()` fires all five warm-up /
  * housekeeping steps and that each is wrapped independently — one step's failure must never stop
  * the others. Mirrors [com.beancounter.marketdata.news.NewsRetentionScheduleTest].
  *
@@ -21,10 +21,12 @@ internal class MacroRefreshScheduleTest {
     private val newsServiceFacade = mock<NewsServiceFacade>()
     private val treasuryYieldService = mock<TreasuryYieldService>()
     private val rateExpectationsService = mock<RateExpectationsService>()
-    private val schedule = MacroRefreshSchedule(newsServiceFacade, treasuryYieldService, rateExpectationsService)
+    private val economicCalendarService = mock<EconomicCalendarService>()
+    private val schedule =
+        MacroRefreshSchedule(newsServiceFacade, treasuryYieldService, rateExpectationsService, economicCalendarService)
 
     @Test
-    fun `refresh warms topic news, treasury yields, snapshots rate expectations and prunes old observations`() {
+    fun `refresh warms news, yields and the economic calendar, snapshots rate odds and prunes`() {
         whenever(newsServiceFacade.getTopicNews(any())).thenReturn(emptyMap())
         whenever(treasuryYieldService.getYields()).thenReturn(emptyList())
 
@@ -34,6 +36,21 @@ internal class MacroRefreshScheduleTest {
         verify(treasuryYieldService).getYields()
         verify(rateExpectationsService).snapshot()
         // Default MacroScheduleProperties().retentionDays == 90.
+        verify(rateExpectationsService).prune(90)
+        verify(economicCalendarService).getCalendar()
+    }
+
+    @Test
+    fun `a failing economic calendar warm-up does not stop the other steps`() {
+        whenever(newsServiceFacade.getTopicNews(any())).thenReturn(emptyMap())
+        whenever(treasuryYieldService.getYields()).thenReturn(emptyList())
+        whenever(economicCalendarService.getCalendar()).thenThrow(RuntimeException("FRED down"))
+
+        schedule.refresh()
+
+        verify(newsServiceFacade).getTopicNews(any())
+        verify(treasuryYieldService).getYields()
+        verify(rateExpectationsService).snapshot()
         verify(rateExpectationsService).prune(90)
     }
 
@@ -94,6 +111,7 @@ internal class MacroRefreshScheduleTest {
                 newsServiceFacade,
                 treasuryYieldService,
                 rateExpectationsService,
+                economicCalendarService,
                 MacroScheduleProperties(retentionDays = 30)
             )
         whenever(newsServiceFacade.getTopicNews(any())).thenReturn(emptyMap())

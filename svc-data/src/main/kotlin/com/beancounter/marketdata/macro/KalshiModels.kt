@@ -3,13 +3,14 @@ package com.beancounter.marketdata.macro
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties
 import com.fasterxml.jackson.annotation.JsonProperty
 import java.math.BigDecimal
+import java.math.RoundingMode
 import java.time.OffsetDateTime
 
 /**
  * Response DTOs for the public (no-auth) Kalshi trade API.
  *
  * `ignoreUnknown = true` throughout — Kalshi ships many more fields than BC needs (rules text,
- * strike details, ...) and the contract isn't ours to pin.
+ * cap strikes, ...) and the contract isn't ours to pin.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 data class KalshiEventsResponse(
@@ -53,5 +54,29 @@ data class KalshiMarket(
     @JsonProperty("yes_ask_dollars")
     val yesAskDollars: BigDecimal? = null,
     @JsonProperty("volume_24h_fp")
-    val volume24hFp: BigDecimal? = null
-)
+    val volume24hFp: BigDecimal? = null,
+    /** `greater` for an "Above X" threshold market, where [floorStrike] is X. */
+    @JsonProperty("strike_type")
+    val strikeType: String? = null,
+    @JsonProperty("floor_strike")
+    val floorStrike: BigDecimal? = null
+) {
+    /**
+     * Implied probability of YES: the mid of the yes bid and ask, falling back to the last trade
+     * when either side is missing. Null when the market has no quotes and no trades.
+     */
+    fun impliedProbability(): BigDecimal? {
+        val bid = yesBidDollars
+        val ask = yesAskDollars
+        return if (bid != null && ask != null) {
+            bid.add(ask).divide(TWO, PROBABILITY_SCALE, RoundingMode.HALF_UP)
+        } else {
+            lastPriceDollars
+        }
+    }
+
+    private companion object {
+        const val PROBABILITY_SCALE = 6
+        val TWO = BigDecimal(2)
+    }
+}

@@ -166,4 +166,36 @@ class MacroToolsTest {
         assertThat(result["status"]).isEqualTo("no_coverage")
         assertThat(result["message"]).isNotNull()
     }
+
+    @Test
+    fun `getEconomicCalendar delegates to the client and passes the payload through untouched`() {
+        val calendar: Map<String, Any> =
+            mapOf(
+                "country" to "US",
+                "recent" to listOf(mapOf("indicator" to "CPI_YOY", "value" to 3.1, "prior" to 3.0)),
+                "upcoming" to emptyList<Any>()
+            )
+        val client =
+            mock<MacroClient> {
+                on { getCalendar() } doReturn calendar
+            }
+
+        val result = MacroTools(client).getEconomicCalendar()
+
+        assertThat(result).isSameAs(calendar)
+    }
+
+    @Test
+    fun `getEconomicCalendar returns no_coverage when recent and upcoming are both empty`() {
+        val client =
+            mock<MacroClient> {
+                on { getCalendar() } doReturn
+                    mapOf("country" to "US", "recent" to emptyList<Any>(), "upcoming" to emptyList<Any>())
+            }
+
+        val result = MacroTools(client).getEconomicCalendar()
+
+        assertThat(result["status"]).isEqualTo("no_coverage")
+        assertThat(result["message"]).isNotNull()
+    }
 }

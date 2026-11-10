@@ -13,7 +13,8 @@ import java.time.OffsetDateTime
  * Fed rate-decision market odds from the public Kalshi API (`KXFEDDECISION` series).
  *
  * [getRateExpectations] is cached for 10 minutes (`macro.rate.expectations`, registered in
- * `CacheConfig`) — [nearestOpenEvent] costs one Kalshi `/markets` call per open event, and
+ * `CacheConfig`) — [nearestOpenEvent] costs one Kalshi `/markets` call per open event (see
+ * [KalshiGateway.nearestOpenEvent]), and
  * re-running that on every request is unnecessary N+1 traffic when odds only move gradually.
  * [snapshot] and [prune] are NOT cached: [snapshot] calls [nearestOpenEvent] directly (never
  * [getRateExpectations]), so a cache hit never short-circuits the odds actually persisted as a
@@ -73,42 +74,16 @@ class RateExpectationsService(
         return macroObservationRepo.deleteByObservedAtBefore(cutoff)
     }
 
-    /**
-     * The open KXFEDDECISION event whose nearest market close_time is soonest in the future.
-     * Kalshi's `/events` response carries no close_time itself, so each candidate event's markets
-     * are fetched to discover it — the winning event's markets are reused for outcome projection,
-     * so this costs exactly one `/markets` call per open event, not two.
-     */
-    private fun nearestOpenEvent(): CandidateEvent? {
-        val events = kalshiGateway.getEvents(SERIES_TICKER).events
-        if (events.isEmpty()) return null
-
-        val now = OffsetDateTime.now(dateUtils.zoneId)
-        return events
-            .mapNotNull { event ->
-                val markets = kalshiGateway.getMarkets(event.eventTicker).markets
-                val closeTime = markets.mapNotNull { it.closeTime }.filter { it.isAfter(now) }.minOrNull()
-                closeTime?.let { CandidateEvent(event, markets, it) }
-            }.minByOrNull { it.closeTime }
-    }
+    private fun nearestOpenEvent(): KalshiCandidateEvent? =
+        kalshiGateway.nearestOpenEvent(FED_DECISION_SERIES, OffsetDateTime.now(dateUtils.zoneId))
 
     private fun toOutcome(market: KalshiMarket): RateOutcome? {
         val label =
             market.yesSubTitle?.takeIf { it.isNotBlank() }
                 ?: market.subtitle?.takeIf { it.isNotBlank() }
                 ?: return null
-        val probability = probabilityFor(market) ?: return null
+        val probability = market.impliedProbability() ?: return null
         return RateOutcome(label = label, probability = probability, volume24h = market.volume24hFp)
-    }
-
-    private fun probabilityFor(market: KalshiMarket): BigDecimal? {
-        val bid = market.yesBidDollars
-        val ask = market.yesAskDollars
-        return when {
-            bid != null && ask != null -> bid.add(ask).divide(TWO, PROBABILITY_SCALE, RoundingMode.HALF_UP)
-            market.lastPriceDollars != null -> market.lastPriceDollars
-            else -> null
-        }
     }
 
     private fun buildTrend(
@@ -143,18 +118,10 @@ class RateExpectationsService(
      */
     private fun metricFor(label: String): String = label.take(MAX_METRIC_LENGTH)
 
-    private data class CandidateEvent(
-        val event: KalshiEvent,
-        val markets: List<KalshiMarket>,
-        val closeTime: OffsetDateTime
-    )
-
     companion object {
-        private const val SERIES_TICKER = "KXFEDDECISION"
+        const val FED_DECISION_SERIES = "KXFEDDECISION"
         private const val SERIES_PREFIX = "KALSHI:"
         private const val TREND_MIN_AGE_DAYS = 6L
-        private const val PROBABILITY_SCALE = 6
-        private val TWO = BigDecimal(2)
 
         // Matches MacroObservation.metric's VARCHAR(255) column (V34 migration).
         private const val MAX_METRIC_LENGTH = 255

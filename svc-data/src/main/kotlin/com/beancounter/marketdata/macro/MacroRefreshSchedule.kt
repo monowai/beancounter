@@ -8,8 +8,8 @@ import org.springframework.scheduling.annotation.Scheduled
 import org.springframework.stereotype.Service
 
 /**
- * Warms macro data every 6 hours: broad topic news, treasury yields, a Fed rate-expectations
- * snapshot (needed for [RateExpectationsService]'s trend delta, since the public Kalshi API
+ * Warms macro data every 6 hours: broad topic news, treasury yields, the economic calendar, a Fed
+ * rate-expectations snapshot (needed for [RateExpectationsService]'s trend delta, since the public Kalshi API
  * exposes no history of its own), and a retention prune of old [MacroObservation] snapshot rows
  * (one row per outcome every 6 hours, forever, unless pruned).
  *
@@ -19,7 +19,7 @@ import org.springframework.stereotype.Service
  * facade as plain strings.
  *
  * Gated on `schedule.enabled=true`, same pattern as
- * [com.beancounter.marketdata.news.NewsRetentionSchedule]. Each of the four
+ * [com.beancounter.marketdata.news.NewsRetentionSchedule]. Each of the five
  * steps is wrapped independently so one failure doesn't skip the others.
  *
  * The prune step delegates to [RateExpectationsService.prune] rather than pruning in-class: that
@@ -39,6 +39,7 @@ class MacroRefreshSchedule(
     private val newsServiceFacade: NewsServiceFacade,
     private val treasuryYieldService: TreasuryYieldService,
     private val rateExpectationsService: RateExpectationsService,
+    private val economicCalendarService: EconomicCalendarService,
     private val scheduleProperties: MacroScheduleProperties = MacroScheduleProperties()
 ) {
     @Scheduled(cron = "0 0 */6 * * *", zone = "#{@scheduleZone}")
@@ -51,6 +52,8 @@ class MacroRefreshSchedule(
             .onFailure { log.warn("Rate expectations snapshot failed", it) }
         runCatching { rateExpectationsService.prune(scheduleProperties.retentionDays) }
             .onFailure { log.warn("Macro observation prune failed", it) }
+        runCatching { economicCalendarService.getCalendar() }
+            .onFailure { log.warn("Economic calendar refresh failed", it) }
     }
 
     companion object {

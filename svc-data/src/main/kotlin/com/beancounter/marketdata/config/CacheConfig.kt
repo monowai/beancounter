@@ -1,5 +1,8 @@
 package com.beancounter.marketdata.config
 
+import com.beancounter.marketdata.macro.EconomicCalendarService
+import com.beancounter.marketdata.macro.FredSeriesFetcher
+import com.beancounter.marketdata.macro.RateExpectationsService
 import com.github.benmanes.caffeine.cache.Caffeine
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
@@ -40,15 +43,22 @@ class CacheConfig {
             } + CaffeineCache("alpha.asset.event", ASSET_EVENT_TTL, ASSET_EVENT_MAX_ENTRIES) +
                 CaffeineCache("eodhd.asset.event", ASSET_EVENT_TTL, ASSET_EVENT_MAX_ENTRIES) +
                 CaffeineCache("news.sentiment", NEWS_SENTIMENT_TTL, NEWS_SENTIMENT_MAX_ENTRIES) +
-                // FRED treasury yields — shared by the /macro/indicators endpoint and
-                // MacroRefreshSchedule's warm-up fetch, keyed by FRED series id (DGS10/DGS2). TTL
-                // matches the news-refresh cadence rather than daily-only since intraday requests
-                // shouldn't re-download a full-history CSV for a series that only moves once a day.
-                CaffeineCache("macro.treasury.yield", TREASURY_YIELD_TTL, TREASURY_YIELD_MAX_ENTRIES) +
+                // FRED series — treasury yields (/macro/indicators) and monthly payrolls,
+                // unemployment and CPI (/macro/calendar), plus MacroRefreshSchedule's warm-up
+                // fetch, keyed by FRED series id. TTL matches the news-refresh cadence: intraday
+                // requests shouldn't re-download a CSV for a series that moves at most once a day.
+                CaffeineCache(FredSeriesFetcher.CACHE_NAME, FRED_SERIES_TTL, FRED_SERIES_MAX_ENTRIES) +
                 // Fed rate-decision odds — avoids one Kalshi /markets call per open event on
                 // every /macro/rate-expectations request. Small size: at most one open
                 // KXFEDDECISION event is realistically live at a time.
-                CaffeineCache("macro.rate.expectations", RATE_EXPECTATIONS_TTL, RATE_EXPECTATIONS_MAX_ENTRIES) +
+                CaffeineCache(
+                    RateExpectationsService.CACHE_NAME,
+                    RATE_EXPECTATIONS_TTL,
+                    RATE_EXPECTATIONS_MAX_ENTRIES
+                ) +
+                // US economic calendar — a miss costs one Kalshi /markets call per open event across
+                // five series. Releases are days apart, so an hour is fresh enough. One entry.
+                CaffeineCache(EconomicCalendarService.CACHE_NAME, ECONOMIC_CALENDAR_TTL, 1) +
                 // Auth0 M2M client-credentials tokens carry a 24h TTL. A ConcurrentMapCache never
                 // expires entries, so a pod living longer than that serves a stale token forever -
                 // every setAuthContext() call then throws JwtException. Expire well inside the
@@ -73,10 +83,11 @@ class CacheConfig {
         private const val ASSET_EVENT_MAX_ENTRIES = 200L
         private val NEWS_SENTIMENT_TTL = Duration.ofMinutes(30)
         private const val NEWS_SENTIMENT_MAX_ENTRIES = 100L
-        private val TREASURY_YIELD_TTL = Duration.ofHours(6)
-        private const val TREASURY_YIELD_MAX_ENTRIES = 20L
+        private val FRED_SERIES_TTL = Duration.ofHours(6)
+        private const val FRED_SERIES_MAX_ENTRIES = 20L
         private val RATE_EXPECTATIONS_TTL = Duration.ofMinutes(10)
         private const val RATE_EXPECTATIONS_MAX_ENTRIES = 5L
+        private val ECONOMIC_CALENDAR_TTL = Duration.ofHours(1)
         private val M2M_TOKEN_TTL = Duration.ofHours(12)
 
         private val DEFAULT_CACHES =

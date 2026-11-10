@@ -13,20 +13,25 @@ import org.springframework.web.bind.annotation.RequestParam
 import org.springframework.web.bind.annotation.RestController
 
 /**
- * Macro market context: treasury yields, oil-proxy moves, and Fed rate-decision odds.
+ * Macro market context: treasury yields, oil-proxy moves, Fed rate-decision odds, and the
+ * economic calendar.
  *
- * Thin — both endpoints delegate straight to their service; see [MacroIndicatorsService] and
- * [RateExpectationsService] for the actual composition/projection logic.
+ * Thin — every endpoint delegates straight to its service; see [MacroIndicatorsService],
+ * [RateExpectationsService] and [EconomicCalendarService] for the composition/projection logic.
  */
 @RestController
 @RequestMapping("/macro")
 @PreAuthorize(
     "hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')"
 )
-@Tag(name = "Macro", description = "Macro market context: treasury yields, oil proxies, Fed rate-decision odds")
+@Tag(
+    name = "Macro",
+    description = "Macro market context: treasury yields, oil proxies, Fed rate-decision odds, economic calendar"
+)
 class MacroController(
     private val macroIndicatorsService: MacroIndicatorsService,
-    private val rateExpectationsService: RateExpectationsService
+    private val rateExpectationsService: RateExpectationsService,
+    private val economicCalendarService: EconomicCalendarService
 ) {
     @GetMapping("/indicators", produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
@@ -55,4 +60,14 @@ class MacroController(
         val result = rateExpectationsService.getRateExpectations()
         return if (result != null) ResponseEntity.ok(result) else ResponseEntity.noContent().build()
     }
+
+    @GetMapping("/calendar", produces = [MediaType.APPLICATION_JSON_VALUE])
+    @Operation(
+        summary = "Get the US economic calendar",
+        description =
+            "Latest payrolls, unemployment and CPI prints with their prior values, and upcoming " +
+                "releases (including the next Fed decision) with market-implied expectations " +
+                "where available. Entries that fail upstream are omitted, not null."
+    )
+    fun getCalendar(): EconomicCalendarResponse = economicCalendarService.getCalendar()
 }

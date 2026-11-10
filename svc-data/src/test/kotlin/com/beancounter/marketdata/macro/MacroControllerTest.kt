@@ -19,7 +19,8 @@ import java.time.OffsetDateTime
 internal class MacroControllerTest {
     private val indicatorsService = mock<MacroIndicatorsService>()
     private val rateExpectationsService = mock<RateExpectationsService>()
-    private val controller = MacroController(indicatorsService, rateExpectationsService)
+    private val economicCalendarService = mock<EconomicCalendarService>()
+    private val controller = MacroController(indicatorsService, rateExpectationsService, economicCalendarService)
 
     @Test
     fun `getIndicators delegates the requested lookbackDays to the indicators service`() {
@@ -68,5 +69,15 @@ internal class MacroControllerTest {
 
         assertThat(result.statusCode).isEqualTo(HttpStatus.NO_CONTENT)
         assertThat(result.body).isNull()
+    }
+
+    @Test
+    fun `getCalendar delegates to the economic calendar service`() {
+        val expected = EconomicCalendarResponse(LocalDate.now(), "US", emptyList(), emptyList())
+        whenever(economicCalendarService.getCalendar()).thenReturn(expected)
+
+        val result = controller.getCalendar()
+
+        assertThat(result).isSameAs(expected)
     }
 }

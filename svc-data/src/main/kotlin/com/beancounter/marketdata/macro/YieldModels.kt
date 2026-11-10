@@ -4,9 +4,9 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 /**
- * One sampled point on a treasury-yield curve series.
+ * One dated observation of a FRED series (a daily yield, or a monthly index or level).
  */
-data class YieldPoint(
+data class SeriesPoint(
     val date: LocalDate,
     val value: BigDecimal
 )
@@ -25,5 +25,5 @@ data class YieldSeries(
     val lookback: BigDecimal,
     val lookbackDate: LocalDate,
     val changeBps: BigDecimal,
-    val points: List<YieldPoint>
+    val points: List<SeriesPoint>
 )

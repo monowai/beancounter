@@ -113,7 +113,30 @@ class KalshiGatewayTest {
         server.verify()
     }
 
+    @Test
+    fun `strike type and floor strike are parsed for threshold ladders`() {
+        val (gateway, server) = gatewayWithServer()
+        server
+            .expect(method(HttpMethod.GET))
+            .andExpect(requestTo(containsString("/trade-api/v2/markets")))
+            .andRespond(withSuccess(LADDER_MARKETS_JSON, MediaType.APPLICATION_JSON))
+
+        val market = gateway.getMarkets("KXPAYROLLS-26NOV").markets.single()
+
+        assertThat(market.strikeType).isEqualTo("greater")
+        assertThat(market.floorStrike).isEqualByComparingTo("-25000")
+        server.verify()
+    }
+
     private companion object {
+        const val LADDER_MARKETS_JSON =
+            """
+            {"markets":[
+              {"ticker":"KXPAYROLLS-26NOV-T-25000","yes_sub_title":"Above -25,000","strike_type":"greater",
+               "floor_strike":-25000,"close_time":"2026-12-04T13:29:00Z","yes_bid_dollars":"0.9200",
+               "yes_ask_dollars":"0.9800"}
+            ]}
+            """
         const val BASE_URL = "https://api.elections.kalshi.com"
         const val EVENTS_JSON =
             """{"events":[{"event_ticker":"KXFEDDECISION-26SEP","title":"Fed decision September 2026"}]}"""

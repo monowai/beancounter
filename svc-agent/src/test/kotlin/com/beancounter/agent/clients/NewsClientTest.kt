@@ -19,16 +19,16 @@ import org.springframework.test.web.client.response.MockRestResponseCreators.wit
 import org.springframework.web.client.RestClient
 
 /**
- * Drives [AlphaVantageNewsClient] against a [MockRestServiceServer] so the URI assembly and the
+ * Drives [NewsClient] against a [MockRestServiceServer] so the URI assembly and the
  * bearer header are pinned without standing up svc-data.
  */
-class AlphaVantageNewsClientTest {
+class NewsClientTest {
     private val tokenService = mock<TokenService> { on { bearerToken } doReturn BEARER }
 
-    private fun clientWithServer(): Pair<AlphaVantageNewsClient, MockRestServiceServer> {
+    private fun clientWithServer(): Pair<NewsClient, MockRestServiceServer> {
         val builder = RestClient.builder().baseUrl(BASE_URL)
         val server = MockRestServiceServer.bindTo(builder).build()
-        return AlphaVantageNewsClient(builder.build(), tokenService) to server
+        return NewsClient(builder.build(), tokenService) to server
     }
 
     @Test

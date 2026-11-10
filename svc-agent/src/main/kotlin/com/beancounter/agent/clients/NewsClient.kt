@@ -8,11 +8,11 @@ import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
 
 /**
- * Client for news and sentiment data via svc-data's news endpoint.
- * svc-data handles the Alpha Vantage integration internally.
+ * Client for news and sentiment data via svc-data's `/news` endpoints. svc-data owns the news
+ * provider integration; this client never names or calls a provider.
  */
 @Service
-class AlphaVantageNewsClient(
+class NewsClient(
     @Qualifier("bcDataRestClient")
     private val restClient: RestClient,
     private val tokenService: TokenService

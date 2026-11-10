@@ -21,7 +21,7 @@ import org.springframework.web.client.RestClient
 
 /**
  * Drives [MacroClient] against a [MockRestServiceServer] so the URI assembly and the bearer
- * header are pinned without standing up svc-data. Mirrors [AlphaVantageNewsClientTest].
+ * header are pinned without standing up svc-data. Mirrors [NewsClientTest].
  */
 class MacroClientTest {
     private val tokenService = mock<TokenService> { on { bearerToken } doReturn BEARER }

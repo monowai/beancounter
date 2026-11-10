@@ -11,7 +11,7 @@ import org.springframework.web.client.RestClient
  * Client for macro market context via svc-data's `/macro` endpoints: treasury yields, oil-proxy
  * moves, Fed rate-decision odds, and the US economic calendar. svc-data owns the upstream
  * integrations; this client returns the raw response bodies untouched, same style as
- * [AlphaVantageNewsClient].
+ * [NewsClient].
  */
 @Service
 class MacroClient(

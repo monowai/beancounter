@@ -15,7 +15,7 @@ import org.springframework.web.client.RestClient
 /**
  * Drives [KalshiGateway] against a [MockRestServiceServer] so the URI assembly and JSON tolerance
  * (unknown fields, null dollar fields) are pinned without hitting the real Kalshi API. Mirrors the
- * technique used by svc-agent's `AlphaVantageNewsClientTest`.
+ * technique used by svc-agent's `NewsClientTest`.
  */
 class KalshiGatewayTest {
     private fun gatewayWithServer(): Pair<KalshiGateway, MockRestServiceServer> {

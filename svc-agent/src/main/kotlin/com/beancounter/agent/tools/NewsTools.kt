@@ -1,7 +1,7 @@
 package com.beancounter.agent.tools
 
 import com.beancounter.agent.client.AssetClient
-import com.beancounter.agent.clients.AlphaVantageNewsClient
+import com.beancounter.agent.clients.NewsClient
 import org.slf4j.LoggerFactory
 import org.springframework.ai.tool.annotation.Tool
 import org.springframework.ai.tool.annotation.ToolParam
@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service
  */
 @Service
 class NewsTools(
-    private val newsClient: AlphaVantageNewsClient,
+    private val newsClient: NewsClient,
     private val assetClient: AssetClient
 ) {
     private val log = LoggerFactory.getLogger(NewsTools::class.java)

@@ -1,7 +1,7 @@
 package com.beancounter.agent.tools
 
 import com.beancounter.agent.client.AssetClient
-import com.beancounter.agent.clients.AlphaVantageNewsClient
+import com.beancounter.agent.clients.NewsClient
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import org.assertj.core.api.Assertions.assertThat
@@ -20,7 +20,7 @@ import java.math.BigDecimal
  * prior-week comparison out, with every topic, sector and ticker kept as its own entry.
  */
 class SentimentTrendToolsTest {
-    private val newsClient = mock<AlphaVantageNewsClient>()
+    private val newsClient = mock<NewsClient>()
     private val assetClient = mock<AssetClient>()
     private val tools = NewsTools(newsClient, assetClient)
 

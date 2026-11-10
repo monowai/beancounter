@@ -26,7 +26,10 @@ class MarketSentimentSchedule(
         // Exception, not Throwable: an Error or interrupt must still reach the scheduler.
         try {
             marketSentimentService.refresh()
-        } catch (e: Exception) {
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
             log.warn("Scheduled market sentiment refresh failed", e)
         }
     }

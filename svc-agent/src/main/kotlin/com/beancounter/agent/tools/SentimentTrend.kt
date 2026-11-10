@@ -114,7 +114,10 @@ internal object SentimentTrend {
             mapOf(
                 "articles" to articles,
                 "score" to
-                    ratio(points.fold(BigDecimal.ZERO) { sum, it -> sum + it.score * BigDecimal(it.count) }, articles)
+                    ratio(
+                        points.fold(BigDecimal.ZERO) { sum, point -> sum + point.score * BigDecimal(point.count) },
+                        articles
+                    )
             )
         }
     }

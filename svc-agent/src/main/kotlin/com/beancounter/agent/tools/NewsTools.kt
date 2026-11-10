@@ -29,9 +29,9 @@ class NewsTools(
         return if (raw.isEmpty() || feed.isNullOrEmpty()) {
             log.debug("getNews: no_coverage for tickers={}, market={}", tickers, market)
             mapOf(
-                "status" to NO_COVERAGE,
+                STATUS to NO_COVERAGE,
                 "tickers" to tickers,
-                "message" to NO_COVERAGE_MESSAGE
+                MESSAGE to NO_COVERAGE_MESSAGE
             )
         } else {
             log.debug("getNews: {} articles returned for tickers={}", feed.size, tickers)
@@ -63,22 +63,22 @@ class NewsTools(
         if (raw == null) {
             log.debug("getMarketNews: unknown scope '{}'", scope)
             return mapOf(
-                "status" to "unknown_scope",
+                STATUS to "unknown_scope",
                 "scope" to scope,
-                "message" to UNKNOWN_SCOPE_MESSAGE,
+                MESSAGE to UNKNOWN_SCOPE_MESSAGE,
                 "supportedScopes" to (listOf("market") + SECTOR_ETFS.keys.sorted())
             )
         }
         val feed = raw["feed"] as? List<*>
         return if (raw.isEmpty() || feed.isNullOrEmpty()) {
             mapOf(
-                "status" to NO_COVERAGE,
+                STATUS to NO_COVERAGE,
                 "scope" to scope,
                 // Macro topic coverage (market scope) and sector-ETF coverage (sector scope) fail
                 // for different reasons and want different guidance — a sector ETF is still a
                 // ticker-shaped symbol (NO_COVERAGE_MESSAGE's "this ticker" framing fits), while
                 // the market scope has no ticker at all.
-                "message" to if (isMarketScope) TOPIC_NO_COVERAGE_MESSAGE else NO_COVERAGE_MESSAGE
+                MESSAGE to if (isMarketScope) TOPIC_NO_COVERAGE_MESSAGE else NO_COVERAGE_MESSAGE
             )
         } else {
             raw
@@ -88,7 +88,7 @@ class NewsTools(
     @Tool(description = MARKET_SENTIMENT_DESC)
     fun getMarketSentimentTrend(): Map<String, Any> {
         val trend = SentimentTrend.market(newsClient.getMarketSentiment(SentimentTrend.FETCH_DAYS))
-        return trend.ifEmpty { mapOf("status" to NO_COVERAGE, "message" to SENTIMENT_NO_COVERAGE_MESSAGE) }
+        return trend.ifEmpty { mapOf(STATUS to NO_COVERAGE, MESSAGE to SENTIMENT_NO_COVERAGE_MESSAGE) }
     }
 
     @Tool(description = ASSET_SENTIMENT_DESC)
@@ -113,7 +113,7 @@ class NewsTools(
                 SentimentTrend.assets(raw, tickerByAssetId)
             }
         return trend.ifEmpty {
-            mapOf("status" to NO_COVERAGE, "tickers" to tickers, "message" to SENTIMENT_NO_COVERAGE_MESSAGE)
+            mapOf(STATUS to NO_COVERAGE, "tickers" to tickers, MESSAGE to SENTIMENT_NO_COVERAGE_MESSAGE)
         }
     }
 
@@ -162,6 +162,8 @@ class NewsTools(
         private const val MAX_SENTIMENT_TICKERS = 10
         private const val DEFAULT_MARKET = "US"
         private const val NO_COVERAGE = "no_coverage"
+        private const val STATUS = "status"
+        private const val MESSAGE = "message"
 
         const val NEWS_DESC =
             "Get recent news articles and sentiment analysis for given ticker symbols. " +

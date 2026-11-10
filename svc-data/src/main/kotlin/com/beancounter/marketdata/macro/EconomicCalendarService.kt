@@ -123,7 +123,7 @@ class EconomicCalendarService(
             @Suppress("TooGenericExceptionCaught")
             e: Exception
         ) {
-            log.warn("Economic calendar fetch failed ({}): {}", label, e.message)
+            log.warn("Economic calendar fetch failed ({})", label, e)
             null
         }
 

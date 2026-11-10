@@ -1,6 +1,7 @@
 package com.beancounter.agent.clients
 
 import com.beancounter.auth.TokenService
+import com.beancounter.common.exception.BusinessException
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.hamcrest.Matchers.allOf
@@ -115,8 +116,8 @@ class MacroClientTest {
             .andRespond(withSuccess())
 
         assertThatThrownBy { client.getCalendar() }
-            .isInstanceOf(IllegalStateException::class.java)
-            .hasMessageContaining("/macro/calendar")
+            .isInstanceOf(BusinessException::class.java)
+            .hasMessageContaining("economic calendar")
         server.verify()
     }
 

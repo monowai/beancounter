@@ -1,6 +1,7 @@
 package com.beancounter.agent.clients
 
 import com.beancounter.auth.TokenService
+import com.beancounter.common.exception.BusinessException
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Service
@@ -50,7 +51,8 @@ class MacroClient(
     /**
      * Latest US payrolls, unemployment and CPI prints and the next scheduled releases. svc-data
      * always returns a full object (empty lists when every leg failed), so a missing body is a
-     * contract failure and throws rather than passing for "no data".
+     * contract failure and throws [BusinessException], as the sibling clients do, rather than
+     * passing for "no data".
      */
     fun getCalendar(): Map<String, Any> =
         restClient
@@ -59,5 +61,5 @@ class MacroClient(
             .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
             .retrieve()
             .body(JSON_MAP)
-            ?: error("svc-data /macro/calendar returned no body")
+            ?: throw BusinessException("Failed to retrieve economic calendar")
 }

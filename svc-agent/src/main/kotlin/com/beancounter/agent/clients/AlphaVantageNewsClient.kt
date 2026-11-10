@@ -77,4 +77,31 @@ class AlphaVantageNewsClient(
             .retrieve()
             .body(JSON_MAP) ?: emptyMap()
     }
+
+    /**
+     * Daily Positive / Neutral / Negative article counts per macro topic and per sector, via
+     * svc-data's `/news/sentiment/market` endpoint. A stored-row read; no news provider is called.
+     */
+    fun getMarketSentiment(days: Int): Map<String, Any> =
+        restClient
+            .get()
+            .uri("/news/sentiment/market?days={days}", days)
+            .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
+            .retrieve()
+            .body(JSON_MAP) ?: error("svc-data /news/sentiment/market returned no body")
+
+    /**
+     * Daily aggregated news sentiment per asset id, via svc-data's `/news/sentiment` endpoint.
+     * Assets with no coverage are absent from the returned `data` map.
+     */
+    fun getAssetSentiment(
+        assetIds: List<String>,
+        days: Int
+    ): Map<String, Any> =
+        restClient
+            .get()
+            .uri("/news/sentiment?assetIds={assetIds}&days={days}", assetIds.joinToString(","), days)
+            .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
+            .retrieve()
+            .body(JSON_MAP) ?: error("svc-data /news/sentiment returned no body")
 }

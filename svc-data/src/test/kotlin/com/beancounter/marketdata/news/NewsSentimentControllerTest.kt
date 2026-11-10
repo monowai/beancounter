@@ -4,8 +4,13 @@ import com.beancounter.auth.MockAuthConfig
 import com.beancounter.auth.model.AuthConstants
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.news.eodhd.SentimentPoint
+import com.beancounter.marketdata.news.sentiment.MarketSentimentPoint
+import com.beancounter.marketdata.news.sentiment.MarketSentimentRefreshResult
+import com.beancounter.marketdata.news.sentiment.MarketSentimentSeries
+import com.beancounter.marketdata.news.sentiment.MarketSentimentService
 import com.beancounter.marketdata.news.sentiment.NewsSentimentService
 import com.beancounter.marketdata.news.sentiment.SentimentRefreshResult
+import com.beancounter.marketdata.news.sentiment.SentimentScopeKind
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.verify
@@ -41,6 +46,71 @@ internal class NewsSentimentControllerTest
 
         @MockitoBean
         private lateinit var newsSentimentService: NewsSentimentService
+
+        @MockitoBean
+        private lateinit var marketSentimentService: MarketSentimentService
+
+        @Test
+        fun `GET market sentiment returns one series per scope with daily counts`() {
+            val point = MarketSentimentPoint(LocalDate.parse("2026-11-09"), 4, 3, 2, BigDecimal("0.1250"))
+            whenever(marketSentimentService.get(30))
+                .thenReturn(
+                    listOf(
+                        MarketSentimentSeries(SentimentScopeKind.TOPIC, "inflation", listOf(point)),
+                        MarketSentimentSeries(SentimentScopeKind.SECTOR, "technology", emptyList())
+                    )
+                )
+
+            mockMvc
+                .perform(get("/news/sentiment/market").with(jwt().jwt(mockAuthConfig.getUserToken())))
+                .andExpect(status().isOk)
+                .andExpect(jsonPath("$.data[0].kind").value("TOPIC"))
+                .andExpect(jsonPath("$.data[0].name").value("inflation"))
+                .andExpect(jsonPath("$.data[0].points[0].date").value("2026-11-09"))
+                .andExpect(jsonPath("$.data[0].points[0].positive").value(4))
+                .andExpect(jsonPath("$.data[0].points[0].neutral").value(3))
+                .andExpect(jsonPath("$.data[0].points[0].negative").value(2))
+                .andExpect(jsonPath("$.data[0].points[0].polarity").value(0.125))
+                .andExpect(jsonPath("$.data[1].kind").value("SECTOR"))
+        }
+
+        @Test
+        fun `GET market sentiment caps days at 365`() {
+            whenever(marketSentimentService.get(365)).thenReturn(emptyList())
+
+            mockMvc
+                .perform(
+                    get("/news/sentiment/market")
+                        .param("days", "9999")
+                        .with(jwt().jwt(mockAuthConfig.getUserToken()))
+                ).andExpect(status().isOk)
+
+            verify(marketSentimentService).get(365)
+        }
+
+        @Test
+        fun `POST market refresh is forbidden for a user-only scope token`() {
+            mockMvc
+                .perform(
+                    post("/news/sentiment/market/refresh")
+                        .with(jwt().jwt(userOnlyToken()))
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                ).andExpect(status().isForbidden)
+        }
+
+        @Test
+        fun `POST market refresh returns the rollup counts for an admin token`() {
+            whenever(marketSentimentService.refresh()).thenReturn(MarketSentimentRefreshResult(scopes = 17, rows = 6))
+
+            mockMvc
+                .perform(
+                    post("/news/sentiment/market/refresh")
+                        .with(jwt().jwt(mockAuthConfig.getUserToken()))
+                        .contentType(MediaType.APPLICATION_JSON_VALUE)
+                ).andExpect(status().isOk)
+                .andExpect(jsonPath("$.data.scopes").value(17))
+                .andExpect(jsonPath("$.data.rows").value(6))
+        }
 
         @Test
         fun `GET sentiment returns points keyed by asset id`() {

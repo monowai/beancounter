@@ -1,5 +1,6 @@
 package com.beancounter.agent.tools
 
+import com.beancounter.agent.client.AssetClient
 import com.beancounter.agent.clients.AlphaVantageNewsClient
 import org.slf4j.LoggerFactory
 import org.springframework.ai.tool.annotation.Tool
@@ -11,7 +12,8 @@ import org.springframework.stereotype.Service
  */
 @Service
 class NewsTools(
-    private val newsClient: AlphaVantageNewsClient
+    private val newsClient: AlphaVantageNewsClient,
+    private val assetClient: AssetClient
 ) {
     private val log = LoggerFactory.getLogger(NewsTools::class.java)
 
@@ -27,7 +29,7 @@ class NewsTools(
         return if (raw.isEmpty() || feed.isNullOrEmpty()) {
             log.debug("getNews: no_coverage for tickers={}, market={}", tickers, market)
             mapOf(
-                "status" to "no_coverage",
+                "status" to NO_COVERAGE,
                 "tickers" to tickers,
                 "message" to NO_COVERAGE_MESSAGE
             )
@@ -70,7 +72,7 @@ class NewsTools(
         val feed = raw["feed"] as? List<*>
         return if (raw.isEmpty() || feed.isNullOrEmpty()) {
             mapOf(
-                "status" to "no_coverage",
+                "status" to NO_COVERAGE,
                 "scope" to scope,
                 // Macro topic coverage (market scope) and sector-ETF coverage (sector scope) fail
                 // for different reasons and want different guidance — a sector ETF is still a
@@ -83,7 +85,84 @@ class NewsTools(
         }
     }
 
+    @Tool(description = MARKET_SENTIMENT_DESC)
+    fun getMarketSentimentTrend(): Map<String, Any> {
+        val trend = SentimentTrend.market(newsClient.getMarketSentiment(SentimentTrend.FETCH_DAYS))
+        return trend.ifEmpty { mapOf("status" to NO_COVERAGE, "message" to SENTIMENT_NO_COVERAGE_MESSAGE) }
+    }
+
+    @Tool(description = ASSET_SENTIMENT_DESC)
+    fun getAssetSentimentTrend(
+        @ToolParam(description = SENTIMENT_TICKERS_DESC) tickers: String,
+        @ToolParam(description = MARKET_DESC, required = false) market: String? = null
+    ): Map<String, Any> {
+        val resolvedMarket = market?.takeIf { it.isNotBlank() } ?: DEFAULT_MARKET
+        val tickerByAssetId =
+            tickers
+                .split(",")
+                .map { it.trim() }
+                .filter { it.isNotEmpty() }
+                .take(MAX_SENTIMENT_TICKERS)
+                .mapNotNull { ticker -> assetId(resolvedMarket, ticker)?.let { it to ticker } }
+                .toMap()
+        val trend =
+            if (tickerByAssetId.isEmpty()) {
+                emptyMap()
+            } else {
+                val raw = newsClient.getAssetSentiment(tickerByAssetId.keys.toList(), SentimentTrend.FETCH_DAYS)
+                SentimentTrend.assets(raw, tickerByAssetId)
+            }
+        return trend.ifEmpty {
+            mapOf("status" to NO_COVERAGE, "tickers" to tickers, "message" to SENTIMENT_NO_COVERAGE_MESSAGE)
+        }
+    }
+
+    /** The asset id for [ticker], or null when it does not resolve — one bad ticker never fails the rest. */
+    private fun assetId(
+        market: String,
+        ticker: String
+    ): String? =
+        try {
+            assetClient.getAsset(market, ticker).id
+        } catch (
+            @Suppress("TooGenericExceptionCaught")
+            e: Exception
+        ) {
+            log.debug("getAssetSentimentTrend: {}:{} did not resolve: {}", market, ticker, e.message)
+            null
+        }
+
     companion object {
+        const val MARKET_SENTIMENT_DESC =
+            "Get the direction of news sentiment for each macro topic (stock markets, economy, " +
+                "inflation, bonds, energy, commodities) and each sector, as separate series: " +
+                "Positive / Neutral / Negative article counts for the latest 7 days against the 7 " +
+                "days before, a `net` balance in [-1, 1] ((positive − negative) / articles) and " +
+                "`netChange`. Use it to say whether the news flow around a topic or sector is " +
+                "improving or souring, and to set a holding's own news against its sector. " +
+                "Never add series together or quote one overall market figure — say which topic " +
+                "or sector. A window with few articles is weak evidence: say so. `prior` or " +
+                "`netChange` is absent when a window has no articles. `asOf` is the newest day " +
+                "counted. This counts headlines; getMarketNews returns the headlines themselves. " +
+                "NEVER mention the underlying data provider."
+        const val ASSET_SENTIMENT_DESC =
+            "Get the direction of news sentiment for specific tickers: per ticker, the article " +
+                "count and an article-weighted `score` in [-1, 1] for the latest 7 days against " +
+                "the 7 days before, and `scoreChange`. Use it to say whether coverage of a " +
+                "holding is turning, and pair it with getMarketSentimentTrend to tell a " +
+                "stock-specific shift from a sector-wide one. Tickers with no coverage are " +
+                "absent — common for non-US listings; do not retry them. A window with few " +
+                "articles is weak evidence: say so. NEVER mention the underlying data provider."
+        const val SENTIMENT_TICKERS_DESC =
+            "Comma-separated ticker symbols WITHOUT exchange prefix, e.g. 'AAPL,MSFT'. At most " +
+                "10 per call; all must be on the same market."
+        const val SENTIMENT_NO_COVERAGE_MESSAGE =
+            "No stored news sentiment for this request. Do not retry and do not estimate a " +
+                "sentiment trend; leave it out of the answer."
+        private const val MAX_SENTIMENT_TICKERS = 10
+        private const val DEFAULT_MARKET = "US"
+        private const val NO_COVERAGE = "no_coverage"
+
         const val NEWS_DESC =
             "Get recent news articles and sentiment analysis for given ticker symbols. " +
                 "Returns headlines, summaries, sentiment scores (Bullish/Bearish/Neutral), " +

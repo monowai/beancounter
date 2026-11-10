@@ -92,6 +92,41 @@ class AlphaVantageNewsClientTest {
         server.verify()
     }
 
+    @Test
+    fun `getMarketSentiment requests the market sentiment endpoint for the given days`() {
+        val (client, server) = clientWithServer()
+        server
+            .expect(method(HttpMethod.GET))
+            .andExpect(requestTo("$BASE_URL/news/sentiment/market?days=14"))
+            .andExpect(header("Authorization", BEARER))
+            .andRespond(
+                withSuccess(
+                    """{"data":[{"kind":"TOPIC","name":"inflation","points":[]}]}""",
+                    MediaType.APPLICATION_JSON
+                )
+            )
+
+        val result = client.getMarketSentiment(14)
+
+        assertThat(result["data"] as List<*>).hasSize(1)
+        server.verify()
+    }
+
+    @Test
+    fun `getAssetSentiment requests the sentiment endpoint with comma-joined asset ids`() {
+        val (client, server) = clientWithServer()
+        server
+            .expect(method(HttpMethod.GET))
+            .andExpect(requestTo("$BASE_URL/news/sentiment?assetIds=a%2Cb&days=14"))
+            .andExpect(header("Authorization", BEARER))
+            .andRespond(withSuccess("""{"data":{"a":[]}}""", MediaType.APPLICATION_JSON))
+
+        val result = client.getAssetSentiment(listOf("a", "b"), 14)
+
+        assertThat(result["data"].toString()).contains("a=")
+        server.verify()
+    }
+
     private companion object {
         const val BASE_URL = "http://bc-data"
         const val BEARER = "Bearer test"

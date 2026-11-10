@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.news
 
 import com.beancounter.auth.model.AuthConstants
+import com.beancounter.marketdata.news.sentiment.MarketSentimentService
 import com.beancounter.marketdata.news.sentiment.NewsSentimentSchedule
 import com.beancounter.marketdata.news.sentiment.NewsSentimentService
 import io.swagger.v3.oas.annotations.Operation
@@ -28,7 +29,8 @@ import org.springframework.web.bind.annotation.RestController
 @Tag(name = "News", description = "Financial news and sentiment analysis")
 class NewsController(
     private val newsService: NewsServiceFacade,
-    private val newsSentimentService: NewsSentimentService
+    private val newsSentimentService: NewsSentimentService,
+    private val marketSentimentService: MarketSentimentService
 ) {
     @GetMapping(produces = [MediaType.APPLICATION_JSON_VALUE])
     @Operation(
@@ -107,6 +109,28 @@ class NewsController(
                 "EODHD-enabled market, batched per call, upserting (asset, date) rows."
     )
     fun refreshSentiment(): Map<String, Any> = mapOf("data" to newsSentimentService.refresh())
+
+    @GetMapping("/sentiment/market", produces = [MediaType.APPLICATION_JSON_VALUE])
+    @Operation(
+        summary = "Get daily news sentiment per macro topic and sector",
+        description =
+            "Returns one series per macro topic and per sector, each a list of daily " +
+                "{date, positive, neutral, negative, polarity} article counts for the trailing " +
+                "window. Scopes are never summed together. Served from stored rows — never hits " +
+                "a news provider. Scopes with no coverage are absent."
+    )
+    fun getMarketSentiment(
+        @Parameter(description = "Trailing window in days. Default 30; clamped to 1..365.")
+        @RequestParam(defaultValue = "30") days: Int
+    ): Map<String, Any> = mapOf("data" to marketSentimentService.get(days.coerceIn(1, MAX_SENTIMENT_DAYS)))
+
+    @PostMapping("/sentiment/market/refresh", produces = [MediaType.APPLICATION_JSON_VALUE])
+    @PreAuthorize("hasAuthority('${AuthConstants.SCOPE_ADMIN}')")
+    @Operation(
+        summary = "Download macro and sector news and recount daily sentiment",
+        description = "Runs the same download and rollup as the scheduled MarketSentimentSchedule."
+    )
+    fun refreshMarketSentiment(): Map<String, Any> = mapOf("data" to marketSentimentService.refresh())
 
     companion object {
         const val MAX_SENTIMENT_DAYS = 365

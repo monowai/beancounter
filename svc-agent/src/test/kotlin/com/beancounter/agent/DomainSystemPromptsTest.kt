@@ -53,6 +53,17 @@ class DomainSystemPromptsTest {
     }
 
     @Test
+    fun `prompts whose tools include news point at both sentiment trend tools`() {
+        listOf(
+            DomainSystemPrompts.WEALTH,
+            DomainSystemPrompts.ASSET_REVIEW,
+            DomainSystemPrompts.HOLDING_ANALYSIS,
+            DomainSystemPrompts.NEWS_SENTIMENT,
+            DomainSystemPrompts.GENERAL
+        ).forEach { assertThat(it).contains("getMarketSentimentTrend").contains("getAssetSentimentTrend") }
+    }
+
+    @Test
     fun `fx review presents the pair rate as the stored daily rate, not a live quote`() {
         assertThat(DomainSystemPrompts.FX_REVIEW)
             .contains("not a live quote")

@@ -43,7 +43,7 @@ class NewsToolsTest {
             mock<AlphaVantageNewsClient> {
                 on { getNewsSentiment("VOO", null, null) } doReturn sampleResponse
             }
-        val tools = NewsTools(client)
+        val tools = NewsTools(client, mock())
 
         val result = tools.getNews("VOO")
 
@@ -57,7 +57,7 @@ class NewsToolsTest {
             mock<AlphaVantageNewsClient> {
                 on { getNewsSentiment("GNE", "NZX", null) } doReturn sampleResponse
             }
-        val tools = NewsTools(client)
+        val tools = NewsTools(client, mock())
 
         val result = tools.getNews("GNE", "NZX")
 
@@ -71,7 +71,7 @@ class NewsToolsTest {
             mock<AlphaVantageNewsClient> {
                 on { getNewsSentiment("AAPL", null, "earnings") } doReturn sampleResponse
             }
-        val tools = NewsTools(client)
+        val tools = NewsTools(client, mock())
 
         val result = tools.getNews("AAPL", topics = "earnings")
 
@@ -85,7 +85,7 @@ class NewsToolsTest {
             mock<AlphaVantageNewsClient> {
                 on { getNewsSentiment("GNE", "NZX", null) } doReturn emptyMap()
             }
-        val tools = NewsTools(client)
+        val tools = NewsTools(client, mock())
 
         val result = tools.getNews("GNE", "NZX")
 
@@ -100,7 +100,7 @@ class NewsToolsTest {
             mock<AlphaVantageNewsClient> {
                 on { getNewsSentiment("GNE", "NZX", null) } doReturn mapOf("feed" to emptyList<Any>())
             }
-        val tools = NewsTools(client)
+        val tools = NewsTools(client, mock())
 
         val result = tools.getNews("GNE", "NZX")
 
@@ -113,7 +113,7 @@ class NewsToolsTest {
             mock<AlphaVantageNewsClient> {
                 on { getTopicNews(MACRO_TOPICS) } doReturn sampleResponse
             }
-        val tools = NewsTools(client)
+        val tools = NewsTools(client, mock())
 
         val result = tools.getMarketNews(MARKET)
 
@@ -127,7 +127,7 @@ class NewsToolsTest {
             mock<AlphaVantageNewsClient> {
                 on { getMarketNews(listOf("XLK.US"), null) } doReturn sampleResponse
             }
-        val tools = NewsTools(client)
+        val tools = NewsTools(client, mock())
 
         // Case-insensitive scope resolution.
         val result = tools.getMarketNews("Technology")
@@ -139,7 +139,7 @@ class NewsToolsTest {
     @Test
     fun `getMarketNews returns unknown_scope without hitting the client for a bad scope`() {
         val client = mock<AlphaVantageNewsClient>()
-        val tools = NewsTools(client)
+        val tools = NewsTools(client, mock())
 
         val result = tools.getMarketNews("crypto")
 
@@ -156,7 +156,7 @@ class NewsToolsTest {
             mock<AlphaVantageNewsClient> {
                 on { getTopicNews(MACRO_TOPICS) } doReturn mapOf("feed" to emptyList<Any>())
             }
-        val tools = NewsTools(client)
+        val tools = NewsTools(client, mock())
 
         val result = tools.getMarketNews(MARKET)
 
@@ -170,7 +170,7 @@ class NewsToolsTest {
             mock<AlphaVantageNewsClient> {
                 on { getMarketNews(listOf("XLK.US"), null) } doReturn mapOf("feed" to emptyList<Any>())
             }
-        val tools = NewsTools(client)
+        val tools = NewsTools(client, mock())
 
         val result = tools.getMarketNews("Technology")
 

@@ -51,16 +51,18 @@ class EconomicCalendarService(
 
     private fun latestPrint(spec: PrintSpec): EconomicPrint? {
         val byMonth = fredSeriesFetcher.fetch(spec.seriesId).associate { YearMonth.from(it.date) to it.value }
-        val latest = byMonth.keys.maxOrNull() ?: return null
-        val value = spec.transform.at(byMonth, latest) ?: return null
-        return EconomicPrint(
-            indicator = spec.indicator,
-            label = spec.label,
-            unit = spec.unit,
-            period = latest.atDay(1),
-            value = value,
-            prior = spec.transform.at(byMonth, latest.minusMonths(1))
-        )
+        return byMonth.keys.maxOrNull()?.let { latest ->
+            spec.transform.at(byMonth, latest)?.let { value ->
+                EconomicPrint(
+                    indicator = spec.indicator,
+                    label = spec.label,
+                    unit = spec.unit,
+                    period = latest.atDay(1),
+                    value = value,
+                    prior = spec.transform.at(byMonth, latest.minusMonths(1))
+                )
+            }
+        }
     }
 
     private fun nextRelease(

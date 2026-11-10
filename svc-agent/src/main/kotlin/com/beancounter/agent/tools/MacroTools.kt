@@ -8,8 +8,9 @@ import org.springframework.stereotype.Service
 
 /**
  * Tools for quantifying the macro backdrop: treasury yield/oil-proxy moves, market-implied Fed
- * rate-decision odds, and the US economic calendar (payrolls, unemployment, CPI). Pairs with [NewsTools.getMarketNews]("market") — that tool explains the
- * backdrop in words, these two put numbers on it.
+ * rate-decision odds, and the US economic calendar (payrolls, unemployment, CPI). Pairs with
+ * [NewsTools.getMarketNews]("market") — that tool explains the backdrop in words, these put
+ * numbers on it.
  */
 @Service
 class MacroTools(

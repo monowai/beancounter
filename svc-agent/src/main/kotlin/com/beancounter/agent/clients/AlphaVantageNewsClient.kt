@@ -1,6 +1,7 @@
 package com.beancounter.agent.clients
 
 import com.beancounter.auth.TokenService
+import com.beancounter.common.exception.BusinessException
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Service
@@ -81,6 +82,8 @@ class AlphaVantageNewsClient(
     /**
      * Daily Positive / Neutral / Negative article counts per macro topic and per sector, via
      * svc-data's `/news/sentiment/market` endpoint. A stored-row read; no news provider is called.
+     * svc-data always returns a `data` list (empty when nothing is stored), so a missing body is a
+     * contract failure and throws [BusinessException] rather than passing for "no coverage".
      */
     fun getMarketSentiment(days: Int): Map<String, Any> =
         restClient
@@ -88,11 +91,12 @@ class AlphaVantageNewsClient(
             .uri("/news/sentiment/market?days={days}", days)
             .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
             .retrieve()
-            .body(JSON_MAP) ?: error("svc-data /news/sentiment/market returned no body")
+            .body(JSON_MAP) ?: throw BusinessException("Failed to retrieve market news sentiment")
 
     /**
      * Daily aggregated news sentiment per asset id, via svc-data's `/news/sentiment` endpoint.
-     * Assets with no coverage are absent from the returned `data` map.
+     * Assets with no coverage are absent from the returned `data` map; a missing body is a
+     * contract failure and throws [BusinessException] rather than passing for "no coverage".
      */
     fun getAssetSentiment(
         assetIds: List<String>,
@@ -103,5 +107,5 @@ class AlphaVantageNewsClient(
             .uri("/news/sentiment?assetIds={assetIds}&days={days}", assetIds.joinToString(","), days)
             .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
             .retrieve()
-            .body(JSON_MAP) ?: error("svc-data /news/sentiment returned no body")
+            .body(JSON_MAP) ?: throw BusinessException("Failed to retrieve asset news sentiment")
 }

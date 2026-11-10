@@ -1,7 +1,9 @@
 package com.beancounter.agent.clients
 
 import com.beancounter.auth.TokenService
+import com.beancounter.common.exception.BusinessException
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.hamcrest.Matchers.allOf
 import org.hamcrest.Matchers.containsString
 import org.junit.jupiter.api.Test
@@ -124,6 +126,34 @@ class AlphaVantageNewsClientTest {
         val result = client.getAssetSentiment(listOf("a", "b"), 14)
 
         assertThat(result["data"].toString()).contains("a=")
+        server.verify()
+    }
+
+    @Test
+    fun `getMarketSentiment throws when the response body is missing`() {
+        val (client, server) = clientWithServer()
+        server
+            .expect(method(HttpMethod.GET))
+            .andExpect(requestTo("$BASE_URL/news/sentiment/market?days=14"))
+            .andRespond(withSuccess())
+
+        assertThatThrownBy { client.getMarketSentiment(14) }
+            .isInstanceOf(BusinessException::class.java)
+            .hasMessageContaining("market news sentiment")
+        server.verify()
+    }
+
+    @Test
+    fun `getAssetSentiment throws when the response body is missing`() {
+        val (client, server) = clientWithServer()
+        server
+            .expect(method(HttpMethod.GET))
+            .andExpect(requestTo("$BASE_URL/news/sentiment?assetIds=a&days=14"))
+            .andRespond(withSuccess())
+
+        assertThatThrownBy { client.getAssetSentiment(listOf("a"), 14) }
+            .isInstanceOf(BusinessException::class.java)
+            .hasMessageContaining("asset news sentiment")
         server.verify()
     }
 

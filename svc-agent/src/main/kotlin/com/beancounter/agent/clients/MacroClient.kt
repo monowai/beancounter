@@ -1,6 +1,7 @@
 package com.beancounter.agent.clients
 
 import com.beancounter.auth.TokenService
+import com.beancounter.common.exception.BusinessException
 import org.springframework.beans.factory.annotation.Qualifier
 import org.springframework.http.HttpHeaders
 import org.springframework.stereotype.Service
@@ -8,8 +9,9 @@ import org.springframework.web.client.RestClient
 
 /**
  * Client for macro market context via svc-data's `/macro` endpoints: treasury yields, oil-proxy
- * moves, and Fed rate-decision odds. svc-data owns the upstream integrations; this client returns
- * the raw response bodies untouched, same style as [AlphaVantageNewsClient].
+ * moves, Fed rate-decision odds, and the US economic calendar. svc-data owns the upstream
+ * integrations; this client returns the raw response bodies untouched, same style as
+ * [NewsClient].
  */
 @Service
 class MacroClient(
@@ -45,4 +47,19 @@ class MacroClient(
             .retrieve()
             .toEntity(JSON_MAP)
             .body
+
+    /**
+     * Latest US payrolls, unemployment and CPI prints and the next scheduled releases. svc-data
+     * always returns a full object (empty lists when every leg failed), so a missing body is a
+     * contract failure and throws [BusinessException], as the sibling clients do, rather than
+     * passing for "no data".
+     */
+    fun getCalendar(): Map<String, Any> =
+        restClient
+            .get()
+            .uri("/macro/calendar")
+            .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
+            .retrieve()
+            .body(JSON_MAP)
+            ?: throw BusinessException("Failed to retrieve economic calendar")
 }

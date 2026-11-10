@@ -65,6 +65,7 @@ class PageQuerySelectorTest {
             .startsWith("Role: You are a financial columnist writing a daily portfolio briefing.")
             .contains("Inputs available to you:\n\t• Portfolio holdings with weights — equities")
             .contains("\t5. What to watch — One or two forward-looking items")
+            .contains("the next payrolls or CPI release with the market's expected figure")
             .endsWith("Length: roughly 250–400 words. A morning read, not a research note.")
             .hasSize(DAILY_BRIEFING_LENGTH)
     }
@@ -78,8 +79,8 @@ class PageQuerySelectorTest {
     }
 
     private companion object {
-        // bc-view's DAILY_BRIEFING_PROMPT, characters as sent; a drift in either copy changes this.
-        const val DAILY_BRIEFING_LENGTH = 4059
+        // PageQueries.DAILY_BRIEFING, characters as sent; pins the text against accidental edits.
+        const val DAILY_BRIEFING_LENGTH = 4279
     }
 
     @Test

@@ -97,7 +97,7 @@ object PageQueries {
         $TAB• Portfolio holdings with weights — equities, ETFs, bond funds, cash. Infer each holding's asset class from its name; the category field is coarse (every ETF is just "MUTUAL FUND") and cannot tell a bond fund from an equity fund.
         $TAB• Day's return per holding.
         $TAB• XIRR (portfolio and per-holding). It is annualised, so it exaggerates in both directions for holdings under ~6 months old.
-        $TAB• Macro backdrop over a lookback window (treasury yield changes in bps, oil), rate-decision odds, and a news feed for holdings and broader markets.
+        $TAB• Macro backdrop over a lookback window (treasury yield changes in bps, oil), rate-decision odds, the US economic calendar (latest payrolls, unemployment and CPI against the prior month; next release dates with the market's expected figure), and a news feed for holdings and broader markets.
         $TAB• You have NO duration, yield-to-maturity, credit-quality, or sector data. Where you infer these from fund names, say it is an inference and give a range, never a point figure.
 
         Before writing, classify the book: equity, fixed income, mixed, or cash. Then use that class's vocabulary and yardstick:
@@ -110,7 +110,7 @@ object PageQueries {
         ${TAB}2. What drove it — Identify the 2–4 holdings (or sectors/themes/factors) that contributed most to the day's move, positive or negative. Tie movements to news or macro factors only where the data supports it on the same day. Match windows: a multi-week yield or oil move is backdrop, never the cause of a single day's return. If nothing in the data explains today's move, say so.
         ${TAB}3. Patterns and themes — Step back. Are the day's moves part of a pattern (rate-sensitive names moving together, a rotation into defensives, one factor dominating)? Is the portfolio behaving as a coherent set of bets or as uncorrelated noise? Concentration is judged against the mandate, not against an all-asset ideal.
         ${TAB}4. The longer arc — Contrast the day against XIRR only where the history supports it. Skip per-holding divergence-from-thesis for any holding opened within the last ~6 months — its XIRR is annualisation noise. If every holding is that young, say "too early for a long-run read" and move on. Otherwise flag any holding whose XIRR is meaningfully diverging from thesis (sustained underperformance, a winner the portfolio is becoming concentrated in). Never attribute an annualised XIRR to a single recent macro move.
-        ${TAB}5. What to watch — One or two forward-looking items from the data: an earnings date, a macro print, a rate decision with its current odds, a pending catalyst. No predictions, just the calendar.
+        ${TAB}5. What to watch — One or two forward-looking items from the data: an earnings date, the next payrolls or CPI release with the market's expected figure against the last print, a rate decision with its current odds, a pending catalyst. No predictions, just the calendar.
 
         Style rules:
         $TAB• Front-load every section. The point comes first, the supporting detail after.

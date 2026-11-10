@@ -1,6 +1,6 @@
 package com.beancounter.agent.tools
 
-import com.beancounter.agent.clients.AlphaVantageNewsClient
+import com.beancounter.agent.clients.NewsClient
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.doReturn
@@ -9,7 +9,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 
 /**
- * Verify that NewsTools delegates to AlphaVantageNewsClient correctly.
+ * Verify that NewsTools delegates to NewsClient correctly.
  */
 class NewsToolsTest {
     private companion object {
@@ -40,10 +40,10 @@ class NewsToolsTest {
     @Test
     fun `getNews delegates to the client with tickers`() {
         val client =
-            mock<AlphaVantageNewsClient> {
+            mock<NewsClient> {
                 on { getNewsSentiment("VOO", null, null) } doReturn sampleResponse
             }
-        val tools = NewsTools(client)
+        val tools = NewsTools(client, mock())
 
         val result = tools.getNews("VOO")
 
@@ -54,10 +54,10 @@ class NewsToolsTest {
     @Test
     fun `getNews passes market and topics when provided`() {
         val client =
-            mock<AlphaVantageNewsClient> {
+            mock<NewsClient> {
                 on { getNewsSentiment("GNE", "NZX", null) } doReturn sampleResponse
             }
-        val tools = NewsTools(client)
+        val tools = NewsTools(client, mock())
 
         val result = tools.getNews("GNE", "NZX")
 
@@ -68,10 +68,10 @@ class NewsToolsTest {
     @Test
     fun `getNews passes topics when provided`() {
         val client =
-            mock<AlphaVantageNewsClient> {
+            mock<NewsClient> {
                 on { getNewsSentiment("AAPL", null, "earnings") } doReturn sampleResponse
             }
-        val tools = NewsTools(client)
+        val tools = NewsTools(client, mock())
 
         val result = tools.getNews("AAPL", topics = "earnings")
 
@@ -82,10 +82,10 @@ class NewsToolsTest {
     @Test
     fun `getNews returns no_coverage marker when client returns empty map`() {
         val client =
-            mock<AlphaVantageNewsClient> {
+            mock<NewsClient> {
                 on { getNewsSentiment("GNE", "NZX", null) } doReturn emptyMap()
             }
-        val tools = NewsTools(client)
+        val tools = NewsTools(client, mock())
 
         val result = tools.getNews("GNE", "NZX")
 
@@ -97,10 +97,10 @@ class NewsToolsTest {
     @Test
     fun `getNews returns no_coverage marker when feed is empty`() {
         val client =
-            mock<AlphaVantageNewsClient> {
+            mock<NewsClient> {
                 on { getNewsSentiment("GNE", "NZX", null) } doReturn mapOf("feed" to emptyList<Any>())
             }
-        val tools = NewsTools(client)
+        val tools = NewsTools(client, mock())
 
         val result = tools.getNews("GNE", "NZX")
 
@@ -110,10 +110,10 @@ class NewsToolsTest {
     @Test
     fun `getMarketNews maps the market scope to broad macro topic news`() {
         val client =
-            mock<AlphaVantageNewsClient> {
+            mock<NewsClient> {
                 on { getTopicNews(MACRO_TOPICS) } doReturn sampleResponse
             }
-        val tools = NewsTools(client)
+        val tools = NewsTools(client, mock())
 
         val result = tools.getMarketNews(MARKET)
 
@@ -124,10 +124,10 @@ class NewsToolsTest {
     @Test
     fun `getMarketNews maps a sector scope to its SPDR ETF proxy`() {
         val client =
-            mock<AlphaVantageNewsClient> {
+            mock<NewsClient> {
                 on { getMarketNews(listOf("XLK.US"), null) } doReturn sampleResponse
             }
-        val tools = NewsTools(client)
+        val tools = NewsTools(client, mock())
 
         // Case-insensitive scope resolution.
         val result = tools.getMarketNews("Technology")
@@ -138,8 +138,8 @@ class NewsToolsTest {
 
     @Test
     fun `getMarketNews returns unknown_scope without hitting the client for a bad scope`() {
-        val client = mock<AlphaVantageNewsClient>()
-        val tools = NewsTools(client)
+        val client = mock<NewsClient>()
+        val tools = NewsTools(client, mock())
 
         val result = tools.getMarketNews("crypto")
 
@@ -153,10 +153,10 @@ class NewsToolsTest {
     @Test
     fun `getMarketNews returns no_coverage with the topic-specific message when the macro topic feed is empty`() {
         val client =
-            mock<AlphaVantageNewsClient> {
+            mock<NewsClient> {
                 on { getTopicNews(MACRO_TOPICS) } doReturn mapOf("feed" to emptyList<Any>())
             }
-        val tools = NewsTools(client)
+        val tools = NewsTools(client, mock())
 
         val result = tools.getMarketNews(MARKET)
 
@@ -167,10 +167,10 @@ class NewsToolsTest {
     @Test
     fun `getMarketNews returns no_coverage with the ticker-style message when a sector feed is empty`() {
         val client =
-            mock<AlphaVantageNewsClient> {
+            mock<NewsClient> {
                 on { getMarketNews(listOf("XLK.US"), null) } doReturn mapOf("feed" to emptyList<Any>())
             }
-        val tools = NewsTools(client)
+        val tools = NewsTools(client, mock())
 
         val result = tools.getMarketNews("Technology")
 

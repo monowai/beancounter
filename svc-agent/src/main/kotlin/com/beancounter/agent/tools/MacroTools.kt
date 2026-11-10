@@ -7,9 +7,10 @@ import org.springframework.ai.tool.annotation.ToolParam
 import org.springframework.stereotype.Service
 
 /**
- * Tools for quantifying the macro backdrop: treasury yield/oil-proxy moves, and market-implied
- * Fed rate-decision odds. Pairs with [NewsTools.getMarketNews]("market") — that tool explains the
- * backdrop in words, these two put numbers on it.
+ * Tools for quantifying the macro backdrop: treasury yield/oil-proxy moves, market-implied Fed
+ * rate-decision odds, and the US economic calendar (payrolls, unemployment, CPI). Pairs with
+ * [NewsTools.getMarketNews]("market") — that tool explains the backdrop in words, these put
+ * numbers on it.
  */
 @Service
 class MacroTools(
@@ -68,6 +69,23 @@ class MacroTools(
         }
     }
 
+    @Tool(description = CALENDAR_DESC)
+    fun getEconomicCalendar(): Map<String, Any> {
+        log.debug("getEconomicCalendar called")
+        val raw = macroClient.getCalendar()
+        val recent = raw["recent"] as? List<*>
+        val upcoming = raw["upcoming"] as? List<*>
+        return if (recent.isNullOrEmpty() && upcoming.isNullOrEmpty()) {
+            log.debug("getEconomicCalendar: no_coverage")
+            mapOf(
+                "status" to "no_coverage",
+                "message" to CALENDAR_NO_COVERAGE_MESSAGE
+            )
+        } else {
+            raw
+        }
+    }
+
     companion object {
         const val DEFAULT_LOOKBACK_DAYS = 14
         const val MAX_LOOKBACK_DAYS = 365
@@ -97,5 +115,20 @@ class MacroTools(
         const val RATE_EXPECTATIONS_NO_COVERAGE_MESSAGE =
             "No open Fed rate-decision market to price right now. Do not invent probabilities " +
                 "— say rate-decision odds aren't currently available."
+
+        const val CALENDAR_DESC =
+            "Get the US economic calendar: the latest nonfarm payrolls change, unemployment " +
+                "rate and CPI (month-on-month, year-on-year, core year-on-year) with the prior " +
+                "month's figure, and the dates of the next payrolls, unemployment, CPI and Fed " +
+                "decision releases with the market-implied `expected` value where available. Use " +
+                "for macro context in stock, sector and portfolio reviews and for what to watch. " +
+                "Cite only the returned figures. `period` is the month a figure describes, not " +
+                "its release date. A print explains a market move only on its release day; " +
+                "otherwise it is backdrop. Compare an upcoming `expected` with the latest print " +
+                "to say whether the market expects a hotter or cooler number. US data only. " +
+                "NEVER mention the underlying data providers."
+        const val CALENDAR_NO_COVERAGE_MESSAGE =
+            "No economic calendar data available right now. Do not invent payroll, " +
+                "unemployment or CPI figures or release dates — say the data isn't available."
     }
 }

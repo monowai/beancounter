@@ -7,7 +7,7 @@ import org.springframework.cache.annotation.Cacheable
 /**
  * Verify that [RateExpectationsService.getRateExpectations] is configured for caching — avoids
  * one Kalshi `/markets` call per open event on every request within the TTL window. Mirrors
- * [TreasuryYieldCacheTest] / [com.beancounter.marketdata.news.alpha.AlphaNewsCacheTest].
+ * [FredSeriesCacheTest] / [com.beancounter.marketdata.news.alpha.AlphaNewsCacheTest].
  *
  * [RateExpectationsService.snapshot] must NOT be reached through this cache: it calls
  * [RateExpectationsService]'s private `nearestOpenEvent` fetch path directly, never

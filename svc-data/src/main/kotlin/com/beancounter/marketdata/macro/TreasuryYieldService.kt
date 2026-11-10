@@ -6,7 +6,7 @@ import java.math.RoundingMode
 import java.time.LocalDate
 
 /**
- * Projects FRED daily treasury-yield series (via [TreasuryYieldFetcher]) into the sparse
+ * Projects FRED daily treasury-yield series (via [FredSeriesFetcher]) into the sparse
  * chart-ready shape `/macro/indicators` returns.
  *
  * Maturities are fetched independently and a maturity with no upstream data is simply omitted
@@ -14,14 +14,14 @@ import java.time.LocalDate
  */
 @Service
 class TreasuryYieldService(
-    private val fetcher: TreasuryYieldFetcher
+    private val fetcher: FredSeriesFetcher
 ) {
     fun getYields(lookbackDays: Int = DEFAULT_LOOKBACK_DAYS): List<YieldSeries> =
         MATURITIES.mapNotNull { (series, seriesId) -> project(series, fetcher.fetch(seriesId), lookbackDays) }
 
     private fun project(
         series: String,
-        points: List<YieldPoint>,
+        points: List<SeriesPoint>,
         lookbackDays: Int
     ): YieldSeries? {
         if (points.isEmpty()) return null
@@ -62,9 +62,9 @@ class TreasuryYieldService(
      * callers don't need an `?: return null`/nullable chain for it.
      */
     private fun nearest(
-        points: List<YieldPoint>,
+        points: List<SeriesPoint>,
         target: LocalDate
-    ): YieldPoint {
+    ): SeriesPoint {
         require(points.isNotEmpty()) { "nearest requires a non-empty point list" }
         return points.filter { !it.date.isAfter(target) }.maxByOrNull { it.date }
             ?: points.sortedBy { it.date }.first()

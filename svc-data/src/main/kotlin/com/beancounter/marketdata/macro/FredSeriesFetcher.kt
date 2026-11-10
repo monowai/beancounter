@@ -10,30 +10,32 @@ import java.time.format.DateTimeParseException
 /**
  * Cached fetch + parse layer over FRED's `fredgraph.csv` endpoint.
  *
- * Split out from [TreasuryYieldService] so the `@Cacheable` boundary is a genuine cross-bean call
- * from every caller — both the `/macro/indicators` request path and [MacroRefreshSchedule]'s
- * warm-up call reach this method through the Spring proxy, so they share one cache entry per
- * series rather than one caller bypassing the cache via self-invocation.
+ * Shared by [TreasuryYieldService] (daily yields) and [EconomicCalendarService] (monthly
+ * payrolls, unemployment and CPI). Split out so the `@Cacheable` boundary is a genuine cross-bean
+ * call from every caller — request paths and [MacroRefreshSchedule]'s warm-up call reach this
+ * method through the Spring proxy, so they share one cache entry per series rather than one caller
+ * bypassing the cache via self-invocation.
  */
 @Service
-class TreasuryYieldFetcher(
+class FredSeriesFetcher(
     private val fredGateway: FredGateway,
     private val dateUtils: DateUtils = DateUtils()
 ) {
-    private val log = LoggerFactory.getLogger(TreasuryYieldFetcher::class.java)
+    private val log = LoggerFactory.getLogger(FredSeriesFetcher::class.java)
 
     /**
-     * Daily yield-curve points for [seriesId] (a FRED series id, e.g. `DGS10`, `DGS2`), newest
-     * first, bounded to the last [WINDOW_DAYS] so the cached entry stays small. Non-trading-day
-     * rows (value `.`) are filtered out.
+     * Observations for [seriesId] (a FRED series id, e.g. `DGS10` daily or `PAYEMS` monthly),
+     * newest first, bounded to the last [WINDOW_DAYS] so the cached entry stays small. Rows with
+     * no value (`.`, e.g. non-trading days) are filtered out.
      *
      * Body content never throws — a blank or malformed upstream body yields an empty list so
      * callers can treat "no data for this series" as a normal, omittable outcome. Transport
      * failures that survive the `providerHttp` retries do propagate; the callers contain them
-     * ([MacroIndicatorsService] via `safely`, [MacroRefreshSchedule] via `runCatching`).
+     * ([MacroIndicatorsService] and [EconomicCalendarService] via `safely`,
+     * [MacroRefreshSchedule] via `runCatching`).
      */
-    @Cacheable("macro.treasury.yield", key = "#seriesId")
-    fun fetch(seriesId: String): List<YieldPoint> {
+    @Cacheable(CACHE_NAME, key = "#seriesId")
+    fun fetch(seriesId: String): List<SeriesPoint> {
         val csv = fredGateway.getSeriesCsv(seriesId, dateUtils.date.minusDays(WINDOW_DAYS))
         val points =
             csv
@@ -48,13 +50,13 @@ class TreasuryYieldFetcher(
         return points
     }
 
-    private fun toPoint(line: String): YieldPoint? {
+    private fun toPoint(line: String): SeriesPoint? {
         val cells = line.trim().split(',')
         if (cells.size != 2) return null
         val (dateStr, valueStr) = cells
         val value = if (valueStr == NON_TRADING_DAY) null else valueStr.toBigDecimalOrNull()
         val date = value?.let { parseDate(dateStr) }
-        return if (value == null || date == null) null else YieldPoint(date, value)
+        return if (value == null || date == null) null else SeriesPoint(date, value)
     }
 
     private fun parseDate(dateStr: String): LocalDate? =
@@ -69,11 +71,13 @@ class TreasuryYieldFetcher(
 
     companion object {
         private const val NON_TRADING_DAY = "."
+        const val CACHE_NAME = "macro.fred.series"
 
         /**
          * Covers [TreasuryYieldService]'s 30-day chart points plus any `lookbackDays` a caller
-         * passes, with slack for holiday gaps.
+         * passes, and [EconomicCalendarService]'s year-on-year prior: a monthly print lags its
+         * reference month by up to ~2 months, and the prior YoY needs 13 months before that.
          */
-        const val WINDOW_DAYS = 400L
+        const val WINDOW_DAYS = 500L
     }
 }

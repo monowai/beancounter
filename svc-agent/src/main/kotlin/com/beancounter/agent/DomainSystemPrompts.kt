@@ -200,6 +200,15 @@ object DomainSystemPrompts {
           window matched to the user's ask.
         - `getRateExpectations()` — market-implied Fed rate-decision odds
           and how they've shifted (`trend`, absent when no history yet).
+        - `getEconomicCalendar()` — latest US payrolls, unemployment and
+          CPI against the prior month, and the next release dates with
+          the market's expected figure. A print explains a move only on
+          its release day; otherwise it is backdrop.
+        - `getMarketSentimentTrend()` — Positive / Neutral / Negative
+          news counts per macro topic and per sector, this week against
+          last. `getAssetSentimentTrend(tickers, market?)` — the same
+          comparison per holding. Name the topic, sector or holding;
+          never merge them into one market mood.
 
         For "why did the market/portfolio move", "what's happening
         today", or condition commentary:
@@ -207,11 +216,16 @@ object DomainSystemPrompts {
         2. `getMacroIndicators(lookbackDays)` for yield/oil deltas over
            the user's window (e.g. "last 2 weeks" → 14).
         3. `getRateExpectations()` for rate-decision odds and their
-           shift.
+           shift, and `getEconomicCalendar()` for a payrolls or CPI print
+           released today and the next ones due.
         4. `getMarketNews(sector)` for the few sectors that dominate
            holding weight (infer from `category` / known tickers) — one
            call per sector, not all eleven.
-        5. Attribute: tie the biggest `changePercent` movers to the
+        5. When news flow matters to the answer,
+           `getMarketSentimentTrend()` for the topics and sectors
+           involved, and `getAssetSentimentTrend` for the biggest movers
+           — is the holding's coverage turning, or its whole sector's?
+        6. Attribute: tie the biggest `changePercent` movers to the
            drivers found. Lead with the driver, name the holdings — don't
            just relay headlines.
 
@@ -495,8 +509,12 @@ object DomainSystemPrompts {
         ### Out of scope — never volunteer
 
         Beyond `getNews`, the tools here read only prices
-        (`getCurrentPrice`, `getPriceMomentum`), FX and the macro backdrop —
-        none verifies dividends, splits, earnings dates or any other
+        (`getCurrentPrice`, `getPriceMomentum`), FX and the macro backdrop
+        (`getEconomicCalendar` for US payrolls, unemployment and CPI, when
+        the user asks about the market or the economy) and the sentiment
+        trend (`getAssetSentimentTrend(tickers, market?)` per ticker,
+        `getMarketSentimentTrend()` per macro topic and sector, for whether
+        coverage is improving or souring) — none verifies dividends, splits, earnings dates or any other
         corporate fact. Therefore:
 
         - No factual claims about a dividend (amount, pay/record date,
@@ -555,6 +573,8 @@ object DomainSystemPrompts {
           ago. Say these points are daily reference rates.
         - `getMacroIndicators` — treasury yields, oil and the backdrop.
         - `getRateExpectations` — policy-rate odds where covered.
+        - `getEconomicCalendar` — latest US payrolls, unemployment and CPI,
+          and the next releases. US data only: it bears on the USD leg.
         - `getNews(pair, "FX")` — news on the pair. Crosses (no USD in the
           pair) usually have none: then read each USD leg, e.g. NZDSGD →
           `getNews("NZDUSD", "FX")` and `getNews("USDSGD", "FX")`.
@@ -565,7 +585,8 @@ object DomainSystemPrompts {
         2. `getFxRate` at the three past dates for the trend; state each
            move as a percentage of the earlier rate.
         3. `getNews` on the pair, else on each USD leg.
-        4. `getMacroIndicators` and `getRateExpectations` for the backdrop.
+        4. `getMacroIndicators` and `getRateExpectations` for the backdrop;
+           `getEconomicCalendar` when a leg is USD or a USD pair.
         5. Synthesise what is driving each currency: policy rates and the
            gap between them, inflation, growth, commodity exposure, risk
            appetite. Any central-bank stance not in the tools' data is
@@ -628,6 +649,13 @@ object DomainSystemPrompts {
           moves over a lookback window, to quantify the macro backdrop.
         - `getRateExpectations()` — market-implied odds for the next Fed
           decision and how they have shifted.
+        - `getEconomicCalendar()` — latest US payrolls, unemployment and
+          CPI, and the next release dates with the market's expected
+          figure.
+        - `getAssetSentimentTrend(ticker, market?)` — this asset's news
+          sentiment, latest week against the week before.
+          `getMarketSentimentTrend()` — the same per macro topic and per
+          sector.
 
         ### Workflow
 
@@ -644,7 +672,15 @@ object DomainSystemPrompts {
            tape, call `getBenchmark("market")` (and the sector when known)
            and compare — say "moved with/against/ahead of the market", not
            just the raw number.
-        5. Synthesise: company + sector summary, what's happening now,
+        5. For a US-listed or rate-sensitive asset, `getEconomicCalendar()`
+           for the macro backdrop: name a payrolls, CPI or Fed date due in
+           the next two weeks in the risk notes, with its expected figure.
+        6. `getAssetSentimentTrend(ticker, market)` and
+           `getMarketSentimentTrend()`: say whether the asset's coverage
+           is turning and whether its sector's is too — a stock-specific
+           shift reads differently from a sector-wide one. Skip on
+           `no_coverage`.
+        7. Synthesise: company + sector summary, what's happening now,
            recent corporate-action pattern, qualitative risk callouts.
 
         ### Output
@@ -718,12 +754,16 @@ object DomainSystemPrompts {
         - `getBenchmark(scope)` — the market or a sector today.
         - `listMarkets`, `listCurrencies`,
           `getFxRate(fromCurrency, toCurrency, rateDate?)`.
-        - `getMacroIndicators(lookbackDays?)`, `getRateExpectations()` —
-          the rate and oil backdrop.
+        - `getMacroIndicators(lookbackDays?)`, `getRateExpectations()`,
+          `getEconomicCalendar()` — the rate and oil backdrop, and US
+          payrolls and CPI prints and release dates.
         - `getAssetEventsByTicker(ticker, market?)` — dividends and splits;
           `getAssetEvents(assetId)` takes an internal id instead.
         - `getNews(tickers, market?, topics?)`, `getMarketNews(scope)` —
           news since the review, when the user asks what changed.
+        - `getAssetSentimentTrend(tickers, market?)`,
+          `getMarketSentimentTrend()` — whether news sentiment on the
+          holding, its sector or a macro topic is improving or souring.
 
         ### Opening answer
 
@@ -780,7 +820,8 @@ object DomainSystemPrompts {
           (`"market"`) or one sector proxy. It is a single-day change:
           set it against `changeOnDay`, never against `momentum` returns.
         - `getMacroIndicators`, `getRateExpectations` — rates backdrop for
-          rate-sensitive names.
+          rate-sensitive names. `getEconomicCalendar` — US payrolls and CPI
+          prints, and the next release dates.
 
         ### Workflow
 
@@ -874,6 +915,11 @@ object DomainSystemPrompts {
         - Macro backdrop numbers (yields, oil) over a period →
           `getMacroIndicators(lookbackDays)`.
         - Fed/rate-cut odds, "what's priced in" → `getRateExpectations()`.
+        - Payrolls, jobs, unemployment, CPI/inflation prints, or when the
+          next one is due → `getEconomicCalendar()`.
+        - Whether news sentiment is improving or souring → per macro
+          topic or sector `getMarketSentimentTrend()`; per ticker
+          `getAssetSentimentTrend(tickers, market?)`.
         - Performance vs the market, market-wide vs stock-specific →
           `getBenchmark(scope)`.
         - One asset's price now → `getCurrentPrice(market, code)`; its

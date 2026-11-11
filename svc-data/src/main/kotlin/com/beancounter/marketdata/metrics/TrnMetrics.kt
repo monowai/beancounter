@@ -223,7 +223,16 @@ class TrnMetrics(
     /**
      * Time a transaction import operation.
      */
-    fun <T> timeTransactionImport(operation: () -> T): T = trnImportTimer.recordCallable(operation)!!
+    fun <T> timeTransactionImport(operation: () -> T): T {
+        // Timed by hand: Timer.recordCallable returns a platform type, and T keeps
+        // its own nullability this way. Records on failure too, as recordCallable does.
+        val start = System.nanoTime()
+        try {
+            return operation()
+        } finally {
+            trnImportTimer.record(System.nanoTime() - start, TimeUnit.NANOSECONDS)
+        }
+    }
 
     /**
      * Record import time manually.

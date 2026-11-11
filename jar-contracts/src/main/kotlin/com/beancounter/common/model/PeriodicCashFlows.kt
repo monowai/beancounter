@@ -45,7 +45,7 @@ class PeriodicCashFlows {
         if (position.quantityValues.hasPosition()) {
             cashFlows.add(
                 CashFlow(
-                    position.moneyValues[Position.In.TRADE]!!.marketValue.toDouble(),
+                    position.getMoneyValues(Position.In.TRADE).marketValue.toDouble(),
                     date
                 )
             )

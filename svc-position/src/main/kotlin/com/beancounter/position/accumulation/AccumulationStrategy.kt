@@ -1,5 +1,6 @@
 package com.beancounter.position.accumulation
 
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
@@ -22,5 +23,11 @@ interface AccumulationStrategy {
         trn: Trn,
         position: Position,
         positions: Positions
-    ) = if (TrnType.isCash(trn.trnType)) position else positions.getOrCreate(trn.cashAsset!!)
+    ) = if (TrnType.isCash(trn.trnType)) {
+        position
+    } else {
+        positions.getOrCreate(
+            trn.cashAsset ?: throw BusinessException("${trn.trnType} transaction ${trn.id} has no cash asset")
+        )
+    }
 }

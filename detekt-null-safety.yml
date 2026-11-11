@@ -1,0 +1,36 @@
+# detekt config for the `detektNullSafety` task: two rules that together ban
+# `!!` in main code. UnsafeCallOnNullableType catches `!!` on a nullable type;
+# UnnecessaryNotNullOperator catches `!!` on a type the compiler already knows is
+# non-null. The task scans src/main/kotlin only, so tests may use `!!`.
+#
+# This is separate from detekt.yml, the full detekt 1.23.8 config that Codacy and
+# the warn-only `detekt` task load. Those type-resolution rules never fire under
+# 1.23.8: it embeds Kotlin 2.0 and cannot read jars built by 2.3+.
+#
+# Estate rule: bc-claude/AGENTS.md, "Kotlin null safety".
+
+config:
+  validation: true
+
+comments:
+  active: false
+complexity:
+  active: false
+coroutines:
+  active: false
+empty-blocks:
+  active: false
+exceptions:
+  active: false
+naming:
+  active: false
+performance:
+  active: false
+style:
+  active: false
+potential-bugs:
+  active: true
+  UnsafeCallOnNullableType:
+    active: true
+  UnnecessaryNotNullOperator:
+    active: true

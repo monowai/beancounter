@@ -154,7 +154,16 @@ class EventMetrics(
     /**
      * Time an event processing operation.
      */
-    fun <T> timeEventProcessing(operation: () -> T): T = eventProcessingTimer.recordCallable(operation)!!
+    fun <T> timeEventProcessing(operation: () -> T): T {
+        // Timed by hand: Timer.recordCallable returns a platform type, and T keeps
+        // its own nullability this way. Records on failure too, as recordCallable does.
+        val start = System.nanoTime()
+        try {
+            return operation()
+        } finally {
+            eventProcessingTimer.record(System.nanoTime() - start, TimeUnit.NANOSECONDS)
+        }
+    }
 
     /**
      * Record processing time manually.

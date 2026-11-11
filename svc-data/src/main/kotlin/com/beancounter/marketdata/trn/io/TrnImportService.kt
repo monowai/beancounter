@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.trn.io
 
 import com.beancounter.common.contracts.TrnRequest
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.input.TrustedTrnImportRequest
@@ -119,7 +120,8 @@ class TrnImportService(
         val endDate = trustedTrnEvent.trnInput.tradeDate.plusDays(DUPLICATE_LOOKAHEAD_DAYS)
         return trnRepository.findExisting(
             trustedTrnEvent.portfolio.id,
-            trustedTrnEvent.trnInput.assetId!!,
+            trustedTrnEvent.trnInput.assetId
+                ?: throw BusinessException("Corporate action event has no assetId"),
             trustedTrnEvent.trnInput.trnType,
             start,
             endDate

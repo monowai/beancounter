@@ -2,6 +2,7 @@ package com.beancounter.marketdata.trn
 
 import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.TrnRequest
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Broker
@@ -139,15 +140,17 @@ class TrnInputMapper(
         trnInput: TrnInput,
         cashAsset: Asset,
         existing: Trn?
-    ): Currency? =
-        when {
+    ): Currency? {
+        val cashCurrency = trnInput.cashCurrency
+        return when {
             // Use explicitly provided cashCurrency
-            !trnInput.cashCurrency.isNullOrEmpty() -> currencyService.getCode(trnInput.cashCurrency!!)
+            !cashCurrency.isNullOrEmpty() -> currencyService.getCode(cashCurrency)
             // Preserve existing cashCurrency when patching
             existing?.cashCurrency != null -> existing.cashCurrency
             // Use the cash asset's class currency
             else -> cashAsset.accountingType?.currency ?: cashAsset.market.currency
         }
+    }
 
     /**
      * COST_ADJUST has no quantity impact, a zero quantity defaults to [tradeAmount], and a cash
@@ -218,7 +221,9 @@ class TrnInputMapper(
         trnInput: TrnInput,
         existing: Trn?
     ): Asset {
-        val asset = existing?.asset ?: assetFinder.find(trnInput.assetId!!)
+        val asset =
+            existing?.asset
+                ?: assetFinder.find(trnInput.assetId ?: throw BusinessException("Transaction input has no assetId"))
         return asset
     }
 

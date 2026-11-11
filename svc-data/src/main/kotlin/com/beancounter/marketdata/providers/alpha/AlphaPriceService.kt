@@ -59,13 +59,13 @@ class AlphaPriceService(
 
         runBlockingTraced {
             supervisorScope {
-                for (batchId in providerArguments.batch.keys) {
+                for ((batchId, symbols) in providerArguments.batch) {
                     requests[batchId] =
                         async(Dispatchers.IO) {
                             if (priceRequest.currentMode) {
-                                alphaProxy.getCurrent(providerArguments.batch[batchId]!!, apiKey)
+                                alphaProxy.getCurrent(symbols, apiKey)
                             } else {
-                                alphaProxy.getHistoric(providerArguments.batch[batchId]!!, apiKey)
+                                alphaProxy.getHistoric(symbols, apiKey)
                             }
                         }
                 }
@@ -91,8 +91,8 @@ class AlphaPriceService(
                     requestDeferred.isCompleted
                 }
 
-            completedBatches.keys.forEach { batchId ->
-                val requestDeferred = requests.remove(batchId)!!
+            completedBatches.forEach { (batchId, requestDeferred) ->
+                requests.remove(batchId)
                 try {
                     results.addAll(
                         alphaPriceAdapter[providerArguments, batchId, requestDeferred.await(), currentMode]

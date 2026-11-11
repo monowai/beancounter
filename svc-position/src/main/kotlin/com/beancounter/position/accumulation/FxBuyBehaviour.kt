@@ -1,5 +1,7 @@
 package com.beancounter.position.accumulation
 
+import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
@@ -60,12 +62,15 @@ class FxBuyBehaviour(
             trn.tradePortfolioRate
         )
 
-        if (trn.cashAsset != null) {
+        val cashAsset = trn.cashAsset
+        if (cashAsset != null) {
             handleCash(
                 positions.getOrCreate(
-                    trn.cashAsset!!,
+                    cashAsset,
                     trn.tradeDate
                 ),
+                trn.cashCurrency
+                    ?: throw BusinessException("FX transaction ${trn.id} has a cash asset but no cash currency"),
                 trn
             )
         }
@@ -75,6 +80,7 @@ class FxBuyBehaviour(
 
     private fun handleCash(
         counterPosition: Position,
+        cashCurrency: Currency,
         trn: Trn
     ) {
         counterPosition.quantityValues.sold =
@@ -85,7 +91,7 @@ class FxBuyBehaviour(
             cashCost.value(
                 currencyResolver.getMoneyValues(
                     pool,
-                    trn.cashCurrency!!,
+                    cashCurrency,
                     trn.portfolio,
                     counterPosition
                 ),

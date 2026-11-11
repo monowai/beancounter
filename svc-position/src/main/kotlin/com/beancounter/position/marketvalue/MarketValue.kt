@@ -13,7 +13,6 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils.Companion.multiply
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
-import java.util.Objects
 
 /**
  * Compute the market value and accumulate gains
@@ -93,12 +92,13 @@ class MarketValue(
         } else {
             val close = moneyValues.priceData.close
             moneyValues.marketValue =
-                Objects.requireNonNull(
+                // multiply returns null only for a null amount; close is never null.
+                checkNotNull(
                     multiply(
                         close,
                         total
                     )
-                )!!
+                )
 
             if (!isCash && moneyValues.priceData.previousClose.signum() != 0) {
                 // Only calculate gainOnDay when there's valid previous close data

@@ -15,7 +15,6 @@ import tools.jackson.databind.JsonNode
 import tools.jackson.databind.ValueDeserializer
 import java.math.BigDecimal
 import java.time.LocalDate
-import java.util.Objects
 
 private const val SPLIT = "8. split coefficient"
 
@@ -132,18 +131,18 @@ class AlphaPriceDeserializer : ValueDeserializer<PriceResponse>() {
             mapper.typeFactory
                 .constructMapType(LinkedHashMap::class.java, String::class.java, HashMap::class.java)
         val allValues =
-            mapper.readValue<LinkedHashMap<*, out LinkedHashMap<String, Any>?>>(
+            mapper.readValue<LinkedHashMap<*, out Map<String, Any>?>>(
                 source["Time Series (Daily)"].toString(),
                 mapType
             )
-        for (key in allValues.keys) {
-            val rawData: Map<String, Any>? = allValues[key.toString()]
+        for ((key, rawData) in allValues) {
             val localDateTime =
                 dateUtils.getFormattedDate(
                     key.toString()
                 )
-            if (asset != null) {
-                val priceData = getPrice(asset, localDateTime, rawData!!)
+            // A date the provider returned without values carries no price.
+            if (asset != null && rawData != null) {
+                val priceData = getPrice(asset, localDateTime, rawData)
                 results.add(priceData)
             }
         }
@@ -160,7 +159,7 @@ class AlphaPriceDeserializer : ValueDeserializer<PriceResponse>() {
             price =
                 MarketData(
                     asset = asset,
-                    priceDate = Objects.requireNonNull(priceDate)!!,
+                    priceDate = priceDate,
                     close = BigDecimal(data["4. close"].toString()),
                     open = BigDecimal(data["1. open"].toString()),
                     low = BigDecimal(data["3. low"].toString()),

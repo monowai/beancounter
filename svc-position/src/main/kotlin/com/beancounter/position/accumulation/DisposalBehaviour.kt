@@ -48,17 +48,18 @@ abstract class DisposalBehaviour(
         rate: BigDecimal,
         position: Position
     ) {
-        val saleAmount = multiply(trn.tradeAmount, rate)
+        // multiply returns null only for a null amount; tradeAmount is never null.
+        val saleAmount = checkNotNull(multiply(trn.tradeAmount, rate))
         moneyValues.sales = moneyValues.sales.add(saleAmount)
 
         if (trn.tradeAmount.compareTo(ZERO) != 0) {
             val unitCost =
-                saleAmount?.divide(
+                saleAmount.divide(
                     trn.quantity.abs(),
                     getMathContext()
                 )
-            val unitProfit = unitCost?.subtract(moneyValues.averageCost)
-            val realisedGain = unitProfit!!.multiply(trn.quantity.abs())
+            val unitProfit = unitCost.subtract(moneyValues.averageCost)
+            val realisedGain = unitProfit.multiply(trn.quantity.abs())
             moneyValues.realisedGain = add(moneyValues.realisedGain, realisedGain)
         }
 

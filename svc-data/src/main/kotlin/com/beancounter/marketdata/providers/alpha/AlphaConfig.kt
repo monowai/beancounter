@@ -122,8 +122,9 @@ class AlphaConfig(
         )
 
     override fun getPriceCode(asset: Asset): String {
-        if (asset.priceSymbol != null) {
-            return asset.priceSymbol!!
+        val priceSymbol = asset.priceSymbol
+        if (priceSymbol != null) {
+            return priceSymbol
         }
         // Index symbols (e.g. ^GSPC, ^IXIC) carry no market suffix on Alpha Vantage.
         if (asset.code.startsWith("^")) {

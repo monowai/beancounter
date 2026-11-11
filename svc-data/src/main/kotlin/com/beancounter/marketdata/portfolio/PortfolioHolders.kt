@@ -21,13 +21,13 @@ class PortfolioHolders(
     private val accessControl: PortfolioAccessControl
 ) {
     fun findWhereHeld(
-        assetId: String?,
+        assetId: String,
         tradeDate: LocalDate?
     ): PortfoliosResponse {
         val recordDate = tradeDate ?: dateUtils.getFormattedDate(dateUtils.today())
         val portfolios =
             portfolioRepository.findDistinctPortfolioByAssetIdAndTradeDate(
-                assetId!!,
+                assetId,
                 recordDate
             )
         log.trace(
@@ -44,7 +44,7 @@ class PortfolioHolders(
      * (e.g. Asset Lookup); service-to-service callers should use [findWhereHeld].
      */
     fun findWhereHeldForCaller(
-        assetId: String?,
+        assetId: String,
         tradeDate: LocalDate?
     ): PortfoliosResponse {
         val all = findWhereHeld(assetId, tradeDate).data

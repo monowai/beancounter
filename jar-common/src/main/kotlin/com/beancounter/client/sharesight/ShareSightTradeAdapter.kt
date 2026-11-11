@@ -52,9 +52,8 @@ class ShareSightTradeAdapter(
         this.filter = filter
     }
 
-    override fun from(trustedTrnImportRequest: TrustedTrnImportRequest?): TrnInput {
-        assert(trustedTrnImportRequest != null)
-        val row = trustedTrnImportRequest!!.row
+    override fun from(trustedTrnImportRequest: TrustedTrnImportRequest): TrnInput {
+        val row = trustedTrnImportRequest.row
 
         val trnType = validateAndParseTrnType(row)
         val comment = extractComment(row)
@@ -79,7 +78,7 @@ class ShareSightTradeAdapter(
             trnInput.tradeCashRate = tradeValueCalculator.getTradeCashRate(tradeRate)
             trnInput
         } catch (e: ParseException) {
-            val message = e.message!!
+            val message = e.message ?: e.toString()
             throw logFirst("TRADE", message, row)
         }
     }

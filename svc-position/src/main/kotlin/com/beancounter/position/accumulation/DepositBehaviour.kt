@@ -36,8 +36,9 @@ class DepositBehaviour(
                 quantity,
                 trn
             )
-        if (!trn.subAccounts.isNullOrEmpty()) {
-            trn.subAccounts!!.forEach { (code, amount) ->
+        val subAccounts = trn.subAccounts
+        if (!subAccounts.isNullOrEmpty()) {
+            subAccounts.forEach { (code, amount) ->
                 position.subAccounts[code] =
                     (position.subAccounts[code] ?: BigDecimal.ZERO).add(amount)
             }

@@ -18,8 +18,9 @@ class MarketStackProxy(
         batch: Int,
         apiKey: String
     ): MarketStackResponse {
-        val assets = providerArguments.batch[batch]!!
-        val marketOpenDate = providerArguments.getBatchConfigs(batch)?.date!!
+        val assets = providerArguments.getBatch(batch)
+        val marketOpenDate =
+            checkNotNull(providerArguments.getBatchConfigs(batch)) { "No dated config for batch $batch" }.date
         val response =
             marketStackGateway.getPrices(
                 assets,

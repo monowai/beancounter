@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.providers
 
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Market
 import com.beancounter.marketdata.providers.alpha.AlphaPriceService
 import com.beancounter.marketdata.providers.cash.CashProviderService
@@ -81,7 +82,8 @@ class MdFactory internal constructor(
     fun getMarketDataProvider(market: Market): MarketDataPriceProvider = resolveProvider(market)
 
     fun getMarketDataProvider(provider: String): MarketDataPriceProvider =
-        providers[provider.uppercase(Locale.getDefault())]!!
+        providers[provider.uppercase(Locale.getDefault())]
+            ?: throw BusinessException("Unknown market data provider: $provider")
 
     /**
      * The search surface of the provider that prices [market], so a market-scoped search asks the

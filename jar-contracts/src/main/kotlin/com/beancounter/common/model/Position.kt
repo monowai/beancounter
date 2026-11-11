@@ -94,12 +94,9 @@ class Position(
     ): MoneyValues = moneyValues.getOrPut(reportCurrency) { MoneyValues(currency) }
 
     @JsonIgnore
-    fun getMoneyValues(reportCurrency: In): MoneyValues {
-        if (moneyValues.containsKey(reportCurrency)) {
-            return moneyValues[reportCurrency]!!
-        }
-        throw BusinessException("$reportCurrency Position does not exist for ${asset.name}")
-    }
+    fun getMoneyValues(reportCurrency: In): MoneyValues =
+        moneyValues[reportCurrency]
+            ?: throw BusinessException("$reportCurrency Position does not exist for ${asset.name}")
 
     override fun toString(): String = "Position(asset=$asset)"
 }

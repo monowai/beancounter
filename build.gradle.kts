@@ -81,6 +81,50 @@ val detekt by tasks.registering(JavaExec::class) {
 
 tasks.named("check") { dependsOn(detekt) }
 
+// No `!!` in main code: detekt UnsafeCallOnNullableType and
+// UnnecessaryNotNullOperator, see detekt-null-safety.yml. Both need type
+// resolution, so this runs detekt 2.x (embeds Kotlin 2.4) per module with
+// `--analysis-mode full` and that module's compile classpath. Miss any one and the
+// rules stay silent. Unlike `detekt` above, a finding fails the module's `check`.
+subprojects {
+    pluginManager.withPlugin("org.jetbrains.kotlin.jvm") {
+        val detektNullSafetyCli = configurations.create("detektNullSafetyCli")
+        dependencies { add(detektNullSafetyCli.name, rootProject.libs.detekt.nullsafety.cli) }
+
+        val detektNullSafety by tasks.registering(JavaExec::class) {
+            group = "verification"
+            description = "Fails on `!!` in main code."
+            mainClass.set("dev.detekt.cli.Main")
+            classpath = detektNullSafetyCli
+            workingDir = projectDir
+            val sources = file("src/main/kotlin")
+            val config = rootProject.file("detekt-null-safety.yml")
+            val compileClasspath = project.the<SourceSetContainer>()["main"].compileClasspath
+            onlyIf { sources.exists() }
+            inputs.files(sources, config, compileClasspath)
+            // detekt rejects a missing path, such as an empty module's classes/java/main.
+            argumentProviders.add(
+                CommandLineArgumentProvider {
+                    listOf("--classpath", compileClasspath.filter { it.exists() }.asPath)
+                }
+            )
+            args(
+                "--input",
+                sources.path,
+                "--config",
+                config.path,
+                "--base-path",
+                rootProject.projectDir.path,
+                "--jvm-target",
+                "25",
+                "--analysis-mode",
+                "full"
+            )
+        }
+        tasks.named("check") { dependsOn(detektNullSafety) }
+    }
+}
+
 // Shared configuration for all subprojects
 subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")

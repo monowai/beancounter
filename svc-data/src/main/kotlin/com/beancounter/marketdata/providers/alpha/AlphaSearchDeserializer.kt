@@ -33,11 +33,15 @@ class AlphaSearchDeserializer : ValueDeserializer<AssetSearchResponse>() {
                     collectionType
                 )
             for (row in rows) {
+                // A provider row without symbol, name or type cannot be offered as a match.
+                val symbol = row["1. symbol"] ?: continue
+                val name = row["2. name"] ?: continue
+                val type = row["3. type"] ?: continue
                 val searchResult =
                     AssetSearchResult(
-                        row["1. symbol"]!!,
-                        row["2. name"]!!,
-                        row["3. type"]!!,
+                        symbol,
+                        name,
+                        type,
                         null,
                         row["8. currency"]
                     )

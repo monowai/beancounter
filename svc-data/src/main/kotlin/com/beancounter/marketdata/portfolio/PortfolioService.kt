@@ -137,12 +137,12 @@ class PortfolioService(
 
     fun update(
         id: String,
-        portfolioInput: PortfolioInput?
+        portfolioInput: PortfolioInput
     ): Portfolio {
         val existing = find(id)
         return portfolioRepository.save(
             portfolioInputAdapter.fromInput(
-                portfolioInput!!,
+                portfolioInput,
                 existing
             )
         )

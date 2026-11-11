@@ -107,9 +107,10 @@ class OwnedAssetService(
         assetInput.name?.let { asset.name = it }
         // Update category and/or currency via accountingType
         val newCategoryId = assetInput.category.ifBlank { asset.category }
+        val currencyCode = assetInput.currency
         val resolvedCurrency =
-            if (assetInput.currency != null) {
-                currencyService.getCode(assetInput.currency!!)
+            if (currencyCode != null) {
+                currencyService.getCode(currencyCode)
             } else {
                 asset.accountingType?.currency ?: currencyService.getCode(asset.market.currency.code)
             }

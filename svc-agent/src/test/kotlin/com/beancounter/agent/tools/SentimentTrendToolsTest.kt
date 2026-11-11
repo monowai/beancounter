@@ -13,7 +13,6 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.never
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
-import java.math.BigDecimal
 
 /**
  * The two sentiment-trend tools on [NewsTools]: svc-data's daily rows in, a latest-week against
@@ -76,12 +75,42 @@ class SentimentTrendToolsTest {
             .containsEntry("positive", 6)
             .containsEntry("neutral", 2)
             .containsEntry("negative", 2)
-            .containsEntry("net", BigDecimal("0.40"))
+            .containsEntry("articles", 10)
+            .containsEntry("positivePct", 60)
+            .containsEntry("negativePct", 20)
         assertThat(window(inflation, "prior"))
             .containsEntry("positive", 1)
             .containsEntry("negative", 8)
-            .containsEntry("net", BigDecimal("-0.70"))
-        assertThat(inflation["netChange"]).isEqualTo(BigDecimal("1.10"))
+            .containsEntry("positivePct", 10)
+            .containsEntry("negativePct", 80)
+        assertThat(inflation["direction"]).isEqualTo("improving")
+    }
+
+    @Test
+    fun `market trend reports whole percentages and a worded direction, never a raw balance`() {
+        stubMarket(
+            series("TOPIC", "bonds", counts("2026-11-02", 5, 3, 2), counts("2026-11-10", 2, 2, 6)),
+            series("TOPIC", "economy", counts("2026-11-02", 3, 4, 3), counts("2026-11-10", 3, 5, 3))
+        )
+
+        val topics = entries(tools.getMarketSentimentTrend(), "topics")
+
+        assertThat(topics[0]["direction"]).isEqualTo("souring")
+        assertThat(topics[1]["direction"]).isEqualTo("steady")
+        assertThat(window(topics[1], "latest")).containsEntry("positivePct", 27).containsEntry("negativePct", 27)
+        topics.forEach { topic ->
+            assertThat(topic).doesNotContainKeys("net", "netChange")
+            assertThat(window(topic, "latest")).doesNotContainKey("net")
+        }
+    }
+
+    @Test
+    fun `market trend rounds a share to a whole percent once, not via two decimals`() {
+        stubMarket(series("TOPIC", "rates", counts("2026-11-10", 1, 200, 0)))
+
+        val latest = window(entries(tools.getMarketSentimentTrend(), "topics").single(), "latest")
+
+        assertThat(latest).containsEntry("positivePct", 0).containsEntry("negativePct", 0)
     }
 
     @Test
@@ -97,8 +126,8 @@ class SentimentTrendToolsTest {
         assertThat(result.keys).containsExactlyInAnyOrder("asOf", "window", "topics", "sectors")
         assertThat(entries(result, "topics").map { it["name"] }).containsExactly("inflation", "energy")
         assertThat(entries(result, "sectors").map { it["name"] }).containsExactly("technology")
-        assertThat(window(entries(result, "topics")[0], "latest")["net"]).isEqualTo(BigDecimal("1.00"))
-        assertThat(window(entries(result, "topics")[1], "latest")["net"]).isEqualTo(BigDecimal("-1.00"))
+        assertThat(window(entries(result, "topics")[0], "latest")).containsEntry("positivePct", 100)
+        assertThat(window(entries(result, "topics")[1], "latest")).containsEntry("negativePct", 100)
     }
 
     @Test
@@ -110,7 +139,7 @@ class SentimentTrendToolsTest {
 
         val energy = entries(tools.getMarketSentimentTrend(), "sectors").single()
 
-        assertThat(energy).doesNotContainKeys("latest", "netChange")
+        assertThat(energy).doesNotContainKeys("latest", "direction")
         assertThat(window(energy, "prior")["negative"]).isEqualTo(3)
     }
 
@@ -122,7 +151,7 @@ class SentimentTrendToolsTest {
     }
 
     @Test
-    fun `asset trend reports an article-weighted score per ticker for each week`() {
+    fun `asset trend words the article-weighted tone per ticker for each week`() {
         stubAsset("AAPL", "id-aapl")
         stubAsset("MSFT", "id-msft")
         whenever(newsClient.getAssetSentiment(listOf("id-aapl", "id-msft"), SentimentTrend.FETCH_DAYS))
@@ -145,9 +174,11 @@ class SentimentTrendToolsTest {
         assertThat(result["asOf"]).isEqualTo("2026-11-10")
         val apple = entries(result, "assets").single()
         assertThat(apple["ticker"]).isEqualTo("AAPL")
-        assertThat(window(apple, "latest")).containsEntry("articles", 40).containsEntry("score", BigDecimal("0.00"))
-        assertThat(window(apple, "prior")).containsEntry("articles", 10).containsEntry("score", BigDecimal("0.80"))
-        assertThat(apple["scoreChange"]).isEqualTo(BigDecimal("-0.80"))
+        assertThat(window(apple, "latest")).containsEntry("articles", 40).containsEntry("tone", "mixed")
+        assertThat(window(apple, "prior")).containsEntry("articles", 10).containsEntry("tone", "positive")
+        assertThat(apple["direction"]).isEqualTo("souring")
+        assertThat(apple).doesNotContainKeys("score", "scoreChange")
+        assertThat(window(apple, "latest")).doesNotContainKey("score")
     }
 
     @Test

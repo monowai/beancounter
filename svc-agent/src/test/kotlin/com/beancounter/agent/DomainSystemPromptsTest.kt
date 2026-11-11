@@ -129,6 +129,34 @@ class DomainSystemPromptsTest {
     }
 
     @Test
+    fun `every domain prompt asks for figures a reader can use, not raw scores or field names`() {
+        assertThat(allPrompts).allSatisfy { prompt ->
+            assertThat(prompt)
+                .contains("Numbers a reader can use")
+                .contains("Never quote a tool's field name")
+                .contains("six in ten")
+        }
+    }
+
+    @Test
+    fun `asset review keeps dividends and splits in the background`() {
+        assertThat(DomainSystemPrompts.ASSET_REVIEW)
+            .contains("split in the last month")
+            .contains("never a risk or a headline")
+            .contains("Leave dividends out")
+            .doesNotContain("**Corporate actions**")
+            .doesNotContain("last 12 months")
+            .doesNotContain("corporate-action pattern")
+    }
+
+    @Test
+    fun `asset review query no longer asks for corporate-action history`() {
+        assertThat(PageQueries.assetReview("ABC", "", ""))
+            .doesNotContain("dividend")
+            .doesNotContain("split")
+    }
+
+    @Test
     fun `every domain prompt forbids a lead-in preamble`() {
         assertThat(allPrompts)
             .allSatisfy { prompt -> assertThat(prompt).contains("No preamble") }

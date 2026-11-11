@@ -73,8 +73,7 @@ object PageQueries {
         val nameLabel = if (assetName.isBlank()) "" else " ($assetName)"
         val marketLabel = if (market.isBlank()) "" else " listed on $market"
         return "Produce an Asset Review for $ticker$nameLabel$marketLabel. " +
-            "Cover company and sector context, current sentiment from recent news, " +
-            "corporate-action history (dividends and splits in the last 12 months), " +
+            "Cover company and sector context, current sentiment from recent news " +
             "and qualitative risk callouts. Stay at the ticker level — do not assume " +
             "the user holds it."
     }

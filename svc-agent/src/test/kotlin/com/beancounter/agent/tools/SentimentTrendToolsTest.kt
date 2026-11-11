@@ -105,6 +105,15 @@ class SentimentTrendToolsTest {
     }
 
     @Test
+    fun `market trend rounds a share to a whole percent once, not via two decimals`() {
+        stubMarket(series("TOPIC", "rates", counts("2026-11-10", 1, 200, 0)))
+
+        val latest = window(entries(tools.getMarketSentimentTrend(), "topics").single(), "latest")
+
+        assertThat(latest).containsEntry("positivePct", 0).containsEntry("negativePct", 0)
+    }
+
+    @Test
     fun `market trend keeps topics and sectors apart and never totals across them`() {
         stubMarket(
             series("TOPIC", "inflation", counts("2026-11-10", 4, 0, 0)),

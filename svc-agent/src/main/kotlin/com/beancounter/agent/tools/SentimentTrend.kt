@@ -111,9 +111,9 @@ internal object SentimentTrend {
             Window(
                 mapOf(
                     "articles" to total,
-                    "positive" to positive,
-                    "neutral" to neutral,
-                    "negative" to negative,
+                    POSITIVE to positive,
+                    NEUTRAL to neutral,
+                    NEGATIVE to negative,
                     "positivePct" to percent(positive, total),
                     "negativePct" to percent(negative, total)
                 ),
@@ -142,15 +142,15 @@ internal object SentimentTrend {
 
     private fun tone(score: BigDecimal): String =
         when {
-            score >= SentimentBands.POSITIVE -> "positive"
-            score <= SentimentBands.NEGATIVE -> "negative"
+            score >= SentimentBands.POSITIVE -> POSITIVE
+            score <= SentimentBands.NEGATIVE -> NEGATIVE
             else -> "mixed"
         }
 
     private fun percent(
         part: Int,
         total: Int
-    ): Int = ratio(BigDecimal(part * PERCENT), total).setScale(0, RoundingMode.HALF_UP).toInt()
+    ): Int = BigDecimal(part).multiply(BigDecimal(PERCENT)).divide(BigDecimal(total), 0, RoundingMode.HALF_UP).toInt()
 
     private fun ratio(
         numerator: BigDecimal,
@@ -161,9 +161,9 @@ internal object SentimentTrend {
         (raw as? List<*>).orEmpty().filterIsInstance<Map<*, *>>().map {
             CountPoint(
                 LocalDate.parse(it["date"].toString()),
-                int(it["positive"]),
-                int(it["neutral"]),
-                int(it["negative"])
+                int(it[POSITIVE]),
+                int(it[NEUTRAL]),
+                int(it[NEGATIVE])
             )
         }
 
@@ -199,6 +199,9 @@ internal object SentimentTrend {
 
     private const val SCALE = 2
     private const val PERCENT = 100
+    private const val POSITIVE = "positive"
+    private const val NEUTRAL = "neutral"
+    private const val NEGATIVE = "negative"
 
     // A move in the balance or score smaller than this is noise, not a change of direction.
     private val DIRECTION_BAND = BigDecimal("0.10")

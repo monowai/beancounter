@@ -1,5 +1,6 @@
 package com.beancounter.agent.tools
 
+import com.beancounter.common.model.SentimentBands
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.time.LocalDate
@@ -10,6 +11,10 @@ import java.time.LocalDate
  *
  * Both windows end on the newest day present in the data, not on the wall clock — the result
  * carries that day as `asOf`, so stale data shows as stale rather than as a quiet week.
+ *
+ * The output is written for a reader, not a statistician: article counts, whole percentages and
+ * worded `tone` and `direction`. The balance and score they are derived from stay internal, so a
+ * review cannot quote a figure like "net 0.42" that means nothing to the user.
  */
 internal object SentimentTrend {
     const val WINDOW_DAYS = 7L
@@ -31,7 +36,7 @@ internal object SentimentTrend {
                     null
                 } else {
                     one["kind"].toString() to
-                        compare(countTotals(latest), countTotals(prior), "net") + ("name" to one["name"].toString())
+                        compare(countTotals(latest), countTotals(prior)) + ("name" to one["name"].toString())
                 }
             }
         return mapOf(
@@ -64,31 +69,38 @@ internal object SentimentTrend {
                 scored.map { (assetId, points) ->
                     val latest = points.filter { it.date > asOf.minusDays(WINDOW_DAYS) }
                     val prior = points.filter { it.date <= asOf.minusDays(WINDOW_DAYS) }
-                    compare(scoreTotals(latest), scoreTotals(prior), "score") +
+                    compare(scoreTotals(latest), scoreTotals(prior)) +
                         ("ticker" to tickerByAssetId.getValue(assetId))
                 }
         )
     }
 
-    /** `latest` and `prior` totals plus the change in [measure] between them, when both have one. */
+    /** `latest` and `prior` windows plus a worded `direction` between them, when both have articles. */
     private fun compare(
-        latest: Map<String, Any>?,
-        prior: Map<String, Any>?,
-        measure: String
+        latest: Window?,
+        prior: Window?
     ): Map<String, Any> {
         val result = mutableMapOf<String, Any>()
-        latest?.let { result["latest"] = it }
-        prior?.let { result["prior"] = it }
-        val now = latest?.get(measure) as? BigDecimal
-        val before = prior?.get(measure) as? BigDecimal
-        if (now != null && before != null) {
-            result["${measure}Change"] = now - before
+        latest?.let { result["latest"] = it.fields }
+        prior?.let { result["prior"] = it.fields }
+        if (latest != null && prior != null) {
+            result["direction"] = direction(latest.measure - prior.measure)
         }
         return result
     }
 
-    /** Article counts and net balance `(positive − negative) / total`; null for a window with no articles. */
-    private fun countTotals(points: List<CountPoint>): Map<String, Any>? {
+    private fun direction(change: BigDecimal): String =
+        when {
+            change >= DIRECTION_BAND -> "improving"
+            change <= DIRECTION_BAND.negate() -> "souring"
+            else -> "steady"
+        }
+
+    /**
+     * Article counts with the positive and negative share as whole percentages, measured by the
+     * net balance `(positive − negative) / total`; null for a window with no articles.
+     */
+    private fun countTotals(points: List<CountPoint>): Window? {
         val positive = points.sumOf { it.positive }
         val neutral = points.sumOf { it.neutral }
         val negative = points.sumOf { it.negative }
@@ -96,31 +108,49 @@ internal object SentimentTrend {
         return if (total == 0) {
             null
         } else {
-            mapOf(
-                "positive" to positive,
-                "neutral" to neutral,
-                "negative" to negative,
-                "net" to ratio(BigDecimal(positive - negative), total)
+            Window(
+                mapOf(
+                    "articles" to total,
+                    "positive" to positive,
+                    "neutral" to neutral,
+                    "negative" to negative,
+                    "positivePct" to percent(positive, total),
+                    "negativePct" to percent(negative, total)
+                ),
+                ratio(BigDecimal(positive - negative), total)
             )
         }
     }
 
-    /** Article count and the article-weighted mean score; null for a window with no articles. */
-    private fun scoreTotals(points: List<ScorePoint>): Map<String, Any>? {
+    /**
+     * Article count and a worded tone, measured by the article-weighted mean score; null for a
+     * window with no articles.
+     */
+    private fun scoreTotals(points: List<ScorePoint>): Window? {
         val articles = points.sumOf { it.count }
         return if (articles == 0) {
             null
         } else {
-            mapOf(
-                "articles" to articles,
-                "score" to
-                    ratio(
-                        points.fold(BigDecimal.ZERO) { sum, point -> sum + point.score * BigDecimal(point.count) },
-                        articles
-                    )
-            )
+            val score =
+                ratio(
+                    points.fold(BigDecimal.ZERO) { sum, point -> sum + point.score * BigDecimal(point.count) },
+                    articles
+                )
+            Window(mapOf("articles" to articles, "tone" to tone(score)), score)
         }
     }
+
+    private fun tone(score: BigDecimal): String =
+        when {
+            score >= SentimentBands.POSITIVE -> "positive"
+            score <= SentimentBands.NEGATIVE -> "negative"
+            else -> "mixed"
+        }
+
+    private fun percent(
+        part: Int,
+        total: Int
+    ): Int = ratio(BigDecimal(part * PERCENT), total).setScale(0, RoundingMode.HALF_UP).toInt()
 
     private fun ratio(
         numerator: BigDecimal,
@@ -161,6 +191,16 @@ internal object SentimentTrend {
         val score: BigDecimal
     )
 
+    /** What the model reads ([fields]) and the internal figure the direction is judged on ([measure]). */
+    private data class Window(
+        val fields: Map<String, Any>,
+        val measure: BigDecimal
+    )
+
     private const val SCALE = 2
+    private const val PERCENT = 100
+
+    // A move in the balance or score smaller than this is noise, not a change of direction.
+    private val DIRECTION_BAND = BigDecimal("0.10")
     private const val WINDOW = "latest = the 7 days ending asOf; prior = the 7 days before that"
 }

@@ -135,24 +135,29 @@ class NewsTools(
     companion object {
         const val MARKET_SENTIMENT_DESC =
             "Get the direction of news sentiment for each macro topic (stock markets, economy, " +
-                "inflation, bonds, energy, commodities) and each sector, as separate series: " +
-                "Positive / Neutral / Negative article counts for the latest 7 days against the 7 " +
-                "days before, a `net` balance in [-1, 1] ((positive − negative) / articles) and " +
-                "`netChange`. Use it to say whether the news flow around a topic or sector is " +
-                "improving or souring, and to set a holding's own news against its sector. " +
-                "Never add series together or quote one overall market figure — say which topic " +
-                "or sector. A window with few articles is weak evidence: say so. `prior` or " +
-                "`netChange` is absent when a window has no articles. `asOf` is the newest day " +
-                "counted. This counts headlines; getMarketNews returns the headlines themselves. " +
-                "NEVER mention the underlying data provider."
+                "inflation, bonds, energy, commodities) and each sector, as separate series. Per " +
+                "series, for the latest 7 days and the 7 days before: `articles`, the Positive / " +
+                "Neutral / Negative counts, `positivePct` and `negativePct` (whole percentages of " +
+                "the articles), and a `direction` of improving, souring or steady. Use it to say " +
+                "whether the news flow around a topic or sector is improving or souring, and to " +
+                "set a holding's own news against its sector. Say it in plain words with at most " +
+                "one figure, e.g. 'six in ten inflation articles were negative this week, up " +
+                "from four in ten'. Never add series together or quote one overall market " +
+                "figure — say which topic or sector. A window with few articles is weak " +
+                "evidence: say so. `prior` or `direction` is absent when a window has no " +
+                "articles. `asOf` is the newest day counted. This counts headlines; " +
+                "getMarketNews returns the headlines themselves. NEVER mention the underlying " +
+                "data provider."
         const val ASSET_SENTIMENT_DESC =
-            "Get the direction of news sentiment for specific tickers: per ticker, the article " +
-                "count and an article-weighted `score` in [-1, 1] for the latest 7 days against " +
-                "the 7 days before, and `scoreChange`. Use it to say whether coverage of a " +
-                "holding is turning, and pair it with getMarketSentimentTrend to tell a " +
-                "stock-specific shift from a sector-wide one. Tickers with no coverage are " +
-                "absent — common for non-US listings; do not retry them. A window with few " +
-                "articles is weak evidence: say so. NEVER mention the underlying data provider."
+            "Get the direction of news sentiment for specific tickers: per ticker, for the " +
+                "latest 7 days and the 7 days before, the `articles` count and a `tone` of " +
+                "positive, mixed or negative, plus a `direction` of improving, souring or " +
+                "steady. Use it to say whether coverage of a holding is turning, and pair it " +
+                "with getMarketSentimentTrend to tell a stock-specific shift from a sector-wide " +
+                "one. Report the tone and direction in words; there is no score to quote. " +
+                "Tickers with no coverage are absent — common for non-US listings; do not retry " +
+                "them. A window with few articles is weak evidence: say so. NEVER mention the " +
+                "underlying data provider."
         const val SENTIMENT_TICKERS_DESC =
             "Comma-separated ticker symbols WITHOUT exchange prefix, e.g. 'AAPL,MSFT'. At most " +
                 "10 per call; all must be on the same market."

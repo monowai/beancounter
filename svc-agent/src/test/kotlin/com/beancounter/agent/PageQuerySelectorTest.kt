@@ -19,8 +19,7 @@ class PageQuerySelectorTest {
         assertThat(query?.label).isEqualTo("Asset Review")
         assertThat(query?.question).isEqualTo(
             "Produce an Asset Review for ABC (Abc Corp) listed on NYSE. " +
-                "Cover company and sector context, current sentiment from recent news, " +
-                "corporate-action history (dividends and splits in the last 12 months), " +
+                "Cover company and sector context, current sentiment from recent news " +
                 "and qualitative risk callouts. Stay at the ticker level — do not assume " +
                 "the user holds it."
         )

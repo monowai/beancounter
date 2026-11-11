@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.news.sentiment
 
+import com.beancounter.common.model.SentimentBands
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.news.NewsArticleRepo
 import com.beancounter.marketdata.news.NewsServiceFacade

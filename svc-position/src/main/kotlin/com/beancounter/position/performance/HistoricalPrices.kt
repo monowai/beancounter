@@ -47,7 +47,7 @@ class HistoricalPrices(
             }
         }
 
-    /** The fx-cache dates in order, binary-searched for the nearest-prior lookup. Sorted once per pass. */
+    /** The fx-cache dates in order, binary-searched for the closest-rate lookup. Sorted once per pass. */
     private val fxDates: List<String> = fxCache.keys.sorted()
 
     /** Prices as they stood on [date]. */
@@ -67,8 +67,8 @@ class HistoricalPrices(
      * prior date, and failing that the nearest later one. The pass fetches rates for its
      * valuation dates, so a trn dated before the window (an in-specie transfer priced on
      * its own trade date) has no rate of its own; the figures are indicative, and the
-     * closest rate is a better measure than none. Null only when the pass holds no rate
-     * for the pair at all.
+     * closest rate is a better measure than none. A later rate is logged at WARN, so the
+     * substitution leaves a trace. Null only when the pass holds no rate for the pair at all.
      */
     private fun closestRate(
         dateStr: String,
@@ -76,8 +76,12 @@ class HistoricalPrices(
     ): BigDecimal? {
         val found = fxDates.binarySearch(dateStr)
         val firstLater = if (found >= 0) found + 1 else -(found + 1)
-        return (firstLater - 1 downTo 0).firstNotNullOfOrNull { rateOn(fxDates[it], fxPair) }
-            ?: (firstLater until fxDates.size).firstNotNullOfOrNull { rateOn(fxDates[it], fxPair) }
+        (firstLater - 1 downTo 0).firstNotNullOfOrNull { rateOn(fxDates[it], fxPair) }?.let { return it }
+        val laterIndex =
+            (firstLater until fxDates.size).firstOrNull { rateOn(fxDates[it], fxPair) != null }
+                ?: return null
+        log.warn("No {} rate on or before {}, using the rate from {}", fxPair, dateStr, fxDates[laterIndex])
+        return rateOn(fxDates[laterIndex], fxPair)
     }
 
     private fun rateOn(

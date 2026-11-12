@@ -4,17 +4,21 @@ import com.beancounter.auth.TokenService
 import com.beancounter.client.FxService
 import com.beancounter.client.services.PriceService
 import com.beancounter.client.services.TrnService
+import com.beancounter.common.contracts.BulkFxRequest
 import com.beancounter.common.contracts.BulkFxResponse
 import com.beancounter.common.contracts.BulkPriceRequest
 import com.beancounter.common.contracts.BulkPriceResponse
+import com.beancounter.common.contracts.FxPairResults
 import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.FxRate
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.position.Constants.Companion.NZD
 import com.beancounter.position.Constants.Companion.USD
 import com.beancounter.position.Constants.Companion.owner
 import com.beancounter.position.Constants.Companion.usdCashBalance
@@ -125,6 +129,53 @@ class PerformanceInKindTransferTest {
         assertThat(last.marketValue).isEqualByComparingTo("1200")
         assertThat(last.cumulativeReturn).isEqualByComparingTo("0")
         assertThat(last.netContributions).isEqualByComparingTo("1200")
+    }
+
+    @Test
+    fun `should value units added in specie before the window at the closest rate held`() {
+        // An NZD fund moved into a USD portfolio 14 months ago. The 12 month window
+        // fetches prices and rates for its own dates only, so the day the units
+        // arrived has neither: the units go in at cost, at the closest rate held.
+        val nzFund = Asset(code = "NZFUND", id = "NZFUND-id", name = "NZ Fund", market = Market("NZX", NZD.code))
+        givenTrns(
+            Trn(
+                trnType = TrnType.ADD,
+                asset = nzFund,
+                tradeDate = today.minusMonths(14),
+                quantity = BigDecimal("10"),
+                price = BigDecimal("5"),
+                tradeAmount = BigDecimal("50"),
+                tradeCurrency = NZD,
+                portfolio = portfolio
+            )
+        )
+        whenever(priceService.getBulkPrices(any(), any())).thenAnswer { invocation ->
+            val request = invocation.getArgument<BulkPriceRequest>(0)
+            BulkPriceResponse(
+                request.dates.associateWith { date ->
+                    listOf(MarketData(asset = nzFund, priceDate = LocalDate.parse(date), close = BigDecimal("20")))
+                }
+            )
+        }
+        whenever(fxRateService.getBulkRates(any(), any())).thenAnswer { invocation ->
+            val request = invocation.getArgument<BulkFxRequest>(0)
+            BulkFxResponse(
+                request.dates.associateWith {
+                    FxPairResults(
+                        request.pairs.associateWith { FxRate(from = NZD, to = USD, rate = BigDecimal("0.6")) }
+                    )
+                }
+            )
+        }
+
+        val last =
+            performanceService
+                .calculate(portfolio, 12)
+                .data.series
+                .last()
+
+        assertThat(last.netContributions).isEqualByComparingTo("30")
+        assertThat(last.marketValue).isEqualByComparingTo("120")
     }
 
     @Test

@@ -1,7 +1,10 @@
 package com.beancounter.position.performance
 
+import com.beancounter.common.contracts.FxPairResults
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Asset
+import com.beancounter.common.model.FxRate
+import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.Portfolio
@@ -80,6 +83,61 @@ class HistoricalPricesTest {
             .hasMessageContaining("SGD:USD")
             .hasMessageContaining(valuationDate.toString())
     }
+
+    @Test
+    fun `should convert at the nearest prior rate when none is held on the date`() {
+        val prices = sgdPrices(valuationDate.minusDays(3) to "0.70", valuationDate.plusDays(1) to "0.80")
+
+        assertThat(prices.on(valuationDate).unitValue(position(sgdListed, averageCost = "20"), USD))
+            .isEqualByComparingTo("14")
+    }
+
+    @Test
+    fun `should convert at the rate held on the date ahead of a prior one`() {
+        val prices = sgdPrices(valuationDate.minusDays(1) to "0.70", valuationDate to "0.75")
+
+        assertThat(prices.on(valuationDate).unitValue(position(sgdListed, averageCost = "20"), USD))
+            .isEqualByComparingTo("15")
+    }
+
+    @Test
+    fun `should convert at the nearest later rate when none is held on or before the date`() {
+        val prices = sgdPrices(valuationDate.plusYears(5) to "0.80", valuationDate.plusYears(6) to "0.90")
+
+        assertThat(prices.on(valuationDate).unitValue(position(sgdListed, averageCost = "20"), USD))
+            .isEqualByComparingTo("16")
+    }
+
+    @Test
+    fun `should skip a date that holds no rate for the pair`() {
+        val prices =
+            HistoricalPrices(
+                emptyMap(),
+                mapOf(
+                    valuationDate.minusDays(2).toString() to sgdToUsd("0.70"),
+                    valuationDate.minusDays(1).toString() to FxPairResults(emptyMap())
+                ),
+                TwrBoundary()
+            )
+
+        assertThat(prices.on(valuationDate).unitValue(position(sgdListed, averageCost = "20"), USD))
+            .isEqualByComparingTo("14")
+    }
+
+    private val sgdListed =
+        Asset(code = "SGLISTED", id = "SGLISTED-id", name = "SG listed", market = Market("SGX", currencyId = SGD.code))
+
+    private fun sgdToUsd(rate: String) =
+        FxPairResults(
+            mapOf(IsoCurrencyPair(SGD.code, USD.code) to FxRate(from = SGD, to = USD, rate = BigDecimal(rate)))
+        )
+
+    private fun sgdPrices(vararg rates: Pair<LocalDate, String>) =
+        HistoricalPrices(
+            emptyMap(),
+            rates.associate { (date, rate) -> date.toString() to sgdToUsd(rate) },
+            TwrBoundary()
+        )
 
     private fun position(
         asset: Asset,

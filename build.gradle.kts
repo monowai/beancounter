@@ -41,8 +41,9 @@ val githubRepoUrl = "https://github.com/monowai/beancounter"
 // detekt runs through the CLI because 1.23.8 cannot run inside a JDK 25 Gradle
 // daemon. A finding that is not in detekt-baseline.xml fails `check`, so a rule a
 // reviewer would raise after the push is raised here first. The baseline holds the
-// findings that existed when the gate was switched on; `detektBaseline` rewrites it
-// and is only for removing entries that have been fixed.
+// findings that existed when the gate was switched on. `detektBaseline` rewrites the
+// whole file from the current findings, so it drops fixed entries and also absorbs
+// any new finding: inspect the diff before committing it, and commit only removals.
 val detektCli: Configuration by configurations.creating {
     resolutionStrategy.eachDependency {
         if (requested.group == "org.jetbrains.kotlin") {
@@ -89,7 +90,9 @@ val detekt by tasks.registering(JavaExec::class) {
 }
 
 val detektBaseline by tasks.registering(JavaExec::class) {
-    description = "Rewrites detekt-baseline.xml from the current findings."
+    description =
+        "Rewrites the checked-in detekt-baseline.xml from the current findings, new ones included. " +
+        "Inspect the diff before committing."
     detektOnAllSources("--create-baseline")
 }
 

@@ -49,7 +49,6 @@
     <ID>StringLiteralDuplication:SectorNormalizer.kt$SectorNormalizer.Companion$"Materials"</ID>
     <ID>StringLiteralDuplication:TrnMetrics.kt$TrnMetrics$"beancounter.trn.received.by_type"</ID>
     <ID>StringLiteralDuplication:TrnService.kt$TrnService$"today"</ID>
-    <ID>SwallowedException:TrnStreamConsumersTest.kt$TrnStreamConsumersTest$e: JwtException</ID>
     <ID>ThrowsCount:AssetConfigClient.kt$AssetConfigClient$fun find(assetId: String): PrivateAssetConfigDto</ID>
     <ID>ThrowsCount:DeviceAssertions.kt$DeviceAssertions$fun verify( assertion: String, keyId: String, publicKey: String )</ID>
     <ID>ThrowsCount:DeviceAssertions.kt$DeviceAssertions.Companion$fun p256(spki: String): ECPublicKey</ID>

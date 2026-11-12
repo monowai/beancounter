@@ -51,7 +51,7 @@ class TrnStreamConsumersTest {
             val op = inv.arguments[0] as () -> Any
             try {
                 op()
-            } catch (e: JwtException) {
+            } catch (ignored: JwtException) {
                 loginService.clearTokenCache()
                 op()
             }

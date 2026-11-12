@@ -76,12 +76,21 @@ class HistoricalPrices(
     ): BigDecimal? {
         val found = fxDates.binarySearch(dateStr)
         val firstLater = if (found >= 0) found + 1 else -(found + 1)
-        (firstLater - 1 downTo 0).firstNotNullOfOrNull { rateOn(fxDates[it], fxPair) }?.let { return it }
-        val laterIndex =
-            (firstLater until fxDates.size).firstOrNull { rateOn(fxDates[it], fxPair) != null }
-                ?: return null
-        log.warn("No {} rate on or before {}, using the rate from {}", fxPair, dateStr, fxDates[laterIndex])
-        return rateOn(fxDates[laterIndex], fxPair)
+        val prior = (firstLater - 1 downTo 0).firstNotNullOfOrNull { rateOn(fxDates[it], fxPair) }
+        return prior ?: laterRate(dateStr, fxPair, firstLater)
+    }
+
+    /** The [fxPair] rate from the first date at or after index [from] that holds one, logged at WARN. */
+    private fun laterRate(
+        dateStr: String,
+        fxPair: IsoCurrencyPair,
+        from: Int
+    ): BigDecimal? {
+        val laterDate = (from until fxDates.size).map { fxDates[it] }.firstOrNull { rateOn(it, fxPair) != null }
+        if (laterDate != null) {
+            log.warn("No {} rate on or before {}, using the rate from {}", fxPair, dateStr, laterDate)
+        }
+        return laterDate?.let { rateOn(it, fxPair) }
     }
 
     private fun rateOn(

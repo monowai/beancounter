@@ -401,7 +401,7 @@ not the size of any single change.
   leave the branch dangling for the user to chase.
 - **App repos** (`beancounter`, `bc-view`, `svc-retire`, `svc-rebalance`): NEVER
   push to `main` — feature branch + PR only. Exceptions that commit straight to
-  main: `bc-deploy` (rollout is the review gate) and `bc-claude` (docs-only).
+  main: `bc-deploy` (rollout is the review gate) and `bc-domain` (docs-only).
 - **Pre-push**: run this local review on the staged diff and fix 🔴/🟠 first —
   no reviewer runs after the push, so this is the last look before merge.
 - **Verify the branch before pushing** — after a merge you can land back on

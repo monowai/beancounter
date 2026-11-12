@@ -1,6 +1,7 @@
 package com.beancounter.position.accumulation
 
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
@@ -75,9 +76,11 @@ class Accumulator(
         position.dateValues.last = trn.tradeDate
 
         // Is cash impacted by this transaction opposed to being a "cash" transaction
-        if (impactCash(trn)) {
+        val cashAsset = trn.cashAsset
+        if (cashAsset != null && impactCash(trn.trnType)) {
             accumulateCash(
                 trn,
+                cashAsset,
                 positions
             )
         }
@@ -125,8 +128,7 @@ class Accumulator(
      * @param trn The transaction to evaluate.
      * @return True if cash should be accumulated, false otherwise.
      */
-    private fun impactCash(trn: Trn): Boolean =
-        trn.cashAsset != null && TrnType.isCashImpacted(trn.trnType) && trn.trnType !in cashSet
+    private fun impactCash(trnType: TrnType): Boolean = TrnType.isCashImpacted(trnType) && trnType !in cashSet
 
     /**
      * Determines if a transaction type should contribute to periodic cash flows for IRR calculation.
@@ -138,15 +140,17 @@ class Accumulator(
      * Accumulates cash-related transactions to the corresponding position based on the transaction type.
      *
      * @param trn The transaction to be processed.
+     * @param cashAsset The transaction's cash asset.
      * @param positions The collection of all positions to update.
      */
     private fun accumulateCash(
         trn: Trn,
+        cashAsset: Asset,
         positions: Positions
     ) {
         val cashPosition =
             positions.getOrCreate(
-                trn.cashAsset!!,
+                cashAsset,
                 trn.tradeDate
             )
 

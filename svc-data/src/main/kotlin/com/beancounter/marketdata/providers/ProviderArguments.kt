@@ -66,11 +66,14 @@ class ProviderArguments(
         }
     }
 
-    fun getAssets(batchId: Int): List<String> = batch[batchId]!!.split(delimiter)
+    fun getBatch(batchId: Int): String = checkNotNull(batch[batchId]) { "No batch $batchId" }
+
+    fun getAssets(batchId: Int): List<String> = getBatch(batchId).split(delimiter)
 
     fun getBatchConfigs(id: Int): DatedBatch? = datedBatches[id]
 
-    fun getAsset(dataProviderKey: String): Asset = dpToBc[dataProviderKey]!!
+    fun getAsset(dataProviderKey: String): Asset =
+        checkNotNull(dpToBc[dataProviderKey]) { "No asset batched for provider key $dataProviderKey" }
 
     companion object {
         /**
@@ -94,12 +97,12 @@ class ProviderArguments(
 
             split(priceRequest.assets).forEach { (_, assets) ->
                 assets
-                    .filter { it.resolvedAsset != null }
-                    .forEach { asset ->
+                    .mapNotNull { it.resolvedAsset }
+                    .forEach { resolvedAsset ->
                         // Add the asset to the batch, bumping it if it exceeds
                         // the number of assets per request
                         providerArguments.batchAsset(
-                            asset.resolvedAsset!!,
+                            resolvedAsset,
                             priceRequest.date
                         )
                     }

@@ -171,10 +171,11 @@ class FigiAssetSearch(
             val responses = figiGateway.search(listOf(searchRequest), figiConfig.apiKey)
             val response = responses.firstOrNull()
 
-            if (response?.error != null || response?.data.isNullOrEmpty()) {
+            val data = response?.data
+            if (response?.error != null || data.isNullOrEmpty()) {
                 emptyList()
             } else {
-                response.data!!
+                data
                     .filter { asset ->
                         val type = asset.securityType2.uppercase()
                         ALLOWED_SECURITY_TYPES.contains(type)

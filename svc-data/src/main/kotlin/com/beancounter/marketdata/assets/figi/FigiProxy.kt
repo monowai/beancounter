@@ -40,14 +40,15 @@ class FigiProxy internal constructor(
         // one (e.g. a USD-on-LSE listing) can't be FIGI-resolved — return null so
         // the enricher chain falls back to the default enricher instead of NPEing
         // on the alias lookup in resolve() (DATA-5K).
-        if (market.aliases[FIGI] == null) {
+        val figiExchange = market.aliases[FIGI]
+        if (figiExchange == null) {
             log.debug("No FIGI alias for market {} — skipping FIGI enrichment", market.code)
             return null
         }
         val (figiCode, figiMarket, figiSearch) =
             resolve(
                 bcAssetCode,
-                market
+                figiExchange
             )
         val response =
             try {
@@ -90,7 +91,7 @@ class FigiProxy internal constructor(
 
     fun resolve(
         bcAssetCode: String,
-        market: Market
+        figiMarket: String
     ): Triple<String, String, FigiSearch> {
         val figiCode =
             bcAssetCode
@@ -98,7 +99,6 @@ class FigiProxy internal constructor(
                     ".",
                     "/"
                 ).uppercase(Locale.getDefault())
-        val figiMarket = market.aliases[FIGI]!!
         val figiSearch =
             FigiSearch(
                 idValue = figiCode,
@@ -142,12 +142,7 @@ class FigiProxy internal constructor(
         return figiSearches
     }
 
-    private fun extractResult(search: Collection<FigiResponse?>?): FigiResponse? =
-        if (search!!.isEmpty()) {
-            null
-        } else {
-            search.iterator().next()
-        }
+    private fun extractResult(search: Collection<FigiResponse?>): FigiResponse? = search.firstOrNull()
 
     private fun findEquity(figiSearch: FigiSearch): FigiResponse? {
         figiSearch.securityType2 = EQUITY

@@ -32,25 +32,25 @@ class AlphaEventAdapter(
     }
 
     private fun calculateGross(
-        currentPosition: Position?,
+        currentPosition: Position,
         rate: BigDecimal?
     ): BigDecimal =
         nullSafe(
             multiplyAbs(
-                currentPosition!!.quantityValues.getTotal(),
+                currentPosition.quantityValues.getTotal(),
                 rate
             )
         )
 
     private fun calculateTax(
-        currentPosition: Position?,
+        currentPosition: Position,
         gross: BigDecimal?
     ): BigDecimal =
         nullSafe(
             multiplyAbs(
                 gross,
                 taxService.getRate(
-                    currentPosition!!
+                    currentPosition
                         .asset.market.currency.code
                 )
             )
@@ -119,7 +119,7 @@ class AlphaEventAdapter(
         val callerRef =
             CallerRef(
                 corporateEvent.source,
-                corporateEvent.id!!
+                requireNotNull(corporateEvent.id) { "Corporate event must be saved before it becomes a transaction" }
             )
         return TrnInput(
             callerRef,
@@ -153,7 +153,7 @@ class AlphaEventAdapter(
         val callerRef =
             CallerRef(
                 corporateEvent.source,
-                corporateEvent.id!!
+                requireNotNull(corporateEvent.id) { "Corporate event must be saved before it becomes a transaction" }
             )
         return TrnInput(
             callerRef,

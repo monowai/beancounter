@@ -112,7 +112,7 @@ class FxRateService(
         // For comparison mode (explicit provider): use provider-specific cache
         var rates =
             if (isComparisonMode) {
-                fxRateRepository.findByDateRangeAndProvider(dateToFind, provider!!)
+                fxRateRepository.findByDateRangeAndProvider(dateToFind, provider)
             } else {
                 fxRateRepository.findByDateRange(dateToFind)
             }

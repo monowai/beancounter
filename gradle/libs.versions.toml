@@ -5,6 +5,9 @@
 kotlin = "2.4.0"
 kotlinter = "5.7.0"
 detekt = "1.23.8"
+# detektNullSafety: 2.x is the first line that embeds Kotlin 2.4, which its
+# type-resolution rules need. Move to 2.0.0 final when it ships.
+detekt-nullsafety = "2.0.0-alpha.6"
 spring-boot = "4.1.2"
 spring-cloud = "2025.1.3"
 # Also pins the contract BOM import (spring-cloud-contract-dependencies):
@@ -60,6 +63,7 @@ sentry-jdbc = { module = "io.sentry:sentry-jdbc", version.ref = "sentry" }
 sentry-logback = { module = "io.sentry:sentry-logback", version.ref = "sentry" }
 jackson-kotlin = { module = "tools.jackson.module:jackson-module-kotlin" }
 detekt-cli = { module = "io.gitlab.arturbosch.detekt:detekt-cli", version.ref = "detekt" }
+detekt-nullsafety-cli = { module = "dev.detekt:detekt-cli", version.ref = "detekt-nullsafety" }
 mockito-kotlin = { module = "org.mockito.kotlin:mockito-kotlin", version.ref = "mockitoKotlin" }
 assertj = { module = "org.assertj:assertj-core" }
 kotest-runner-junit5 = { module = "io.kotest:kotest-runner-junit5", version.ref = "kotest" }

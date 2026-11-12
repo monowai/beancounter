@@ -46,6 +46,6 @@ class AssetEntityListener(
             asset.market = marketServiceProvider.getObject().getMarket(asset.marketCode)
         }
         val categoryConfig = assetCategoryConfigProvider.getObject()
-        asset.assetCategory = categoryConfig.get(asset.category) ?: categoryConfig.get()!!
+        asset.assetCategory = categoryConfig.resolve(asset.category)
     }
 }

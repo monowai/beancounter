@@ -23,6 +23,13 @@ class AssetCategoryConfig {
         return categories
     }
 
+    /**
+     * The category for [id], else the configured default. A default missing from
+     * the configured categories is a configuration error.
+     */
+    fun resolve(id: String = default): AssetCategory =
+        checkNotNull(get(id)) { "Default asset category '$default' is not configured" }
+
     fun get(id: String = default): AssetCategory? {
         if (id == "Common Stock") {
             return getCategories()["EQUITY"]

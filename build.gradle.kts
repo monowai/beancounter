@@ -81,6 +81,88 @@ val detekt by tasks.registering(JavaExec::class) {
 
 tasks.named("check") { dependsOn(detekt) }
 
+// No `!!` in main code: detekt UnsafeCallOnNullableType and
+// UnnecessaryNotNullOperator, see detekt-null-safety.yml. Both need type
+// resolution, so this runs detekt 2.x (embeds Kotlin 2.4) per module with
+// `--analysis-mode full` and that module's compile classpath. Miss any one and the
+// rules stay silent. Unlike `detekt` above, a finding fails the module's `check`.
+fun JavaExec.detektNullSafetyOn(
+    cli: FileCollection,
+    sources: File,
+    compileClasspath: FileCollection
+) {
+    mainClass.set("dev.detekt.cli.Main")
+    classpath = cli
+    workingDir = project.projectDir
+    val config = rootProject.file("detekt-null-safety.yml")
+    inputs.files(sources, config, compileClasspath)
+    // detekt rejects a missing path, such as an empty module's classes/java/main.
+    argumentProviders.add(
+        CommandLineArgumentProvider {
+            listOf("--classpath", compileClasspath.filter { it.exists() }.asPath)
+        }
+    )
+    args(
+        "--input",
+        sources.path,
+        "--config",
+        config.path,
+        "--base-path",
+        rootProject.projectDir.path,
+        "--jvm-target",
+        "25",
+        "--analysis-mode",
+        "full"
+    )
+}
+
+subprojects {
+    pluginManager.withPlugin("org.jetbrains.kotlin.jvm") {
+        val detektNullSafetyCli = configurations.create("detektNullSafetyCli")
+        dependencies { add(detektNullSafetyCli.name, rootProject.libs.detekt.nullsafety.cli) }
+
+        val detektNullSafety by tasks.registering(JavaExec::class) {
+            group = "verification"
+            description = "Fails on `!!` in main code."
+            val sources = file("src/main/kotlin")
+            onlyIf { sources.exists() }
+            detektNullSafetyOn(
+                detektNullSafetyCli,
+                sources,
+                project.the<SourceSetContainer>()["main"].compileClasspath
+            )
+        }
+        tasks.named("check") { dependsOn(detektNullSafety) }
+    }
+}
+
+// Proves the gate is live: detekt must flag both rules on a known-`!!` fixture.
+// A toolchain or detekt bump that silences them fails here, not as a green no-op.
+val detektNullSafetyCanaryCli: Configuration by configurations.creating
+
+dependencies { detektNullSafetyCanaryCli(libs.detekt.nullsafety.cli) }
+
+val detektNullSafetyCanary by tasks.registering(JavaExec::class) {
+    group = "verification"
+    description = "Fails if detekt stops flagging `!!`."
+    detektNullSafetyOn(
+        detektNullSafetyCanaryCli,
+        file("src/detekt-canary"),
+        sourceSets.main.get().compileClasspath
+    )
+    val report = layout.buildDirectory.file("reports/detekt-canary.xml")
+    outputs.file(report)
+    args("--report", "checkstyle:${report.get().asFile.path}")
+    isIgnoreExitValue = true
+    doLast {
+        val text = report.get().asFile.readText()
+        val missing = listOf("UnsafeCallOnNullableType", "UnnecessaryNotNullOperator").filterNot { it in text }
+        check(missing.isEmpty()) { "detekt no longer flags $missing on src/detekt-canary; the `!!` gate is silent" }
+    }
+}
+
+tasks.named("check") { dependsOn(detektNullSafetyCanary) }
+
 // Shared configuration for all subprojects
 subprojects {
     apply(plugin = "org.jetbrains.kotlin.jvm")

@@ -40,9 +40,12 @@ class AverageCost {
         moneyValues: MoneyValues
     ): BigDecimal {
         val quantityValues = position.quantityValues
-        return multiply(
-            moneyValues.averageCost,
-            quantityValues.getTotal()
-        )!!
+        // multiply returns null only for a null amount; averageCost is never null.
+        return checkNotNull(
+            multiply(
+                moneyValues.averageCost,
+                quantityValues.getTotal()
+            )
+        )
     }
 }

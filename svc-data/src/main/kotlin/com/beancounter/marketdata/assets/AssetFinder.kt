@@ -93,7 +93,7 @@ class AssetFinder(
      */
     fun hydrateAsset(asset: Asset): Asset {
         asset.market = marketService.getMarket(asset.marketCode)
-        asset.assetCategory = assetCategoryConfig.get(asset.category) ?: assetCategoryConfig.get()!!
+        asset.assetCategory = assetCategoryConfig.resolve(asset.category)
         return asset
     }
 

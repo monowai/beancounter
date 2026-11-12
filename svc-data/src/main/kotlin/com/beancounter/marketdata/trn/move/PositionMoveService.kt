@@ -103,17 +103,17 @@ class PositionMoveService(
 
         transactions.forEach { trn ->
             val cashImpacted = TrnType.isCashImpacted(trn.trnType)
-            val hasCashAsset = trn.cashAsset != null
+            val cashAsset = trn.cashAsset
             val hasNonZeroCash = trn.cashAmount.compareTo(BigDecimal.ZERO) != 0
-            if (cashImpacted && hasCashAsset && hasNonZeroCash) {
-                val cashAssetId = trn.cashAsset!!.id
+            if (cashImpacted && cashAsset != null && hasNonZeroCash) {
+                val cashAssetId = cashAsset.id
                 val running = netByCashAsset[cashAssetId]?.amount ?: BigDecimal.ZERO
-                netByCashAsset[cashAssetId] = NetCash(running.add(trn.cashAmount), trn)
+                netByCashAsset[cashAssetId] = NetCash(running.add(trn.cashAmount), trn, cashAsset.code)
                 log.debug(
                     "Compensating: {} {} cashAsset={} cashAmount={}",
                     trn.trnType,
                     trn.id,
-                    trn.cashAsset!!.code,
+                    cashAsset.code,
                     trn.cashAmount
                 )
             } else {
@@ -122,7 +122,7 @@ class PositionMoveService(
                     trn.trnType,
                     trn.id,
                     cashImpacted,
-                    hasCashAsset,
+                    cashAsset != null,
                     trn.cashAmount
                 )
             }
@@ -146,7 +146,7 @@ class PositionMoveService(
         netCashByAsset(transactions)
             .filter { (_, net) -> net.amount.compareTo(BigDecimal.ZERO) != 0 }
             .forEach { (cashAssetId, net) ->
-                val (netAmount, trn) = net
+                val (netAmount, trn, cashAssetCode) = net
                 val comment =
                     "Position move: ${trn.asset.code} from ${sourcePortfolio.code} to ${targetPortfolio.code}"
                 val tradeCurrency = trn.cashCurrency?.code ?: trn.tradeCurrency.code
@@ -162,7 +162,7 @@ class PositionMoveService(
                     }
                 log.info(
                     "Compensating cashAsset={}: net={} → source={} target={} amount={}",
-                    trn.cashAsset!!.code,
+                    cashAssetCode,
                     netAmount,
                     sourceType,
                     targetType,
@@ -243,5 +243,6 @@ class PositionMoveService(
 /** Netted cash [amount] for one cash asset, and the last [trn] that contributed to it. */
 private data class NetCash(
     val amount: BigDecimal,
-    val trn: Trn
+    val trn: Trn,
+    val cashAssetCode: String
 )

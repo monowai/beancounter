@@ -42,7 +42,7 @@ class EnrichmentFactory(
         val enricherConfig = (market.enricher ?: defEnricher).uppercase(Locale.getDefault())
         val parts = enricherConfig.split(",").map { it.trim() }
         if (parts.size == 1) {
-            return enrichers[parts[0]]!!
+            return checkNotNull(enrichers[parts[0]]) { "No asset enricher named ${parts[0]}" }
         }
         val chain = parts.mapNotNull { enrichers[it] }
         return ChainedEnricher(chain, defaultEnricher)

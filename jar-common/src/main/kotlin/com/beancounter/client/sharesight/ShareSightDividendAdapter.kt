@@ -46,16 +46,15 @@ class ShareSightDividendAdapter(
         this.filter = filter
     }
 
-    override fun from(trustedTrnImportRequest: TrustedTrnImportRequest?): TrnInput {
-        assert(trustedTrnImportRequest != null)
-        val row = trustedTrnImportRequest!!.row
+    override fun from(trustedTrnImportRequest: TrustedTrnImportRequest): TrnInput {
+        val row = trustedTrnImportRequest.row
         return try {
             createTrnInput(trustedTrnImportRequest, row)
         } catch (e: NumberFormatException) {
-            val message = e.message!!
+            val message = e.message ?: e.toString()
             throw logFirst("DIVI", message, row)
         } catch (e: ParseException) {
-            val message = e.message!!
+            val message = e.message ?: e.toString()
             throw logFirst("DIVI", message, row)
         }
     }

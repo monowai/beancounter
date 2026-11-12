@@ -34,9 +34,10 @@ class BalanceBehaviour(
         // map on the BALANCE trn. Snapshot semantics: overwrite (not add) so
         // re-running with a fresh balance replaces the previous snapshot,
         // mirroring `quantityValues.purchased` above.
-        if (!trn.subAccounts.isNullOrEmpty()) {
+        val subAccounts = trn.subAccounts
+        if (!subAccounts.isNullOrEmpty()) {
             position.subAccounts.clear()
-            position.subAccounts.putAll(trn.subAccounts!!)
+            position.subAccounts.putAll(subAccounts)
         }
         val isCash = cashUtils.isCash(position.asset)
         applyMoneyValues(

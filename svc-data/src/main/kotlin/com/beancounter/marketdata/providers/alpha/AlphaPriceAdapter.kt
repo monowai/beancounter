@@ -46,7 +46,7 @@ class AlphaPriceAdapter(
     }
 
     private fun setPriceResponse(
-        asset: Asset?,
+        asset: Asset,
         response: String?,
         results: MutableCollection<MarketData>,
         providerArguments: ProviderArguments,
@@ -76,7 +76,7 @@ class AlphaPriceAdapter(
 
     private fun setPriceResponse(
         response: String?,
-        asset: Asset?,
+        asset: Asset,
         results: MutableCollection<MarketData>,
         providerArguments: ProviderArguments,
         currentMode: Boolean
@@ -88,7 +88,7 @@ class AlphaPriceAdapter(
             )
         if (priceResponse != null && priceResponse.data.isNotEmpty()) {
             for (marketData in priceResponse.data) {
-                marketData.asset = asset!! // Return BC view of the asset, not MarketProviders
+                marketData.asset = asset // Return BC view of the asset, not MarketProviders
                 normalise(
                     asset.market,
                     marketData
@@ -159,7 +159,7 @@ class AlphaPriceAdapter(
     }
 
     private fun isMdResponse(
-        asset: Asset?,
+        asset: Asset,
         result: String?
     ): Boolean {
         if (result == null) {
@@ -184,7 +184,7 @@ class AlphaPriceAdapter(
     }
 
     private fun getDefault(
-        asset: Asset?,
+        asset: Asset,
         providerArguments: ProviderArguments
     ): MarketData {
         var date = providerArguments.getBatchConfigs(0)?.date
@@ -195,7 +195,7 @@ class AlphaPriceAdapter(
         val priceDate = alphaConfig.dateUtils.getFormattedDate(date)
 
         return MarketData(
-            asset = asset!!,
+            asset = asset,
             priceDate = priceDate
         )
     }

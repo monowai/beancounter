@@ -25,7 +25,7 @@ class CashProviderService(
         val result =
             MarketData(
                 asset,
-                priceDate!!
+                priceDate
             )
         result.close = BigDecimal.ONE
         return result
@@ -51,13 +51,13 @@ class CashProviderService(
 
     override fun isApiSupported(): Boolean = false
 
-    val priceDate: LocalDate?
+    val priceDate: LocalDate
         get() = dateUtils.getDate()
 
     override fun getDate(
         market: Market,
         priceRequest: PriceRequest
-    ): LocalDate = priceDate!!
+    ): LocalDate = priceDate
 
     override fun backFill(
         asset: Asset,

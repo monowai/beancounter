@@ -56,26 +56,41 @@ class HistoricalPrices(
         return PricesOnDate(
             dateStr,
             (priceCache[dateStr] ?: emptyList()).associateBy { it.key() },
-            nearestFxRates(dateStr),
+            { fxPair -> closestRate(dateStr, fxPair) },
             latestPriceIndex,
             boundary
         )
     }
 
-    /** FX rates for the exact date, or else the nearest prior date in the pass. */
-    private fun nearestFxRates(dateStr: String): FxPairResults? {
-        fxCache[dateStr]?.let { return it }
-        return fxDates
-            .lastOrNull { it <= dateStr }
-            ?.let { fxCache[it] }
+    /**
+     * The [fxPair] rate for the date, else the closest one the pass holds: the nearest
+     * prior date, and failing that the nearest later one. The pass fetches rates for its
+     * valuation dates, so a trn dated before the window (an in-specie transfer priced on
+     * its own trade date) has no rate of its own; the figures are indicative, and the
+     * closest rate is a better measure than none. Null only when the pass holds no rate
+     * for the pair at all.
+     */
+    private fun closestRate(
+        dateStr: String,
+        fxPair: IsoCurrencyPair
+    ): BigDecimal? {
+        val closest =
+            fxDates.lastOrNull { it <= dateStr && rateOn(it, fxPair) != null }
+                ?: fxDates.firstOrNull { it > dateStr && rateOn(it, fxPair) != null }
+        return closest?.let { rateOn(it, fxPair) }
     }
+
+    private fun rateOn(
+        dateStr: String,
+        fxPair: IsoCurrencyPair
+    ): BigDecimal? = fxCache[dateStr]?.rates?.get(fxPair)?.rate
 }
 
 /** One valuation date's prices and FX rates within a [HistoricalPrices] pass. */
 class PricesOnDate internal constructor(
     private val dateStr: String,
     private val priceMap: Map<String, MarketData>,
-    private val fxRates: FxPairResults?,
+    private val rateFor: (IsoCurrencyPair) -> BigDecimal?,
     private val latestPriceIndex: Map<String, MarketData>,
     private val boundary: TwrBoundary
 ) {
@@ -118,16 +133,15 @@ class PricesOnDate internal constructor(
     }
 
     /**
-     * [price] converted at the [fxPair] rate. A missing rate fails the pass: valuing the
-     * holding unconverted would report a wrong figure as a measured one.
+     * [price] converted at the closest [fxPair] rate the pass holds. A pair with no rate
+     * at all fails the pass: valuing the holding unconverted would report a wrong figure
+     * as a measured one.
      */
     private fun converted(
         price: BigDecimal,
         fxPair: IsoCurrencyPair
     ): BigDecimal {
-        val rate =
-            fxRates?.rates?.get(fxPair)?.rate
-                ?: throw BusinessException("No FX rate for $fxPair as at $dateStr")
+        val rate = rateFor(fxPair) ?: throw BusinessException("No FX rate for $fxPair as at $dateStr")
         return price.multiply(rate)
     }
 

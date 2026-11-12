@@ -38,8 +38,11 @@ val testSlots =
     }
 val githubRepoUrl = "https://github.com/monowai/beancounter"
 
-// detekt reports through the CLI because 1.23.8 cannot run inside a JDK 25 Gradle
-// daemon. Findings print as warnings and never fail the build.
+// detekt runs through the CLI because 1.23.8 cannot run inside a JDK 25 Gradle
+// daemon. A finding that is not in detekt-baseline.xml fails `check`, so a rule a
+// reviewer would raise after the push is raised here first. The baseline holds the
+// findings that existed when the gate was switched on; `detektBaseline` rewrites it
+// and is only for removing entries that have been fixed.
 val detektCli: Configuration by configurations.creating {
     resolutionStrategy.eachDependency {
         if (requested.group == "org.jetbrains.kotlin") {
@@ -53,14 +56,12 @@ dependencies {
     detektCli(libs.detekt.cli)
 }
 
-val detekt by tasks.registering(JavaExec::class) {
+fun JavaExec.detektOnAllSources(vararg extraArgs: String) {
     group = "verification"
-    description = "Prints detekt findings as warnings."
     javaLauncher.set(javaToolchains.launcherFor { languageVersion.set(JavaLanguageVersion.of(21)) })
     mainClass.set("io.gitlab.arturbosch.detekt.cli.Main")
     classpath = detektCli
     workingDir = projectDir
-    isIgnoreExitValue = true
     val input =
         subprojects
             .flatMap { listOf("main", "test").map { set -> it.file("src/$set/kotlin") } }
@@ -73,10 +74,23 @@ val detekt by tasks.registering(JavaExec::class) {
         file("detekt.yml").path,
         "--base-path",
         projectDir.path,
+        "--baseline",
+        file("detekt-baseline.xml").path,
         "--jvm-target",
         "21",
-        "--parallel"
+        "--parallel",
+        *extraArgs
     )
+}
+
+val detekt by tasks.registering(JavaExec::class) {
+    description = "Fails on a detekt finding that is not in detekt-baseline.xml."
+    detektOnAllSources()
+}
+
+val detektBaseline by tasks.registering(JavaExec::class) {
+    description = "Rewrites detekt-baseline.xml from the current findings."
+    detektOnAllSources("--create-baseline")
 }
 
 tasks.named("check") { dependsOn(detekt) }

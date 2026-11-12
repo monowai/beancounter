@@ -93,6 +93,14 @@ class HistoricalPricesTest {
     }
 
     @Test
+    fun `should convert at the rate held on the date ahead of a prior one`() {
+        val prices = sgdPrices(valuationDate.minusDays(1) to "0.70", valuationDate to "0.75")
+
+        assertThat(prices.on(valuationDate).unitValue(position(sgdListed, averageCost = "20"), USD))
+            .isEqualByComparingTo("15")
+    }
+
+    @Test
     fun `should convert at the nearest later rate when none is held on or before the date`() {
         val prices = sgdPrices(valuationDate.plusYears(5) to "0.80", valuationDate.plusYears(6) to "0.90")
 

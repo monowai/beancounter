@@ -47,7 +47,7 @@ class HistoricalPrices(
             }
         }
 
-    /** The fx-cache dates in order, for the nearest-prior lookup. Sorted once per pass. */
+    /** The fx-cache dates in order, binary-searched for the nearest-prior lookup. Sorted once per pass. */
     private val fxDates: List<String> = fxCache.keys.sorted()
 
     /** Prices as they stood on [date]. */
@@ -74,10 +74,10 @@ class HistoricalPrices(
         dateStr: String,
         fxPair: IsoCurrencyPair
     ): BigDecimal? {
-        val closest =
-            fxDates.lastOrNull { it <= dateStr && rateOn(it, fxPair) != null }
-                ?: fxDates.firstOrNull { it > dateStr && rateOn(it, fxPair) != null }
-        return closest?.let { rateOn(it, fxPair) }
+        val found = fxDates.binarySearch(dateStr)
+        val firstLater = if (found >= 0) found + 1 else -(found + 1)
+        return (firstLater - 1 downTo 0).firstNotNullOfOrNull { rateOn(fxDates[it], fxPair) }
+            ?: (firstLater until fxDates.size).firstNotNullOfOrNull { rateOn(fxDates[it], fxPair) }
     }
 
     private fun rateOn(

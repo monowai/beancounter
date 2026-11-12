@@ -1,0 +1,75 @@
+<?xml version="1.0" ?>
+<SmellBaseline>
+  <ManuallySuppressedIssues/>
+  <CurrentIssues>
+    <ID>DestructuringDeclarationWithTooManyEntries:CashProviderService.kt$CashProviderService$(_, _, resolvedAsset, _)</ID>
+    <ID>DestructuringDeclarationWithTooManyEntries:InboundSerializationTest.kt$InboundSerializationTest$val (portfolio, _, _, row, callerRef) = objectMapper.readValue&lt;TrustedTrnImportRequest&gt;( message["payload"].toString() )</ID>
+    <ID>DestructuringDeclarationWithTooManyEntries:TestEvent.kt$TestEvent$val (_, _, _, _, recordDate, _, _, payDate) = objectMapper.readValue&lt;CorporateEvent&gt;( eventJson )</ID>
+    <ID>DestructuringDeclarationWithTooManyEntries:TestMsftFlow.kt$TestMsftFlow$val (_, _, _, assetId, recordDate) = trustedEvent.data</ID>
+    <ID>LargeClass:DomainSystemPrompts.kt$DomainSystemPrompts</ID>
+    <ID>LongParameterList:AssetService.kt$AssetService$( private val enrichmentFactory: EnrichmentFactory, private val assetRepository: AssetRepository, private val marketService: MarketService, private val keyGenUtils: KeyGenUtils, private val assetFinder: AssetFinder, // @Lazy breaks the construction cycle: AssetService → AssetMarketVerifier → // AssetSearchService → MdFactory → Alpha* → AssetService. The verifier is only // touched on the create path, so a lazy proxy is resolved well after startup. @Lazy private val assetMarketVerifier: AssetMarketVerifier, transactionManager: PlatformTransactionManager )</ID>
+    <ID>LongParameterList:CashLegInput.kt$( cashAssetId: String, trnType: TrnType, amount: BigDecimal, currency: String, tradeDate: LocalDate, status: TrnStatus, comments: String?, callerRef: CallerRef = CallerRef(), price: BigDecimal = BigDecimal.ONE, tradeCashRate: BigDecimal? = null )</ID>
+    <ID>LongParameterList:MarketDataBackfillService.kt$MarketDataBackfillService$( private val providerUtils: ProviderUtils, private val priceService: PriceService, private val assetFinder: AssetFinder, private val marketDataRepo: MarketDataRepo, private val trnRepository: TrnRepository, @Suppress("unused") private val cacheInvalidationProducer: CacheInvalidationProducer? = null, private val maxBackfillYears: Long = MAX_BACKFILL_YEARS, private val dateUtils: DateUtils = DateUtils() )</ID>
+    <ID>LongParameterList:MarketDataService.kt$MarketDataService$( private val assetService: AssetService, private val assetFinder: AssetFinder, private val backfillService: MarketDataBackfillService, private val priceProcessor: MarketDataPriceProcessor, private val priceHistoryReader: PriceHistoryReader, private val dateUtils: DateUtils, private val mdFactory: MdFactory, private val liveQuoteService: LiveQuoteService )</ID>
+    <ID>LongParameterList:MarketTools.kt$MarketTools$( private val marketService: MarketService, private val staticService: StaticService, private val fxService: FxService, private val tokenService: TokenService, private val priceService: PriceService, private val watchlistClient: WatchlistClient, private val dateUtils: DateUtils = DateUtils() )</ID>
+    <ID>LongParameterList:OffboardingService.kt$OffboardingService$( private val systemUserService: SystemUserService, private val systemUserRepository: SystemUserRepository, private val systemUserCache: SystemUserCache, private val portfolioErasure: PortfolioErasure, private val ownedAssetErasure: OwnedAssetErasure, private val taxRateRepository: TaxRateRepository, private val userPreferencesRepository: UserPreferencesRepository, private val watchlistService: WatchlistService )</ID>
+    <ID>LongParameterList:OwnedAssetService.kt$OwnedAssetService$( private val assetRepository: AssetRepository, private val systemUserService: SystemUserService, private val assetCategoryConfig: AssetCategoryConfig, private val accountingTypeService: AccountingTypeService, private val currencyService: CurrencyService, private val assetCascadeDeleter: AssetCascadeDeleter, private val cacheInvalidationProducer: CacheInvalidationProducer )</ID>
+    <ID>LongParameterList:PrivateAssetConfigService.kt$PrivateAssetConfigService$( private val configRepository: PrivateAssetConfigRepository, private val assetRepository: AssetRepository, private val systemUserService: SystemUserService, private val trnRepository: TrnRepository, private val accessControl: AssetAccessControl, private val cacheInvalidationProducer: CacheInvalidationProducer, private val dateUtils: DateUtils = DateUtils() )</ID>
+    <ID>LongParameterList:SecClassificationEnricher.kt$SecClassificationEnricher$( private val secProxy: SecProxy, private val tickerResolver: SecTickerResolver, private val sicSectorMapper: SicSectorMapper, private val fundamentalsParser: SecFundamentalsParser, private val classificationService: ClassificationService, private val fundamentalsRepository: AssetFundamentalsRepository, private val dateUtils: DateUtils = DateUtils(), private val objectMapper: ObjectMapper = BcJson.objectMapper )</ID>
+    <ID>LongParameterList:TrnInputMapper.kt$TrnInputMapper$( private val assetFinder: AssetFinder, var currencyService: CurrencyService, var tradeCalculator: TradeCalculator, val cashTrnServices: CashTrnServices, val fxTransactions: FxTransactions, val keyGenUtils: KeyGenUtils, val brokerRepository: BrokerRepository, val cashUtils: CashUtils = CashUtils() )</ID>
+    <ID>LongParameterList:TrnSettlementService.kt$TrnSettlementService$( private val trnRepository: TrnRepository, private val fxTransactions: FxTransactions, private val trnChangeEffects: TrnChangeEffects, private val portfolioService: PortfolioService, private val portfolioAccessControl: PortfolioAccessControl, private val dateUtils: DateUtils, private val trnPostProcessor: TrnPostProcessor )</ID>
+    <ID>LoopWithTooManyJumpStatements:AllocationService.kt$AllocationService$for</ID>
+    <ID>LoopWithTooManyJumpStatements:AlphaSearchDeserializer.kt$AlphaSearchDeserializer$for</ID>
+    <ID>LoopWithTooManyJumpStatements:AutoSettleService.kt$AutoSettleService$for</ID>
+    <ID>LoopWithTooManyJumpStatements:ClassificationRefreshService.kt$ClassificationRefreshService$for</ID>
+    <ID>ReturnCount:AlphaConfig.kt$AlphaConfig$override fun getPriceCode(asset: Asset): String</ID>
+    <ID>ReturnCount:FigiProxy.kt$FigiProxy$@RateLimiter(name = "figi") fun find( market: Market, bcAssetCode: String, id: String = bcAssetCode ): Asset?</ID>
+    <ID>ReturnCount:SecFundamentalsParser.kt$SecFundamentalsParser$private fun toEntry(node: JsonNode): Entry?</ID>
+    <ID>StringLiteralDuplication:AssetInput.kt$AssetInput.Companion$"PRIVATE"</ID>
+    <ID>StringLiteralDuplication:AssetService.kt$AssetService$"Unable to resolve asset ${assetInput.code}"</ID>
+    <ID>StringLiteralDuplication:BrokerService.kt$BrokerService$"Broker not found: $id"</ID>
+    <ID>StringLiteralDuplication:DeviceAssertions.kt$DeviceAssertions.Companion$"Device key must be a P-256 public key"</ID>
+    <ID>StringLiteralDuplication:EventMetrics.kt$EventMetrics$"beancounter.event.received"</ID>
+    <ID>StringLiteralDuplication:LoginService.kt$LoginService$"password"</ID>
+    <ID>StringLiteralDuplication:MacroTools.kt$MacroTools$"message"</ID>
+    <ID>StringLiteralDuplication:MacroTools.kt$MacroTools$"no_coverage"</ID>
+    <ID>StringLiteralDuplication:MacroTools.kt$MacroTools$"status"</ID>
+    <ID>StringLiteralDuplication:MarketTools.kt$MarketTools$"market"</ID>
+    <ID>StringLiteralDuplication:MarketTools.kt$MarketTools$"today"</ID>
+    <ID>StringLiteralDuplication:MarketTools.kt$MarketTools.Companion$"INDEX"</ID>
+    <ID>StringLiteralDuplication:NewsClient.kt$NewsClient$"topics"</ID>
+    <ID>StringLiteralDuplication:PositionClient.kt$PositionClient$"today"</ID>
+    <ID>StringLiteralDuplication:SectorNormalizer.kt$SectorNormalizer.Companion$"Communication Services"</ID>
+    <ID>StringLiteralDuplication:SectorNormalizer.kt$SectorNormalizer.Companion$"Consumer Discretionary"</ID>
+    <ID>StringLiteralDuplication:SectorNormalizer.kt$SectorNormalizer.Companion$"Consumer Staples"</ID>
+    <ID>StringLiteralDuplication:SectorNormalizer.kt$SectorNormalizer.Companion$"Financials"</ID>
+    <ID>StringLiteralDuplication:SectorNormalizer.kt$SectorNormalizer.Companion$"Health Care"</ID>
+    <ID>StringLiteralDuplication:SectorNormalizer.kt$SectorNormalizer.Companion$"Industrials"</ID>
+    <ID>StringLiteralDuplication:SectorNormalizer.kt$SectorNormalizer.Companion$"Information Technology"</ID>
+    <ID>StringLiteralDuplication:SectorNormalizer.kt$SectorNormalizer.Companion$"Materials"</ID>
+    <ID>StringLiteralDuplication:TrnMetrics.kt$TrnMetrics$"beancounter.trn.received.by_type"</ID>
+    <ID>StringLiteralDuplication:TrnService.kt$TrnService$"today"</ID>
+    <ID>ThrowsCount:AssetConfigClient.kt$AssetConfigClient$fun find(assetId: String): PrivateAssetConfigDto</ID>
+    <ID>ThrowsCount:DeviceAssertions.kt$DeviceAssertions$fun verify( assertion: String, keyId: String, publicKey: String )</ID>
+    <ID>ThrowsCount:DeviceAssertions.kt$DeviceAssertions.Companion$fun p256(spki: String): ECPublicKey</ID>
+    <ID>ThrowsCount:OAuthConfig.kt$OAuthConfig.IssuerRoutingJwtDecoder$private fun unverifiedIssuer(token: String): String</ID>
+    <ID>ThrowsCount:PageQuerySelector.kt$PageQuerySelector$fun holdingAnalysisSubject(context: Map&lt;String, Any&gt;?): HoldingAnalysisSubject?</ID>
+    <ID>ThrowsCount:RegistrationController.kt$RegistrationController$@GetMapping("/me") @PreAuthorize( "hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')" ) fun getMe( @RequestParam(required = false) sub: String?, @RequestParam(required = false) email: String? ): RegistrationResponse</ID>
+    <ID>ThrowsCount:RegistrationController.kt$RegistrationController$@PatchMapping("/me") @PreAuthorize( "hasAnyAuthority('" + AuthConstants.SCOPE_USER + "', '" + AuthConstants.SCOPE_SYSTEM + "')" ) fun updatePreferences( @RequestBody request: UserPreferencesRequest, @RequestParam(required = false) sub: String?, @RequestParam(required = false) email: String? ): RegistrationResponse</ID>
+    <ID>ThrowsCount:SecTickerResolver.kt$SecTickerResolver$@Synchronized fun resolve(asset: Asset): String?</ID>
+    <ID>TooGenericExceptionCaught:EntityCountMetrics.kt$EntityCountMetrics$ex: Exception</ID>
+    <ID>TooGenericExceptionCaught:FxPairPriceService.kt$FxPairPriceService$e: RuntimeException</ID>
+    <ID>TooGenericExceptionCaught:NewsSentimentSchedule.kt$NewsSentimentSchedule$e: Exception</ID>
+    <ID>TooManyFunctions:SentimentTrend.kt$SentimentTrend</ID>
+    <ID>UseCheckOrError:AgentQuotaTest.kt$AgentQuotaTest$throw IllegalStateException("model down")</ID>
+    <ID>UseCheckOrError:MarketTools.kt$MarketTools$throw IllegalStateException("No price data for $market:$code")</ID>
+    <ID>UseCheckOrError:QuotaRecorderTest.kt$QuotaRecorderTest.&lt;no name provided&gt;$throw IllegalStateException("db down")</ID>
+    <ID>UtilityClassWithPublicConstructor:AlphaConstants.kt$AlphaConstants</ID>
+    <ID>UtilityClassWithPublicConstructor:AssetKeyUtils.kt$AssetKeyUtils</ID>
+    <ID>UtilityClassWithPublicConstructor:AssetUtils.kt$AssetUtils</ID>
+    <ID>UtilityClassWithPublicConstructor:BcJson.kt$BcJson</ID>
+    <ID>UtilityClassWithPublicConstructor:Constants.kt$Constants</ID>
+    <ID>UtilityClassWithPublicConstructor:DateUtilsMocker.kt$DateUtilsMocker</ID>
+    <ID>UtilityClassWithPublicConstructor:Helper.kt$Helper</ID>
+  </CurrentIssues>
+</SmellBaseline>

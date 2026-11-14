@@ -37,6 +37,12 @@ class TokenUtils(
             systemUser.googleId
         )
 
+    fun getAppleToken(systemUser: SystemUser): Jwt =
+        getUserToken(
+            systemUser,
+            systemUser.appleId
+        )
+
     fun getUserToken(
         systemUser: SystemUser,
         subject: String

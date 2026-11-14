@@ -33,9 +33,11 @@ class TokenService(
             }
         }
 
-    fun isGoogle(): Boolean = (subject.startsWith("goog"))
+    fun isGoogle(): Boolean = (subject.startsWith(GOOGLE_SUBJECT))
 
-    fun isAuth0(): Boolean = (subject.startsWith("auth0"))
+    fun isAuth0(): Boolean = (subject.startsWith(AUTH0_SUBJECT))
+
+    fun isApple(): Boolean = (subject.startsWith(APPLE_SUBJECT))
 
     // M2M token
     private val m2mToken: String
@@ -108,5 +110,10 @@ class TokenService(
      */
     companion object {
         const val BEARER = "Bearer"
+
+        // How the subject of a token begins for each identity provider behind Auth0.
+        const val AUTH0_SUBJECT = "auth0"
+        const val GOOGLE_SUBJECT = "goog"
+        const val APPLE_SUBJECT = "apple"
     }
 }

@@ -26,6 +26,8 @@ interface SystemUserRepository : CrudRepository<SystemUser, String> {
 
     fun findByGoogleId(google: String?): Optional<SystemUser>
 
+    fun findByAppleId(apple: String?): Optional<SystemUser>
+
     /**
      * Soft-delete a user on offboarding: mark inactive and clear the
      * cash-portfolio link in one statement. cash_portfolio_id is a NO-ACTION FK

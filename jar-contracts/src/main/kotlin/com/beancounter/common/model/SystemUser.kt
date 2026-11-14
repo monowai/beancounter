@@ -32,5 +32,7 @@ data class SystemUser(
     // Per-user default funding portfolio. Used by auto-settle when a
     // Portfolio.cashPortfolioId override is not set. null disables auto-settle.
     @Column(name = "cash_portfolio_id")
-    var cashPortfolioId: String? = null
+    var cashPortfolioId: String? = null,
+    // The subject Auth0 issues for a Sign in with Apple login, blank until one is seen.
+    val appleId: String = ""
 )

@@ -8,6 +8,7 @@ import com.beancounter.common.model.SystemUser
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.dao.DataIntegrityViolationException
+import org.springframework.security.oauth2.jwt.Jwt
 import org.springframework.stereotype.Service
 
 /**
@@ -49,9 +50,7 @@ class SystemUserRegistration(
         }
         val email = tokenService.getEmail()
         val subject: String? =
-            if (tokenService.isAuth0()) {
-                tokenService.subject
-            } else if (tokenService.isGoogle()) {
+            if (tokenService.isAuth0() || tokenService.isGoogle() || tokenService.isApple()) {
                 tokenService.subject
             } else {
                 null
@@ -59,25 +58,7 @@ class SystemUserRegistration(
         val result = systemUserCache.find(email, subject)
         val jwt = tokenService.jwt.token
         return if (result == null) {
-            try {
-                RegistrationResponse(
-                    save(
-                        SystemUser(
-                            email = email,
-                            auth0 = authProviders.getAuth0Id(jwt),
-                            googleId = authProviders.getGoogleId(jwt)
-                        )
-                    )
-                )
-            } catch (_: DataIntegrityViolationException) {
-                // Race condition - another request created it first
-                log.info("User $email already registered (race condition), fetching existing record")
-                val existing =
-                    systemUserRepository.findByEmail(email).orElseThrow {
-                        IllegalStateException("Failed to get or create user for $email")
-                    }
-                RegistrationResponse(authProviders.capture(reactivate(existing), jwt))
-            }
+            RegistrationResponse(signUp(email, jwt))
         } else {
             // Existing user. If they previously offboarded (soft-deleted), signing
             // up again reactivates the same account rather than orphaning them.
@@ -87,6 +68,34 @@ class SystemUserRegistration(
                     jwt
                 )
             )
+        }
+    }
+
+    private fun signUp(
+        email: String,
+        jwt: Jwt
+    ): SystemUser {
+        // The owner's own address is the account's identity; Apple's relay stands in for it.
+        if (email.endsWith(APPLE_RELAY_DOMAIN, ignoreCase = true)) {
+            throw BusinessException(RELAY_EMAIL_REFUSED)
+        }
+        return try {
+            save(
+                SystemUser(
+                    email = email,
+                    auth0 = authProviders.getAuth0Id(jwt),
+                    googleId = authProviders.getGoogleId(jwt),
+                    appleId = authProviders.getAppleId(jwt)
+                )
+            )
+        } catch (_: DataIntegrityViolationException) {
+            // Race condition - another request created it first
+            log.info("User $email already registered (race condition), fetching existing record")
+            val existing =
+                systemUserRepository.findByEmail(email).orElseThrow {
+                    IllegalStateException("Failed to get or create user for $email")
+                }
+            authProviders.capture(reactivate(existing), jwt)
         }
     }
 
@@ -106,7 +115,10 @@ class SystemUserRegistration(
 
     override fun register(systemUser: SystemUser): RegistrationResponse = RegistrationResponse(save(systemUser))
 
-    private companion object {
-        val log = LoggerFactory.getLogger(SystemUserRegistration::class.java)
+    companion object {
+        const val APPLE_RELAY_DOMAIN = "@privaterelay.appleid.com"
+        const val RELAY_EMAIL_REFUSED =
+            "Apple is hiding your email address. Share your email with Sign in with Apple, or sign in another way."
+        private val log = LoggerFactory.getLogger(SystemUserRegistration::class.java)
     }
 }

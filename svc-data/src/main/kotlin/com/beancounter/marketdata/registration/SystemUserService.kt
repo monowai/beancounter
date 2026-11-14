@@ -41,8 +41,9 @@ class SystemUserService(
     private fun findBySubject(sub: String?): SystemUser? =
         when {
             sub.isNullOrBlank() -> null
-            sub.startsWith("auth0") -> systemUserRepository.findByAuth0(sub).orElse(null)
-            sub.startsWith("goog") -> systemUserRepository.findByGoogleId(sub).orElse(null)
+            sub.startsWith(TokenService.AUTH0_SUBJECT) -> systemUserRepository.findByAuth0(sub).orElse(null)
+            sub.startsWith(TokenService.GOOGLE_SUBJECT) -> systemUserRepository.findByGoogleId(sub).orElse(null)
+            sub.startsWith(TokenService.APPLE_SUBJECT) -> systemUserRepository.findByAppleId(sub).orElse(null)
             else -> null
         }
 

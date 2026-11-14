@@ -19,35 +19,21 @@ class AuthProviders(
 
     fun getGoogleId(jwt: Jwt): String = if (tokenService.isGoogle()) subjectOf(jwt) else ""
 
+    fun getAppleId(jwt: Jwt): String = if (tokenService.isApple()) subjectOf(jwt) else ""
+
     fun capture(
         result: SystemUser,
         jwt: Jwt
     ): SystemUser =
         when {
             tokenService.isGoogle() && result.googleId.isBlank() -> {
-                // Capture google Id.
-                systemUserRepository.save(
-                    SystemUser(
-                        result.id,
-                        result.email,
-                        result.active,
-                        result.auth0,
-                        subjectOf(jwt),
-                        result.since
-                    )
-                )
+                systemUserRepository.save(result.copy(googleId = subjectOf(jwt)))
             }
             tokenService.isAuth0() && result.auth0.isBlank() -> {
-                systemUserRepository.save(
-                    SystemUser(
-                        result.id,
-                        result.email,
-                        result.active,
-                        subjectOf(jwt),
-                        result.googleId,
-                        result.since
-                    )
-                )
+                systemUserRepository.save(result.copy(auth0 = subjectOf(jwt)))
+            }
+            tokenService.isApple() && result.appleId.isBlank() -> {
+                systemUserRepository.save(result.copy(appleId = subjectOf(jwt)))
             }
             else -> {
                 result

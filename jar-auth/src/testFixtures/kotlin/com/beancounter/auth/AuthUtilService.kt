@@ -22,7 +22,8 @@ class AuthUtilService(
     enum class AuthProvider {
         ID,
         GOOGLE,
-        AUTH0
+        AUTH0,
+        APPLE
     }
 
     fun authenticate(
@@ -33,6 +34,7 @@ class AuthUtilService(
             when (authProvider) {
                 AuthProvider.GOOGLE -> tokenUtils.getGoogleToken(systemUser)
                 AuthProvider.AUTH0 -> tokenUtils.getAuth0Token(systemUser)
+                AuthProvider.APPLE -> tokenUtils.getAppleToken(systemUser)
                 else -> tokenUtils.getSystemUserToken(systemUser)
             }
         )

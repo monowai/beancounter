@@ -7,6 +7,7 @@ import com.beancounter.common.exception.UnauthorizedException
 import com.beancounter.common.model.SystemUser
 import com.beancounter.marketdata.SpringMvcDbTest
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -28,6 +29,8 @@ private const val GOOGLE_ID = "googleId"
 private const val USER_EMAIL = "user@email.com"
 
 private const val GMAIL = "email@gmail.com"
+
+private const val RELAY_EMAIL = "x7k2m9@privaterelay.appleid.com"
 
 /**
  * Verify service registration capabilities for various authentication providers.
@@ -261,5 +264,97 @@ class SystemUserServiceTest {
         assertThrows(BusinessException::class.java) {
             systemUserRegistration.register()
         }
+    }
+
+    @Test
+    fun `should register an Apple user under the Apple subject`() {
+        val appleUser = SystemUser(email = "owner@icloud.test", appleId = "apple|registered")
+        authUtilService.authenticate(appleUser, AuthUtilService.AuthProvider.APPLE)
+
+        val registered = systemUserRegistration.register().data
+
+        assertThat(registered.appleId).isEqualTo("apple|registered")
+        assertThat(registered.email).isEqualTo(appleUser.email)
+        assertThat(registered.auth0).isEmpty()
+        assertThat(registered.googleId).isEmpty()
+        assertThat(systemUserService.getActiveUser()?.id).isEqualTo(registered.id)
+    }
+
+    @Test
+    fun `should find an Apple user by subject when the caller has no email`() {
+        authUtilService.authenticate(
+            SystemUser(email = "by-subject@icloud.test", appleId = "apple|by-subject"),
+            AuthUtilService.AuthProvider.APPLE
+        )
+        val registered = systemUserRegistration.register().data
+
+        assertThat(systemUserService.findByExternal("apple|by-subject", null)?.id).isEqualTo(registered.id)
+    }
+
+    @Test
+    fun `should refuse an Apple relay address as the owning email`() {
+        authUtilService.authenticate(
+            SystemUser(email = RELAY_EMAIL, appleId = "apple|relay"),
+            AuthUtilService.AuthProvider.APPLE
+        )
+
+        assertThatThrownBy { systemUserRegistration.register() }
+            .isInstanceOf(BusinessException::class.java)
+            .hasMessage(SystemUserRegistration.RELAY_EMAIL_REFUSED)
+        assertThat(systemUserRepository.findByEmail(RELAY_EMAIL)).isEmpty()
+        assertThat(systemUserRepository.findByAppleId("apple|relay")).isEmpty()
+    }
+
+    @Test
+    fun `should refuse a relay address whatever its case`() {
+        authUtilService.authenticate(
+            SystemUser(email = "X7K2M9@PrivateRelay.AppleID.com", appleId = "apple|relay-case"),
+            AuthUtilService.AuthProvider.APPLE
+        )
+
+        assertThatThrownBy { systemUserRegistration.register() }
+            .isInstanceOf(BusinessException::class.java)
+    }
+
+    @Test
+    fun `should know a registered Apple user who later arrives with a relay address`() {
+        authUtilService.authenticate(
+            SystemUser(email = "known@icloud.test", appleId = "apple|returning"),
+            AuthUtilService.AuthProvider.APPLE
+        )
+        val first = systemUserRegistration.register().data
+
+        authUtilService.authenticate(
+            SystemUser(email = RELAY_EMAIL, appleId = "apple|returning"),
+            AuthUtilService.AuthProvider.APPLE
+        )
+        val second = systemUserRegistration.register().data
+
+        assertThat(second.id).isEqualTo(first.id)
+        assertThat(second.email).isEqualTo("known@icloud.test")
+    }
+
+    @Test
+    fun `should record the Apple subject on the account its email already owns`() {
+        authUtilService.authenticate(
+            SystemUser(email = "both@gmail.test", googleId = GOOGLE_ID),
+            AuthUtilService.AuthProvider.GOOGLE
+        )
+        val google = systemUserRegistration.register().data
+        systemUserRepository.save(
+            systemUserRepository.findById(google.id).get().apply { cashPortfolioId = "cash-1" }
+        )
+        systemUserCache.evictAll()
+
+        authUtilService.authenticate(
+            SystemUser(email = "both@gmail.test", appleId = "apple|linked"),
+            AuthUtilService.AuthProvider.APPLE
+        )
+        systemUserRegistration.register()
+
+        val stored = systemUserRepository.findById(google.id).get()
+        assertThat(stored.appleId).isEqualTo("apple|linked")
+        assertThat(stored.googleId).isEqualTo(GOOGLE_ID)
+        assertThat(stored.cashPortfolioId).isEqualTo("cash-1")
     }
 }

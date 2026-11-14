@@ -7,7 +7,6 @@ import com.beancounter.common.exception.UnauthorizedException
 import com.beancounter.common.model.SystemUser
 import com.beancounter.marketdata.SpringMvcDbTest
 import org.assertj.core.api.Assertions.assertThat
-import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
@@ -292,28 +291,19 @@ class SystemUserServiceTest {
     }
 
     @Test
-    fun `should refuse an Apple relay address as the owning email`() {
+    fun `should register an Apple user whose only address is a relay address`() {
         authUtilService.authenticate(
             SystemUser(email = RELAY_EMAIL, appleId = "apple|relay"),
             AuthUtilService.AuthProvider.APPLE
         )
 
-        assertThatThrownBy { systemUserRegistration.register() }
-            .isInstanceOf(BusinessException::class.java)
-            .hasMessage(SystemUserRegistration.RELAY_EMAIL_REFUSED)
-        assertThat(systemUserRepository.findByEmail(RELAY_EMAIL)).isEmpty()
-        assertThat(systemUserRepository.findByAppleId("apple|relay")).isEmpty()
-    }
+        val first = systemUserRegistration.register().data
+        val second = systemUserRegistration.register().data
 
-    @Test
-    fun `should refuse a relay address whatever its case`() {
-        authUtilService.authenticate(
-            SystemUser(email = "X7K2M9@PrivateRelay.AppleID.com", appleId = "apple|relay-case"),
-            AuthUtilService.AuthProvider.APPLE
-        )
-
-        assertThatThrownBy { systemUserRegistration.register() }
-            .isInstanceOf(BusinessException::class.java)
+        assertThat(first.email).isEqualTo(RELAY_EMAIL)
+        assertThat(first.appleId).isEqualTo("apple|relay")
+        assertThat(second.id).isEqualTo(first.id)
+        assertThat(systemUserRepository.findByAppleId("apple|relay")).get().extracting("id").isEqualTo(first.id)
     }
 
     @Test
@@ -325,7 +315,7 @@ class SystemUserServiceTest {
         val first = systemUserRegistration.register().data
 
         authUtilService.authenticate(
-            SystemUser(email = RELAY_EMAIL, appleId = "apple|returning"),
+            SystemUser(email = "returning@privaterelay.appleid.com", appleId = "apple|returning"),
             AuthUtilService.AuthProvider.APPLE
         )
         val second = systemUserRegistration.register().data

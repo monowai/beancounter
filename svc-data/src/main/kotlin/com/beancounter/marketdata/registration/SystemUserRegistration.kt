@@ -74,12 +74,8 @@ class SystemUserRegistration(
     private fun signUp(
         email: String,
         jwt: Jwt
-    ): SystemUser {
-        // The owner's own address is the account's identity; Apple's relay stands in for it.
-        if (email.endsWith(APPLE_RELAY_DOMAIN, ignoreCase = true)) {
-            throw BusinessException(RELAY_EMAIL_REFUSED)
-        }
-        return try {
+    ): SystemUser =
+        try {
             save(
                 SystemUser(
                     email = email,
@@ -97,7 +93,6 @@ class SystemUserRegistration(
                 }
             authProviders.capture(reactivate(existing), jwt)
         }
-    }
 
     /**
      * Re-enable a previously offboarded (deactivated) user on re-registration.
@@ -116,9 +111,6 @@ class SystemUserRegistration(
     override fun register(systemUser: SystemUser): RegistrationResponse = RegistrationResponse(save(systemUser))
 
     companion object {
-        const val APPLE_RELAY_DOMAIN = "@privaterelay.appleid.com"
-        const val RELAY_EMAIL_REFUSED =
-            "Apple is hiding your email address. Share your email with Sign in with Apple, or sign in another way."
         private val log = LoggerFactory.getLogger(SystemUserRegistration::class.java)
     }
 }

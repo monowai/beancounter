@@ -174,6 +174,11 @@ spring:
     enabled: false
     baseline-on-migrate: true
     locations: classpath:db/migration
+  servlet:
+    multipart:
+      # A brokerage screenshot (ScreenshotController.MAX_BYTES); the request adds its multipart envelope.
+      max-file-size: 8MB
+      max-request-size: 9MB
   ai:
     # Dummy OpenAI + Ollama + Anthropic config keeps their autoconfigurations
     # from failing on missing keys. The provider actually used is chosen by

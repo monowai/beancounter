@@ -1,0 +1,72 @@
+{
+  "documentType": "HOLDINGS",
+  "brokerName": "Charles Schwab",
+  "accountNumber": "482",
+  "totalShown": 74873.02,
+  "rows": [
+    {
+      "code": "AAPL",
+      "quantity": 42,
+      "price": 228.52,
+      "marketValue": 9597.84,
+      "costBasis": 6350.4,
+      "gainLoss": 3247.44
+    },
+    {
+      "code": "MSFT",
+      "quantity": 15,
+      "price": 431.07,
+      "marketValue": 6466.05,
+      "costBasis": 4326.0,
+      "gainLoss": 2140.05
+    },
+    {
+      "code": "NVDA",
+      "quantity": 120,
+      "price": 141.98,
+      "marketValue": 17037.6,
+      "costBasis": 4639.2,
+      "gainLoss": 12398.4
+    },
+    {
+      "code": "BRK/B",
+      "quantity": 8,
+      "price": 468.3,
+      "marketValue": 3746.4,
+      "costBasis": 2480.4,
+      "gainLoss": 1266.0
+    },
+    {
+      "code": "JNJ",
+      "quantity": 25,
+      "price": 155.62,
+      "marketValue": 3890.5,
+      "costBasis": 4057.75,
+      "gainLoss": -167.25
+    },
+    {
+      "code": "T",
+      "quantity": 300,
+      "price": 22.47,
+      "marketValue": 6741.0,
+      "costBasis": 5406.0,
+      "gainLoss": 1335.0
+    },
+    {
+      "code": "VOO",
+      "quantity": 31.5,
+      "price": 548.11,
+      "marketValue": 17265.47,
+      "costBasis": 12686.62,
+      "gainLoss": 4578.84
+    },
+    {
+      "code": "SCHD",
+      "quantity": 210,
+      "price": 28.14,
+      "marketValue": 5909.4,
+      "costBasis": 5439.0,
+      "gainLoss": 470.4
+    }
+  ]
+}

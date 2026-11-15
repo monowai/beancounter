@@ -1,0 +1,54 @@
+{
+  "documentType": "HOLDINGS",
+  "brokerName": null,
+  "accountNumber": null,
+  "unsupported": [
+    "CRYPTO",
+    "OPTION"
+  ],
+  "totalShown": 18731.13,
+  "rows": [
+    {
+      "code": "TSLA",
+      "quantity": 7.482913,
+      "price": 338.74,
+      "marketValue": 2534.76
+    },
+    {
+      "code": "AMD",
+      "quantity": 12,
+      "price": 138.21,
+      "marketValue": 1658.52
+    },
+    {
+      "code": "SPY",
+      "quantity": 3.25,
+      "price": 597.19,
+      "marketValue": 1940.87
+    },
+    {
+      "code": "PLTR",
+      "quantity": 85,
+      "price": 64.35,
+      "marketValue": 5469.75
+    },
+    {
+      "code": "DIS",
+      "quantity": 10.5,
+      "price": 113.9,
+      "marketValue": 1195.95
+    },
+    {
+      "code": "O",
+      "quantity": 44,
+      "price": 57.02,
+      "marketValue": 2508.88
+    },
+    {
+      "code": "SOFI",
+      "quantity": 230,
+      "price": 14.88,
+      "marketValue": 3422.4
+    }
+  ]
+}

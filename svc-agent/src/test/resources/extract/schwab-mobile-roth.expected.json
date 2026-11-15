@@ -1,0 +1,43 @@
+{
+  "documentType": "HOLDINGS",
+  "brokerName": "Schwab",
+  "accountNumber": "9015",
+  "totalShown": 13024.41,
+  "rows": [
+    {
+      "code": "META",
+      "quantity": 4.1205,
+      "price": 591.8,
+      "marketValue": 2438.51,
+      "costPerShare": 402.11
+    },
+    {
+      "code": "COST",
+      "quantity": 2,
+      "price": 928.08,
+      "marketValue": 1856.16,
+      "costPerShare": 701.5
+    },
+    {
+      "code": "INTC",
+      "quantity": 140,
+      "price": 24.05,
+      "marketValue": 3367.0,
+      "costPerShare": 31.87
+    },
+    {
+      "code": "PYPL",
+      "quantity": 22,
+      "price": 86.72,
+      "marketValue": 1907.84,
+      "costPerShare": 64.2
+    },
+    {
+      "code": "VXUS",
+      "quantity": 55.7781,
+      "price": 61.94,
+      "marketValue": 3454.9,
+      "costPerShare": 58.3
+    }
+  ]
+}

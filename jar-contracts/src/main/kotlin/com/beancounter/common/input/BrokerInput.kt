@@ -8,5 +8,7 @@ data class BrokerInput(
     val accountNumber: String? = null,
     val notes: String? = null,
     // Map of currency code to settlement account asset ID
-    val settlementAccounts: Map<String, String>? = null
+    val settlementAccounts: Map<String, String>? = null,
+    // The global broker this is an account with; absent leaves it as it is
+    val globalBrokerId: String? = null
 )

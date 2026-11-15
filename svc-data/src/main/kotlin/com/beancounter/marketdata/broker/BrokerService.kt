@@ -17,7 +17,8 @@ class BrokerService(
     private val brokerRepository: BrokerRepository,
     private val trnRepository: TrnRepository,
     private val settlementAccountRepository: BrokerSettlementAccountRepository,
-    private val assetRepository: AssetRepository
+    private val assetRepository: AssetRepository,
+    private val globalBrokerService: GlobalBrokerService
 ) {
     fun findByOwner(owner: SystemUser): List<Broker> = brokerRepository.findByOwner(owner)
 
@@ -64,6 +65,7 @@ class BrokerService(
         if (existing.isPresent) {
             throw BusinessException("Broker with name '${broker.name}' already exists")
         }
+        globalBrokerService.verify(broker.globalBrokerId)
         val savedBroker = brokerRepository.save(broker)
         updateSettlementAccounts(savedBroker, settlementAccounts)
         return savedBroker
@@ -111,11 +113,13 @@ class BrokerService(
             }
         }
 
+        globalBrokerService.verify(input.globalBrokerId)
         val updated =
             broker.copy(
                 name = input.name,
                 accountNumber = input.accountNumber ?: broker.accountNumber,
-                notes = input.notes ?: broker.notes
+                notes = input.notes ?: broker.notes,
+                globalBrokerId = input.globalBrokerId ?: broker.globalBrokerId
             )
         val savedBroker = brokerRepository.save(updated)
 

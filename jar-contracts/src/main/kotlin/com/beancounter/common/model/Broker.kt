@@ -24,5 +24,7 @@ data class Broker(
     @ManyToOne
     val owner: SystemUser,
     val accountNumber: String? = null,
-    val notes: String? = null
+    val notes: String? = null,
+    /** The id of the global broker this is an account with, when the user has said. */
+    val globalBrokerId: String? = null
 )

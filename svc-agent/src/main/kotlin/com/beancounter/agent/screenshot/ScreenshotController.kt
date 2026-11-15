@@ -63,21 +63,21 @@ class ScreenshotController(
         return meter
     }
 
+    /** The upload as a screenshot, its format taken from its bytes and not from the declared content type. */
     private fun accepted(file: MultipartFile): Screenshot {
-        val mediaType = file.contentType?.lowercase()
         val refusal =
             when {
                 file.isEmpty -> {
                     HttpStatus.BAD_REQUEST to "The file is empty"
                 }
-                mediaType == null || mediaType !in MEDIA_TYPES -> {
-                    HttpStatus.UNSUPPORTED_MEDIA_TYPE to "Upload a PNG, JPEG, WebP or GIF image"
-                }
                 file.size > MAX_BYTES -> {
                     HttpStatus.CONTENT_TOO_LARGE to "The image is larger than 8 MB"
                 }
                 else -> {
-                    return Screenshot(file.bytes, mediaType)
+                    val bytes = file.bytes
+                    val format = ImageFormat.of(bytes)
+                    if (format != null) return Screenshot(bytes, format.mediaType)
+                    HttpStatus.UNSUPPORTED_MEDIA_TYPE to "Upload a PNG, JPEG, WebP or GIF image"
                 }
             }
         throw ResponseStatusException(refusal.first, refusal.second)
@@ -85,6 +85,5 @@ class ScreenshotController(
 
     companion object {
         const val MAX_BYTES = 8 * 1024 * 1024
-        private val MEDIA_TYPES = setOf("image/png", "image/jpeg", "image/webp", "image/gif")
     }
 }

@@ -20,6 +20,8 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.web.server.ResponseStatusException
 
 private const val OWNER = "owner-1"
+private val PNG = "\u0089PNG\r\n\u001a\n".toByteArray(Charsets.ISO_8859_1)
+private val WEBP = "RIFF\u0000\u0000\u0000\u0000WEBPVP8 ".toByteArray(Charsets.ISO_8859_1)
 
 /** Who may have a screenshot read, what is accepted, and when a read counts against the weekly quota. */
 class ScreenshotControllerTest {
@@ -66,7 +68,7 @@ class ScreenshotControllerTest {
 
     private fun upload(
         contentType: String? = "image/png",
-        bytes: ByteArray = byteArrayOf(1, 2, 3)
+        bytes: ByteArray = PNG + byteArrayOf(1, 2, 3)
     ) = MockMultipartFile("file", "shot.png", contentType, bytes)
 
     private fun refusal(action: () -> Unit): HttpStatus {
@@ -81,11 +83,11 @@ class ScreenshotControllerTest {
     fun `should read a metered caller's screenshot and count one turn`() {
         authenticateAs(AuthConstants.SCOPE_PREVIEW, AuthConstants.SCOPE_VERIFIED)
 
-        val proposal = controller.read(upload("image/webp", byteArrayOf(7, 8)))
+        val proposal = controller.read(upload("image/webp", WEBP + byteArrayOf(7, 8)))
 
         assertThat(proposal.brokerName).isEqualTo("Charles Schwab")
         assertThat(proposal.rows.single().code).isEqualTo("AAPL")
-        assertThat(reads.single().bytes).containsExactly(7, 8)
+        assertThat(reads.single().bytes).isEqualTo(WEBP + byteArrayOf(7, 8))
         assertThat(reads.single().mediaType).isEqualTo("image/webp")
         assertThat(quota.spent).containsExactly(OWNER)
     }
@@ -130,13 +132,27 @@ class ScreenshotControllerTest {
         authenticateAs(AuthConstants.SCOPE_AI)
 
         assertThat(refusal { controller.read(upload(bytes = ByteArray(0))) }).isEqualTo(HttpStatus.BAD_REQUEST)
-        assertThat(refusal { controller.read(upload("application/pdf")) }).isEqualTo(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
-        assertThat(refusal { controller.read(upload(null)) }).isEqualTo(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+        assertThat(refusal { controller.read(upload("application/pdf", "%PDF-1.7".toByteArray())) })
+            .isEqualTo(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
+        assertThat(refusal { controller.read(upload(bytes = "RIFF\u0000\u0000\u0000\u0000WAVE".toByteArray())) })
+            .isEqualTo(HttpStatus.UNSUPPORTED_MEDIA_TYPE)
         assertThat(refusal { controller.read(upload(bytes = ByteArray(ScreenshotController.MAX_BYTES + 1))) })
             .isEqualTo(HttpStatus.CONTENT_TOO_LARGE)
-        controller.read(upload(bytes = ByteArray(ScreenshotController.MAX_BYTES) { 1 }))
+        controller.read(upload(bytes = PNG + ByteArray(ScreenshotController.MAX_BYTES - PNG.size) { 1 }))
 
         assertThat(reads).hasSize(1)
+    }
+
+    @Test
+    fun `should know an image by its bytes, whatever content type the upload declares`() {
+        authenticateAs(AuthConstants.SCOPE_AI)
+
+        controller.read(upload("image/png;charset=UTF-8"))
+        controller.read(upload(null))
+        controller.read(upload("image/png", byteArrayOf(0xFF.toByte(), 0xD8.toByte(), 0xFF.toByte(), 0)))
+        controller.read(upload("application/octet-stream", "GIF89a".toByteArray()))
+
+        assertThat(reads.map { it.mediaType }).containsExactly("image/png", "image/png", "image/jpeg", "image/gif")
     }
 
     @Test

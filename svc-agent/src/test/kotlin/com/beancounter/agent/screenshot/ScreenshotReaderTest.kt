@@ -84,6 +84,18 @@ class ScreenshotReaderTest {
     }
 
     @Test
+    fun `should read a reply wrapped in a Markdown code fence`() {
+        val fence = "`".repeat(3)
+
+        listOf(
+            "${fence}json\n{\"documentType\":\"HOLDINGS\",\"rows\":[]}\n$fence",
+            "$fence\n{\"documentType\":\"HOLDINGS\"}\n$fence"
+        ).forEach { reply ->
+            assertThat(replying(reply).read(png).documentType).`as`(reply).isEqualTo(DocumentType.HOLDINGS)
+        }
+    }
+
+    @Test
     fun `should treat a blank broker name as not shown`() {
         val reader = replying("""{"documentType":"HOLDINGS","brokerName":"  ","rows":[]}""")
 

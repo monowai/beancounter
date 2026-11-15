@@ -15,7 +15,7 @@ class ScreenshotReader(
         val reply = vision.read(INSTRUCTION, screenshot)
         val proposal =
             try {
-                BcJson.objectMapper.readValue(reply, ScreenshotProposal::class.java)
+                BcJson.objectMapper.readValue(unfenced(reply), ScreenshotProposal::class.java)
             } catch (e: JacksonException) {
                 throw UnreadableScreenshotException(e)
             }
@@ -25,11 +25,20 @@ class ScreenshotReader(
         )
     }
 
+    /** The reply without the Markdown code fence a model behind a gateway may wrap its JSON in. */
+    private fun unfenced(reply: String): String =
+        reply
+            .trim()
+            .removePrefix(FENCE + "json")
+            .removePrefix(FENCE)
+            .removeSuffix(FENCE)
+
     /** The last run of digits in an account label such as "Individual ...482". */
     private fun visibleDigits(label: String): String? = DIGITS.findAll(label).lastOrNull()?.value
 
     companion object {
         private val DIGITS = Regex("\\d+")
+        private const val FENCE = "```"
 
         val INSTRUCTION =
             """

@@ -8,18 +8,28 @@ import org.springframework.jdbc.core.JdbcTemplate
 import java.nio.charset.StandardCharsets
 
 /**
- * Applies the committed `global_broker` migration to a minimal H2 `broker` table.
- * `@SpringMvcDbTest` contexts run with Flyway disabled, so this is the only test
- * that executes the migration file itself.
+ * Applies the committed `global_broker` migrations, in version order, to a minimal H2
+ * `broker` table. `@SpringMvcDbTest` contexts run with Flyway disabled, so this is the
+ * only test that executes the migration files themselves.
  */
 class GlobalBrokerMigrationTest {
-    private val migrationFile = "V51__global_broker.sql"
+    private val migrationFiles = listOf("V51__global_broker.sql", "V52__global_broker_ibkr.sql")
 
-    private fun migrated(): JdbcTemplate {
+    private fun statements(migrationFile: String): List<String> {
         val resource = ClassPathResource("db/migration/$migrationFile")
         assertThat(resource.exists())
             .withFailMessage("Migration file db/migration/%s not found on classpath", migrationFile)
             .isTrue()
+        return resource.inputStream
+            .bufferedReader(StandardCharsets.UTF_8)
+            .use { it.readText() }
+            .split(";")
+            .map { it.trim() }
+            .filter { it.isNotEmpty() }
+    }
+
+    private fun migrated(): JdbcTemplate {
+        val migrationSql = migrationFiles.flatMap(::statements)
         val dataSource =
             JdbcDataSource().apply {
                 setUrl("jdbc:h2:mem:global-broker-${System.nanoTime()};MODE=MySQL;DB_CLOSE_DELAY=-1")
@@ -29,15 +39,8 @@ class GlobalBrokerMigrationTest {
         val jdbcTemplate = JdbcTemplate(dataSource)
         jdbcTemplate.execute("CREATE TABLE broker (id VARCHAR(255) PRIMARY KEY, name VARCHAR(255) NOT NULL)")
         jdbcTemplate.update("INSERT INTO broker (id, name) VALUES ('b1', 'Mine')")
-        val migrationSql = resource.inputStream.bufferedReader(StandardCharsets.UTF_8).use { it.readText() }
         // Applied twice: a re-run must neither fail nor seed a broker a second time.
-        repeat(2) {
-            migrationSql
-                .split(";")
-                .map { it.trim() }
-                .filter { it.isNotEmpty() }
-                .forEach { jdbcTemplate.execute(it) }
-        }
+        repeat(2) { migrationSql.forEach { jdbcTemplate.execute(it) } }
         return jdbcTemplate
     }
 
@@ -46,7 +49,7 @@ class GlobalBrokerMigrationTest {
         val codes =
             migrated().queryForList("SELECT code FROM global_broker ORDER BY code", String::class.java)
 
-        assertThat(codes).containsExactly("ETRADE", "ROBINHOOD", "SCHWAB")
+        assertThat(codes).containsExactly("ETRADE", "IBKR", "ROBINHOOD", "SCHWAB")
     }
 
     @Test
@@ -64,6 +67,17 @@ class GlobalBrokerMigrationTest {
                     currency = "USD"
                 )
             )
+    }
+
+    @Test
+    fun `should seed a firm that trades many markets with no default market or currency`() {
+        val config =
+            migrated()
+                .queryForList("SELECT config FROM global_broker WHERE code = 'IBKR'", String::class.java)
+                .single()
+
+        assertThat(BrokerConfigConverter().convertToEntityAttribute(checkNotNull(config)))
+            .isEqualTo(BrokerConfig(aliases = listOf("Interactive Brokers", "IBKR", "IB")))
     }
 
     @Test

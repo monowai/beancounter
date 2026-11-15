@@ -19,14 +19,16 @@ data class BrokerWithAccounts(
     val name: String,
     val accountNumber: String? = null,
     val notes: String? = null,
-    val settlementAccounts: List<SettlementAccountMapping> = emptyList()
+    val settlementAccounts: List<SettlementAccountMapping> = emptyList(),
+    val globalBrokerId: String? = null
 ) {
     constructor(broker: Broker, settlementAccounts: List<SettlementAccountMapping> = emptyList()) : this(
         id = broker.id,
         name = broker.name,
         accountNumber = broker.accountNumber,
         notes = broker.notes,
-        settlementAccounts = settlementAccounts
+        settlementAccounts = settlementAccounts,
+        globalBrokerId = broker.globalBrokerId
     )
 }
 

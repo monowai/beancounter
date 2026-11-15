@@ -78,7 +78,8 @@ class BrokerController(
                 name = input.name,
                 owner = owner,
                 accountNumber = input.accountNumber,
-                notes = input.notes
+                notes = input.notes,
+                globalBrokerId = input.globalBrokerId
             )
         val created = brokerService.create(broker, input.settlementAccounts)
         val withAccounts = brokerService.findByIdWithAccounts(created.id, owner)

@@ -1,0 +1,56 @@
+{
+  "documentType": "HOLDINGS",
+  "brokerName": "E*TRADE",
+  "accountNumber": "7731",
+  "totalShown": 50668.7,
+  "rows": [
+    {
+      "code": "AMZN",
+      "quantity": 18,
+      "price": 207.89,
+      "marketValue": 3742.02,
+      "costPerShare": 134.55,
+      "gainLoss": 1320.12
+    },
+    {
+      "code": "GOOGL",
+      "quantity": 40,
+      "price": 176.34,
+      "marketValue": 7053.6,
+      "costPerShare": 98.12,
+      "gainLoss": 3128.8
+    },
+    {
+      "code": "QQQ",
+      "quantity": 12,
+      "price": 512.4,
+      "marketValue": 6148.8,
+      "costPerShare": 377.03,
+      "gainLoss": 1624.44
+    },
+    {
+      "code": "KO",
+      "quantity": 150,
+      "price": 63.18,
+      "marketValue": 9477.0,
+      "costPerShare": 55.7,
+      "gainLoss": 1122.0
+    },
+    {
+      "code": "F",
+      "quantity": 500,
+      "price": 11.02,
+      "marketValue": 5510.0,
+      "costPerShare": 13.44,
+      "gainLoss": -1210.0
+    },
+    {
+      "code": "VTI",
+      "quantity": 64,
+      "price": 292.77,
+      "marketValue": 18737.28,
+      "costPerShare": 210.1,
+      "gainLoss": 5290.88
+    }
+  ]
+}

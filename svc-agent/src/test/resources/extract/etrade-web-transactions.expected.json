@@ -1,0 +1,56 @@
+{
+  "documentType": "TRANSACTIONS",
+  "brokerName": "E*TRADE",
+  "accountNumber": "7731",
+  "rows": [
+    {
+      "tradeDate": "2026-11-12",
+      "type": "Bought",
+      "code": "NVDA",
+      "quantity": 10,
+      "price": 141.5,
+      "amount": -1415.0,
+      "fees": 0.0
+    },
+    {
+      "tradeDate": "2026-11-10",
+      "type": "Sold",
+      "code": "F",
+      "quantity": 100,
+      "price": 11.2,
+      "amount": 1119.96,
+      "fees": 0.04
+    },
+    {
+      "tradeDate": "2026-11-03",
+      "type": "Dividend",
+      "code": "KO",
+      "amount": 72.75,
+      "fees": 0.0
+    },
+    {
+      "tradeDate": "2026-10-28",
+      "type": "Bought",
+      "code": "VTI",
+      "quantity": 4,
+      "price": 289.1,
+      "amount": -1156.4,
+      "fees": 0.0
+    },
+    {
+      "tradeDate": "2026-10-15",
+      "type": "Transfer",
+      "amount": 2500.0,
+      "fees": 0.0
+    },
+    {
+      "tradeDate": "2026-10-02",
+      "type": "Bought",
+      "code": "AMZN",
+      "quantity": 3,
+      "price": 198.44,
+      "amount": -595.32,
+      "fees": 0.0
+    }
+  ]
+}

@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.broker
 
 import com.beancounter.common.contracts.Payload
+import com.beancounter.common.utils.BcJson
 import com.beancounter.common.utils.KeyGenUtils
 import jakarta.persistence.AttributeConverter
 import jakarta.persistence.Column
@@ -10,7 +11,6 @@ import jakarta.persistence.Entity
 import jakarta.persistence.Id
 import jakarta.persistence.Table
 import jakarta.persistence.UniqueConstraint
-import tools.jackson.module.kotlin.jacksonObjectMapper
 import tools.jackson.module.kotlin.readValue
 
 /**
@@ -53,7 +53,7 @@ class BrokerConfigConverter : AttributeConverter<BrokerConfig, String> {
     override fun convertToEntityAttribute(dbData: String): BrokerConfig = mapper.readValue(dbData)
 
     private companion object {
-        val mapper = jacksonObjectMapper()
+        val mapper = BcJson.objectMapper
     }
 }
 

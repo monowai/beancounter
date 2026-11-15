@@ -8,18 +8,22 @@ import org.springframework.jdbc.core.JdbcTemplate
 import java.nio.charset.StandardCharsets
 
 /**
- * Applies the committed `global_broker` migration to a minimal H2 `broker` table.
+ * Applies the committed `global_broker` migrations to a minimal H2 `broker` table.
  * `@SpringMvcDbTest` contexts run with Flyway disabled, so this is the only test
- * that executes the migration file itself.
+ * that executes the migration files themselves.
  */
 class GlobalBrokerMigrationTest {
-    private val migrationFile = "V51__global_broker.sql"
+    private val migrationFiles = listOf("V51__global_broker.sql", "V52__global_broker_index.sql")
 
-    private fun migrated(): JdbcTemplate {
+    private fun migrationSql(migrationFile: String): String {
         val resource = ClassPathResource("db/migration/$migrationFile")
         assertThat(resource.exists())
             .withFailMessage("Migration file db/migration/%s not found on classpath", migrationFile)
             .isTrue()
+        return resource.inputStream.bufferedReader(StandardCharsets.UTF_8).use { it.readText() }
+    }
+
+    private fun migrated(): JdbcTemplate {
         val dataSource =
             JdbcDataSource().apply {
                 setUrl("jdbc:h2:mem:global-broker-${System.nanoTime()};MODE=MySQL;DB_CLOSE_DELAY=-1")
@@ -29,7 +33,7 @@ class GlobalBrokerMigrationTest {
         val jdbcTemplate = JdbcTemplate(dataSource)
         jdbcTemplate.execute("CREATE TABLE broker (id VARCHAR(255) PRIMARY KEY, name VARCHAR(255) NOT NULL)")
         jdbcTemplate.update("INSERT INTO broker (id, name) VALUES ('b1', 'Mine')")
-        val migrationSql = resource.inputStream.bufferedReader(StandardCharsets.UTF_8).use { it.readText() }
+        val migrationSql = migrationFiles.joinToString(";\n") { migrationSql(it) }
         // Applied twice: a re-run must neither fail nor seed a broker a second time.
         repeat(2) {
             migrationSql
@@ -87,5 +91,26 @@ class GlobalBrokerMigrationTest {
             }
 
         assertThat(linking.isFailure).isTrue()
+    }
+
+    @Test
+    fun `should index the global broker a broker names`() {
+        val indexed =
+            migrated().queryForObject(
+                "SELECT COUNT(*) FROM INFORMATION_SCHEMA.INDEXES WHERE INDEX_NAME = 'IDX_BROKER_GLOBAL_BROKER'",
+                Int::class.java
+            )
+
+        assertThat(indexed).isEqualTo(1)
+    }
+
+    @Test
+    fun `should read configuration that carries a setting this version does not know`() {
+        val config =
+            BrokerConfigConverter().convertToEntityAttribute(
+                """{"aliases":["TD"],"market":"US","currency":"USD","settlementDays":2}"""
+            )
+
+        assertThat(config).isEqualTo(BrokerConfig(aliases = listOf("TD"), market = "US", currency = "USD"))
     }
 }

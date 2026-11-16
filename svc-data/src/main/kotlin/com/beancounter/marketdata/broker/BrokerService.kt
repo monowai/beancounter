@@ -119,7 +119,8 @@ class BrokerService(
                 name = input.name,
                 accountNumber = input.accountNumber ?: broker.accountNumber,
                 notes = input.notes ?: broker.notes,
-                globalBrokerId = input.globalBrokerId ?: broker.globalBrokerId
+                globalBrokerId = input.globalBrokerId ?: broker.globalBrokerId,
+                active = input.active ?: broker.active
             )
         val savedBroker = brokerRepository.save(updated)
 

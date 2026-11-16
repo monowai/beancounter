@@ -26,5 +26,7 @@ data class Broker(
     val accountNumber: String? = null,
     val notes: String? = null,
     /** The id of the global broker this is an account with, when the user has said. */
-    val globalBrokerId: String? = null
+    val globalBrokerId: String? = null,
+    /** False once the user has deactivated it: it keeps its transactions and is not offered for a new trade. */
+    val active: Boolean = true
 )

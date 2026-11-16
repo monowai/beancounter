@@ -527,6 +527,24 @@ class ReconcilePreviewTest {
     }
 
     @Test
+    fun `should check the gain or loss against cost per share x quantity when no cost basis is shown`() {
+        login("warn-gain-per-share")
+        val portfolio = portfolio("RCN-WARNGLPS")
+        val valued = shown("RCNW3", "10").copy(marketValue = BigDecimal("1000"), costPerShare = BigDecimal("80"))
+        val rows =
+            listOf(
+                valued.copy(gainLoss = BigDecimal("200")),
+                valued.copy(gainLoss = BigDecimal("5")),
+                valued.copy(quantity = null, gainLoss = BigDecimal("5"))
+            )
+
+        val preview = reconcileService.preview(ShownHoldings(portfolioId = portfolio.id, rows = rows))
+
+        assertThat(preview.rows.map { it.warnings })
+            .containsExactly(emptyList(), listOf(RowWarning.GAIN_LOSS_MISMATCH), emptyList())
+    }
+
+    @Test
     fun `should list what the broker holds that the statement does not show, and propose nothing for it`() {
         val user = login("not-shown")
         val portfolio = portfolio("RCN-NOTSHOWN")

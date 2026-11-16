@@ -8,13 +8,14 @@ import org.springframework.jdbc.core.JdbcTemplate
 import java.nio.charset.StandardCharsets
 
 /**
- * Applies the committed `global_broker` migrations, in version order, to a minimal H2
+ * Applies the committed `broker` and `global_broker` migrations, in version order, to a minimal H2
  * `broker` table. `@SpringMvcDbTest` contexts run with Flyway disabled, so this is the
  * only test that executes the migration files themselves.
  */
 class GlobalBrokerMigrationTest {
     private val backfill = "V53__broker_global_broker_backfill.sql"
-    private val migrationFiles = listOf("V51__global_broker.sql", "V52__global_broker_ibkr.sql", backfill)
+    private val migrationFiles =
+        listOf("V51__global_broker.sql", "V52__global_broker_ibkr.sql", backfill, "V54__broker_active.sql")
 
     private fun statements(migrationFile: String): List<String> {
         val resource = ClassPathResource("db/migration/$migrationFile")
@@ -46,6 +47,13 @@ class GlobalBrokerMigrationTest {
         // Applied twice: a re-run must neither fail nor seed a broker a second time.
         repeat(2) { migrationSql.forEach { jdbcTemplate.execute(it) } }
         return jdbcTemplate
+    }
+
+    @Test
+    fun `should leave every existing broker active`() {
+        val active = migrated().queryForList("SELECT active FROM broker", Boolean::class.java)
+
+        assertThat(active).hasSize(4).containsOnly(true)
     }
 
     @Test

@@ -85,6 +85,34 @@ internal class BrokerServiceTest {
         assertThat(brokerService.findById(broker.id, owner).get().name).isEqualTo("Owned")
     }
 
+    @Test
+    fun `should create a broker as active`() {
+        val owner = SystemUser(id = "broker-active-owner", email = "broker-active-owner@test.com")
+        mockAuthConfig.login(owner, systemUserService)
+
+        val broker = brokerService.create(Broker(name = "Fresh", owner = owner))
+
+        assertThat(brokerService.findByIdWithAccounts(broker.id, owner).get().active).isTrue()
+    }
+
+    @Test
+    fun `should deactivate a broker, keep it so on a later edit, and reactivate it on request`() {
+        val owner = SystemUser(id = "broker-deactivate-owner", email = "broker-deactivate-owner@test.com")
+        mockAuthConfig.login(owner, systemUserService)
+        val broker = brokerService.create(Broker(name = "Dormant", owner = owner, accountNumber = "D-1"))
+
+        brokerService.update(broker.id, owner, BrokerInput(name = "Dormant", active = false))
+        val deactivated = brokerService.findByIdWithAccounts(broker.id, owner).get()
+        assertThat(deactivated.active).isFalse()
+        assertThat(deactivated.accountNumber).isEqualTo("D-1")
+
+        brokerService.update(broker.id, owner, BrokerInput(name = "Dormant", notes = "edited"))
+        assertThat(brokerService.findByIdWithAccounts(broker.id, owner).get().active).isFalse()
+
+        brokerService.update(broker.id, owner, BrokerInput(name = "Dormant", active = true))
+        assertThat(brokerService.findByIdWithAccounts(broker.id, owner).get().active).isTrue()
+    }
+
     private fun settlementAsset(
         owner: SystemUser,
         code: String

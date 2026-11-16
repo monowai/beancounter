@@ -62,7 +62,11 @@ class ReconcileCommitService(
                     // A caller reference is unique across all users: without the owner, two users
                     // who send the same upload id for the same asset would collide in the database.
                     callerRef =
-                        CallerRef(ReconcileCommitGuard.PROVIDER, confirmed.uploadId, "${owner.id}:${row.assetId}")
+                        CallerRef(
+                            ReconcileCommitGuard.PROVIDER,
+                            confirmed.uploadId,
+                            ReconcileCommitGuard.recordedBy(owner) + row.assetId
+                        )
                 )
             }
         return trnService.saveWithResult(portfolio, TrnRequest(portfolio.id, inputs))

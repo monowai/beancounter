@@ -18,8 +18,9 @@ class ReconcileCommitGuard(
 ) {
     /**
      * The repository query spans every user, so the match is narrowed to the caller here:
-     * someone else's upload id must neither block this one nor reveal that it exists.
-     * A recorded upload always carries the caller's broker; the portfolio may be shared.
+     * someone else's upload id must neither block this one nor reveal that it exists, even
+     * when they recorded it into a portfolio the caller owns and shares with them. The caller
+     * id of every recorded row starts with the id of the user who recorded it.
      *
      * @throws BusinessException if [owner] has already recorded [uploadId]
      */
@@ -30,7 +31,8 @@ class ReconcileCommitGuard(
         val recorded =
             trnRepository
                 .findByCallerRefProviderAndCallerRefBatch(PROVIDER, uploadId)
-                .any { it.portfolio.owner.id == owner.id || it.broker?.owner?.id == owner.id }
+                // Found by its caller reference, so every row carries one.
+                .any { checkNotNull(it.callerRef).callerId.startsWith(recordedBy(owner)) }
         if (recorded) throw BusinessException("Upload $uploadId is already recorded")
     }
 
@@ -64,5 +66,8 @@ class ReconcileCommitGuard(
     companion object {
         /** The caller reference provider of every transaction recorded from a statement screenshot. */
         const val PROVIDER = "SCREENSHOT"
+
+        /** The prefix of the caller id of every row [owner] records. */
+        fun recordedBy(owner: SystemUser): String = "${owner.id}:"
     }
 }

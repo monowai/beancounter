@@ -491,6 +491,45 @@ class ReconcileCommitTest {
     }
 
     @Test
+    fun `should record an upload whose id another user recorded into the caller's shared portfolio`() {
+        val other = login("shared-other")
+        val user = login("shared-caller")
+        val portfolio = portfolio("RCC-SHARED")
+        val asset = asset("RCCH1")
+        trnRepository.save(
+            Trn(
+                trnType = TrnType.ADD,
+                asset = asset,
+                quantity = BigDecimal.ONE,
+                portfolio = portfolio,
+                broker = broker("RCC-SHARED-OB", other),
+                tradeDate = LocalDate.of(2026, 1, 1),
+                callerRef = CallerRef("SCREENSHOT", "rcc-shared-upload", "${other.id}:${asset.id}")
+            )
+        )
+        val broker = broker("RCC-SHARED-CB", user)
+
+        reconcileCommitService.commit(confirmed(portfolio, broker, "rcc-shared-upload", add(asset, "2")))
+
+        assertThat(heldAt(broker, portfolio, asset)).isEqualByComparingTo("2")
+    }
+
+    @Test
+    fun `should refuse a trade date after today`() {
+        val user = login("future")
+        val portfolio = portfolio("RCC-FUTURE")
+        val broker = broker("RCC-FUTURE-B", user)
+        val tomorrow = DateUtils().date.plusDays(1)
+
+        assertRefused(
+            confirmed(portfolio, broker, "rcc-future-upload", add(asset("RCCF1"), "1")).copy(tradeDate = tomorrow),
+            "after today"
+        )
+
+        assertThat(trnsOf(portfolio)).isEmpty()
+    }
+
+    @Test
     fun `should create no cash transaction`() {
         val user = login("cash")
         val portfolio = portfolio("RCC-CASH")

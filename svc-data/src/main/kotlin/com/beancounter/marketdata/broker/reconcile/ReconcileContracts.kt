@@ -4,6 +4,7 @@ import com.beancounter.common.contracts.Payload
 import com.beancounter.common.model.TrnType
 import com.beancounter.marketdata.broker.GlobalBroker
 import java.math.BigDecimal
+import java.time.LocalDate
 
 /**
  * What a brokerage statement shows, as read from a screenshot.
@@ -103,3 +104,30 @@ data class HeldNotShown(
 data class ReconcilePreviewResponse(
     override val data: ReconcilePreview
 ) : Payload<ReconcilePreview>
+
+/**
+ * The rows of a previewed statement as the user confirmed them, to be recorded.
+ *
+ * @property uploadId identifies the uploaded statement; one upload is recorded once
+ * @property tradeDate the date the transactions carry; today when absent
+ */
+data class ConfirmedHoldings(
+    val portfolioId: String,
+    val brokerId: String,
+    val uploadId: String,
+    val tradeDate: LocalDate? = null,
+    val rows: List<ConfirmedRow>
+)
+
+/**
+ * One transaction to record.
+ *
+ * @property trnType ADD or REDUCE
+ * @property cost the total cost of [quantity] in the asset's trade currency; an ADD needs one
+ */
+data class ConfirmedRow(
+    val assetId: String,
+    val trnType: TrnType,
+    val quantity: BigDecimal,
+    val cost: BigDecimal? = null
+)

@@ -7,11 +7,18 @@ import java.math.RoundingMode
 
 /** Decides what one shown holding needs, given the asset it names and the quantity held. */
 internal object RowReconciler {
-    /** Quantity x price may differ from the shown market value by this fraction (0 to 1) of it. */
-    val MARKET_VALUE_TOLERANCE_RATE = BigDecimal("0.01")
+    /**
+     * Half a cent: the most a money figure printed to the cent can be off by. Every
+     * tolerance is built from printed rounding, never a percentage, so a misread
+     * digit shows however large the holding.
+     */
+    private val HALF_CENT = BigDecimal("0.005")
 
-    /** Market value less total cost may differ from the shown gain or loss by this amount. */
-    val GAIN_LOSS_TOLERANCE = BigDecimal("1.00")
+    /** A gain or loss may be worked from unrounded figures, so it may be a cent from the printed ones. */
+    private val CENT = BigDecimal("0.01")
+
+    /** Money is printed to at least the cent; a client may have dropped trailing zeros. */
+    private const val MONEY_SCALE = 2
 
     private const val COST_SCALE = 2
 
@@ -111,7 +118,8 @@ internal object RowReconciler {
         val price = row.price
         val marketValue = row.marketValue
         if (quantity == null || price == null || marketValue == null) return false
-        val tolerance = marketValue.abs().multiply(MARKET_VALUE_TOLERANCE_RATE)
+        // The price is rounded for display; the market value may be worked from the unrounded one.
+        val tolerance = quantity.abs().multiply(halfUnit(price)).add(HALF_CENT)
         return quantity.multiply(price).subtract(marketValue).abs() > tolerance
     }
 
@@ -120,6 +128,18 @@ internal object RowReconciler {
         val cost = totalCost(row)
         val gainLoss = row.gainLoss
         if (marketValue == null || cost == null || gainLoss == null) return false
-        return marketValue.subtract(cost).subtract(gainLoss).abs() > GAIN_LOSS_TOLERANCE
+        return marketValue.subtract(cost).subtract(gainLoss).abs() > CENT.add(perShareRounding(row))
     }
+
+    /** What an average cost rounded for display adds up to across the holding; zero when a cost basis is shown. */
+    private fun perShareRounding(row: ShownHolding): BigDecimal {
+        val costPerShare = row.costPerShare
+        val quantity = row.quantity
+        if (row.costBasis != null || costPerShare == null || quantity == null) return BigDecimal.ZERO
+        return quantity.abs().multiply(halfUnit(costPerShare))
+    }
+
+    /** Half the last printed digit of a money figure: 0.005 for 523.88, 0.0005 for 4.505. */
+    private fun halfUnit(printed: BigDecimal): BigDecimal =
+        HALF_CENT.movePointLeft(maxOf(printed.scale(), MONEY_SCALE) - MONEY_SCALE)
 }

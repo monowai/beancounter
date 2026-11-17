@@ -17,7 +17,16 @@ class DeepSeekVision(
     private val apiKey: String,
     private val model: String
 ) : VisionModel {
+    /** Asks twice when the first answer is only white space, which DeepSeek gives now and then for the same image. */
     override fun read(
+        instruction: String,
+        screenshot: Screenshot
+    ): String =
+        answer(instruction, screenshot).ifBlank { answer(instruction, screenshot) }.ifBlank {
+            throw VisionUnavailableException("The vision model answered with nothing")
+        }
+
+    private fun answer(
         instruction: String,
         screenshot: Screenshot
     ): String {

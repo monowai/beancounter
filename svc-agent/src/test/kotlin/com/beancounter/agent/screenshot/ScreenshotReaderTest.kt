@@ -5,6 +5,9 @@ import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
+import java.awt.image.BufferedImage
+import java.io.ByteArrayOutputStream
+import javax.imageio.ImageIO
 
 /**
  * Reads each fixture through the reply the vision model gave for it when it was
@@ -37,6 +40,22 @@ class ScreenshotReaderTest {
         assertThat(seen).hasSize(1)
         assertThat(seen.single().second).isSameAs(png)
         assertThat(seen.single().first).contains("documentType", "accountNumber", "costBasis", "tradeDate")
+    }
+
+    @Test
+    fun `should hand the model a small screenshot enlarged`() {
+        val out = ByteArrayOutputStream()
+        ImageIO.write(BufferedImage(1280, 714, BufferedImage.TYPE_INT_RGB), "png", out)
+        var seen: Screenshot? = null
+        val reader =
+            ScreenshotReader { _, screenshot ->
+                seen = screenshot
+                """{"documentType":"HOLDINGS","rows":[]}"""
+            }
+
+        reader.read(Screenshot(out.toByteArray(), "image/png"))
+
+        assertThat(ImageIO.read(checkNotNull(seen).bytes.inputStream()).width).isEqualTo(2560)
     }
 
     @Test

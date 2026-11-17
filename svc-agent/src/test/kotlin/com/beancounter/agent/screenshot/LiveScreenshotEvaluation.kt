@@ -3,9 +3,11 @@ package com.beancounter.agent.screenshot
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
+import org.springframework.http.client.SimpleClientHttpRequestFactory
 import org.springframework.web.client.RestClient
 import java.nio.file.Files
 import java.nio.file.Path
+import java.time.Duration
 
 /**
  * Sends each fixture screenshot to the real vision model. It costs tokens, so it
@@ -24,7 +26,12 @@ import java.nio.file.Path
 class LiveScreenshotEvaluation {
     private val vision =
         DeepSeekVision(
-            RestClient.builder().baseUrl(System.getenv("DEEPSEEK_BASE_URL") ?: "https://api.deepseek.com").build(),
+            RestClient
+                .builder()
+                .baseUrl(System.getenv("DEEPSEEK_BASE_URL") ?: "https://api.deepseek.com")
+                // A dense page takes the model twenty seconds or more; the default client gives up first.
+                .requestFactory(SimpleClientHttpRequestFactory().apply { setReadTimeout(Duration.ofSeconds(90)) })
+                .build(),
             apiKey = System.getenv("DEEPSEEK_API_KEY").orEmpty(),
             model = System.getenv("AI_MODEL_FAST") ?: "deepseek-flash"
         )

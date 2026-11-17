@@ -12,7 +12,7 @@ class ScreenshotReader(
 ) {
     /** @throws UnreadableScreenshotException when the model's reply is not a proposal */
     fun read(screenshot: Screenshot): ScreenshotProposal {
-        val reply = vision.read(INSTRUCTION, screenshot)
+        val reply = vision.read(INSTRUCTION, Legible.of(screenshot))
         val proposal =
             try {
                 BcJson.objectMapper.readValue(unfenced(reply), ScreenshotProposal::class.java)

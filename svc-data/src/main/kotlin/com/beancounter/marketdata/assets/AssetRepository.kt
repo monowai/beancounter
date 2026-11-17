@@ -32,10 +32,13 @@ interface AssetRepository : JpaRepository<Asset, String> {
         @Param("code") code: String
     ): Optional<Asset>
 
-    /** Every asset with [code] on a market other than the [excluded] ones. */
+    /**
+     * Every asset with [code] on a market other than the [excluded] ones. A user-owned asset is
+     * never a listing: it belongs to its owner, whatever market it names.
+     */
     @Query(
-        "SELECT a FROM Asset a LEFT JOIN FETCH a.systemUser LEFT JOIN FETCH a.accountingType " +
-            "WHERE a.code = :code AND a.marketCode NOT IN :excluded"
+        "SELECT a FROM Asset a LEFT JOIN FETCH a.accountingType " +
+            "WHERE a.code = :code AND a.marketCode NOT IN :excluded AND a.systemUser IS NULL"
     )
     fun findByCodeOutside(
         @Param("code") code: String,

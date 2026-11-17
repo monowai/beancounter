@@ -504,6 +504,31 @@ class ReconcilePreviewTest {
     }
 
     @Test
+    fun `should not take another user's own asset as a listing`() {
+        val owner = login("owned-listing")
+        assetRepository.save(
+            Asset(
+                id = "owned-RCNM9",
+                code = "RCNM9",
+                name = "RCNM9 owned",
+                market = Market(ASX.code, currencyId = "AUD"),
+                marketCode = ASX.code,
+                systemUser = owner
+            )
+        )
+        login("owned-viewer")
+        val firm = firm("RCN-OWNED", "Rcn Owned")
+        val request = ShownHoldings(brokerName = firm.name, rows = listOf(shown("RCNM9", "5", market = null)))
+
+        val row = reconcileService.preview(request).rows.single()
+
+        assertThat(row.assetId).isNull()
+        assertThat(row.listedOn).isEmpty()
+        assertThat(row.market).isEqualTo(NASDAQ.code)
+        assertThat(row.marketSource).isEqualTo(MarketSource.BROKERAGE)
+    }
+
+    @Test
     fun `should read a slash in the code as the dot Beancounter uses`() {
         login("slash")
         val portfolio = portfolio("RCN-SLASH")

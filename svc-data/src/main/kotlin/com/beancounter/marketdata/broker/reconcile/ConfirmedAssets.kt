@@ -12,10 +12,13 @@ class ConfirmedAssets(
     private val assetFinder: AssetFinder,
     private val assetService: AssetService
 ) {
-    /** [row] named by id: as it is, or with the id of the asset its market and code now create. */
+    /**
+     * [row] named by id: as it is, or with the id of the asset its market and code now create.
+     * The code is read as the preview read it, so a shown BRK/B records BRK.B.
+     */
     fun withAssetId(row: ConfirmedRow): ConfirmedRow {
         if (!row.assetId.isNullOrBlank()) return row
-        val code = checkNotNull(row.code)
+        val code = ShownAssetResolver.beancounterCode(checkNotNull(row.code))
         val created = assetService.handle(AssetRequest(AssetInput(checkNotNull(row.market), code), code))
         return row.copy(assetId = created.data.getValue(code).id)
     }

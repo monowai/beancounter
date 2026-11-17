@@ -369,6 +369,36 @@ class ReconcileCommitTest {
     }
 
     @Test
+    fun `should create a share class a row writes with a slash under the dot Beancounter uses`() {
+        val user = login("slash-class")
+        val portfolio = portfolio("RCC-SLASH")
+        val broker = broker("RCC-SLASH-B", user)
+        val row = ConfirmedRow(null, TrnType.ADD, BigDecimal.ONE, BigDecimal.TEN, market = NASDAQ.code, code = "rccs/b")
+
+        reconcileCommitService.commit(confirmed(portfolio, broker, "rcc-slash-upload", row))
+
+        val created = assetFinder.findLocally(AssetInput(NASDAQ.code, "RCCS.B"))
+        assertThat(created).isNotNull
+        assertThat(trnsOf(portfolio).single().asset.id).isEqualTo(created!!.id)
+    }
+
+    @Test
+    fun `should refuse one asset named by id in one row and by market and code in another`() {
+        val user = login("twice-mixed")
+        val portfolio = portfolio("RCC-TWICEMIX")
+        val asset = asset("RCCTM1")
+        val broker = broker("RCC-TWICEMIX-B", user)
+        val byCode =
+            ConfirmedRow(null, TrnType.ADD, BigDecimal.ONE, BigDecimal.TEN, market = NASDAQ.code, code = "RCCTM1")
+
+        assertRefused(
+            confirmed(portfolio, broker, "rcc-twice-mixed-upload", add(asset, "1"), byCode),
+            "Asset ${asset.id} is named more than once"
+        )
+        assertThat(trnsOf(portfolio)).isEmpty()
+    }
+
+    @Test
     fun `should not find another user's broker, and record nothing`() {
         val other = login("b-other")
         val theirs = broker("RCC-THEIRS", other)

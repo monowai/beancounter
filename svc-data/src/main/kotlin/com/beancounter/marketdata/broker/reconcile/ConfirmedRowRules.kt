@@ -27,9 +27,21 @@ internal object ConfirmedRowRules {
             rows.size > MAX_ROWS -> "A statement holds at most $MAX_ROWS rows, not ${rows.size}"
             // The rows are recorded as settled, and a trade does not settle before its date.
             isFuture(confirmed.tradeDate) -> "The trade date ${confirmed.tradeDate} is after today"
-            else -> namedTwice(rows)?.let { "Asset $it is named more than once" }
+            else -> namedTwice(rows)?.let { namedTwiceProblem(it) }
         }
     }
+
+    /**
+     * Once every row carries its asset's id: one asset named by id in one row and by market and
+     * code in another is still named twice.
+     *
+     * @throws BusinessException naming the asset
+     */
+    fun checkResolved(resolved: ConfirmedHoldings) {
+        namedTwice(resolved.rows)?.let { throw BusinessException(namedTwiceProblem(it)) }
+    }
+
+    private fun namedTwiceProblem(label: String) = "Asset $label is named more than once"
 
     private fun namedTwice(rows: List<ConfirmedRow>): String? {
         val seen = mutableSetOf<String>()

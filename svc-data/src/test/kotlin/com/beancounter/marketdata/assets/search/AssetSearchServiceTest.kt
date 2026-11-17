@@ -61,6 +61,7 @@ class AssetSearchServiceTest {
         assertThat(assetSearchService.search("F", "NASDAQ").data).isEmpty()
         assertThat(assetSearchService.search("F", "NASDAQ", minLength = 1).data.map { it.symbol }).contains("F")
         assertThat(assetSearchService.search(" ", "NASDAQ", minLength = 1).data).isEmpty()
+        assertThat(assetSearchService.search(" F ", "NASDAQ", minLength = 1).data.map { it.symbol }).contains("F")
     }
 
     @Test

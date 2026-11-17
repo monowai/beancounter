@@ -109,7 +109,7 @@ class AssetFinder(
      */
     fun findByMarketCode(marketCode: String): List<Asset> = assetRepository.findByMarketCode(marketCode)
 
-    /** Every market listing of [code], case ignored; private, cash, FX and index assets excluded. */
+    /** Every market listing of [code], case ignored; owned, private, cash, FX and index assets excluded. */
     fun findListed(code: String): List<Asset> =
         assetRepository.findByCodeOutside(code.uppercase(Locale.getDefault()), UNLISTED_MARKETS)
 

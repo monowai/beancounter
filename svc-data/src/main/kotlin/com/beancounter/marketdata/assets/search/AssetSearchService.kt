@@ -50,15 +50,17 @@ class AssetSearchService(
         // is looked up with 1.
         minLength: Int = TYPE_AHEAD_MIN_LENGTH
     ): AssetSearchResponse {
-        if (keyword.isBlank() || keyword.trim().length < minLength) {
+        // The length is judged on the term that is searched for, so both are trimmed.
+        val term = keyword.trim()
+        if (term.isEmpty() || term.length < minLength) {
             return AssetSearchResponse(emptyList())
         }
         val response =
             when {
-                market.equals(PrivateMarketDataProvider.ID, ignoreCase = true) -> searchPrivateAssets(keyword)
-                market.equals("FIGI", ignoreCase = true) -> figiAssetSearch.global(keyword)
-                market.isNullOrBlank() -> searchLocalAssets(keyword)
-                else -> searchMarketAssets(keyword, market)
+                market.equals(PrivateMarketDataProvider.ID, ignoreCase = true) -> searchPrivateAssets(term)
+                market.equals("FIGI", ignoreCase = true) -> figiAssetSearch.global(term)
+                market.isNullOrBlank() -> searchLocalAssets(term)
+                else -> searchMarketAssets(term, market)
             }
         return AssetSearchResponse(response.data.filter { onSupportedMarket(it) })
     }

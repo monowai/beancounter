@@ -43,6 +43,7 @@ class ReconcileCommitService(
         ConfirmedRowRules.check(submitted)
         // A listing Beancounter does not have yet is created here; a later refusal rolls it back.
         val confirmed = submitted.copy(rows = submitted.rows.map { confirmedAssets.withAssetId(it) })
+        ConfirmedRowRules.checkResolved(confirmed)
         // An asset that does not exist fails here, before any write. The currency is the one
         // the transaction mapper falls back to when a request names none.
         val tradeCurrencies =

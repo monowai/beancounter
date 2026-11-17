@@ -33,14 +33,29 @@ class ShownAssetResolver(
     ): ResolvedAsset {
         val code = beancounterCode(row.code)
         val shownMarket = row.market?.trim().orEmpty()
-        if (shownMarket.isNotEmpty()) {
-            return ResolvedAsset(shownMarket, onMarket(code, shownMarket), MarketSource.SHOWN)
-        }
         val heldAsset = held.singleOrNull { sameSymbol(it.assetCode, code) }
-        if (heldAsset != null) {
-            val asset = assetFinder.findOrNull(heldAsset.assetId)
-            return ResolvedAsset(heldAsset.market, asset?.let { known(it) }, MarketSource.HELD)
+        return when {
+            shownMarket.isNotEmpty() -> {
+                ResolvedAsset(shownMarket, onMarket(code, shownMarket), MarketSource.SHOWN)
+            }
+            heldAsset != null -> {
+                ResolvedAsset(
+                    heldAsset.market,
+                    assetFinder.findOrNull(heldAsset.assetId)?.let { known(it) },
+                    MarketSource.HELD
+                )
+            }
+            else -> {
+                unheld(code, firm)
+            }
         }
+    }
+
+    /** Neither named nor held: Beancounter's listings first, then the asset search. */
+    private fun unheld(
+        code: String,
+        firm: GlobalBroker?
+    ): ResolvedAsset {
         val firmMarket =
             firm
                 ?.config
@@ -77,7 +92,7 @@ class ShownAssetResolver(
         // Keyed by market: one listing per market, and only results that name one.
         val everywhere =
             assetSearchService
-                .searchSymbol(code, GLOBAL_SEARCH)
+                .search(code, GLOBAL_SEARCH, WHOLE_CODE)
                 .data
                 .filter { sameSymbol(it.symbol, code) }
                 .mapNotNull { result -> result.market?.takeIf { it.isNotBlank() }?.let { it to result } }
@@ -102,7 +117,7 @@ class ShownAssetResolver(
         market: String
     ): FoundAsset? =
         assetSearchService
-            .searchSymbol(code, market)
+            .search(code, market, WHOLE_CODE)
             .data
             .firstOrNull { sameSymbol(it.symbol, code) && it.market.equals(market, ignoreCase = true) }
             ?.let { listing(code, it) }
@@ -116,6 +131,9 @@ class ShownAssetResolver(
     ) = FoundAsset(result.assetId, code, result.name)
 
     companion object {
+        /** A row's code is whole however short, as F (Ford) is: search from one letter. */
+        private const val WHOLE_CODE = 1
+
         /** The asset search's market for a search of every market. */
         private const val GLOBAL_SEARCH = "FIGI"
 

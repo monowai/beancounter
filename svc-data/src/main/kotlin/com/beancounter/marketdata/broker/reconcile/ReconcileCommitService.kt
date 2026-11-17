@@ -1,17 +1,13 @@
 package com.beancounter.marketdata.broker.reconcile
 
-import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.contracts.TrnSaveResult
 import com.beancounter.common.exception.NotFoundException
-import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
-import com.beancounter.marketdata.assets.AssetFinder
-import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.broker.BrokerService
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.registration.SystemUserService
@@ -31,8 +27,7 @@ class ReconcileCommitService(
     private val portfolioService: PortfolioService,
     private val systemUserService: SystemUserService,
     private val brokerService: BrokerService,
-    private val assetFinder: AssetFinder,
-    private val assetService: AssetService,
+    private val confirmedAssets: ConfirmedAssets,
     private val commitGuard: ReconcileCommitGuard,
     private val trnService: TrnService
 ) {
@@ -47,14 +42,11 @@ class ReconcileCommitService(
                 .orElseThrow { NotFoundException("Broker not found: ${submitted.brokerId}") }
         ConfirmedRowRules.check(submitted)
         // A listing Beancounter does not have yet is created here; a later refusal rolls it back.
-        val confirmed = submitted.copy(rows = submitted.rows.map { withAssetId(it) })
+        val confirmed = submitted.copy(rows = submitted.rows.map { confirmedAssets.withAssetId(it) })
         // An asset that does not exist fails here, before any write. The currency is the one
         // the transaction mapper falls back to when a request names none.
         val tradeCurrencies =
-            confirmed.rows.associate { row ->
-                val asset = assetFinder.find(row.label)
-                row.label to (asset.accountingType?.currency ?: asset.market.currency).code
-            }
+            confirmed.rows.associate { row -> row.label to confirmedAssets.tradeCurrency(row.label) }
         // Before the holdings check: a repeated upload's reductions no longer fit what is
         // held, and the user should be told it is recorded, not that it reduces too much.
         commitGuard.refuseRecorded(confirmed.uploadId, owner)
@@ -76,14 +68,6 @@ class ReconcileCommitService(
                 )
             }
         return trnService.saveWithResult(portfolio, TrnRequest(portfolio.id, inputs))
-    }
-
-    /** [row] named by id: as it is, or with the id of the asset its market and code now create. */
-    private fun withAssetId(row: ConfirmedRow): ConfirmedRow {
-        if (!row.assetId.isNullOrBlank()) return row
-        val code = checkNotNull(row.code)
-        val created = assetService.handle(AssetRequest(AssetInput(checkNotNull(row.market), code), code))
-        return row.copy(assetId = created.data.getValue(code).id)
     }
 
     /**

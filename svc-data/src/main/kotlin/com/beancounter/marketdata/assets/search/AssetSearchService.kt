@@ -45,31 +45,14 @@ class AssetSearchService(
      */
     fun search(
         keyword: String,
-        market: String?
+        market: String?,
+        // Type-ahead wants 2: one letter matches too much. A whole code such as F (Ford)
+        // is looked up with 1.
+        minLength: Int = TYPE_AHEAD_MIN_LENGTH
     ): AssetSearchResponse {
-        // Type-ahead: one letter matches too much to be worth a search.
-        if (keyword.isBlank() || keyword.length < 2) {
+        if (keyword.isBlank() || keyword.trim().length < minLength) {
             return AssetSearchResponse(emptyList())
         }
-        return searchAny(keyword, market)
-    }
-
-    /**
-     * Search for one symbol, however short: F (Ford) and T (AT&T) are whole codes. The
-     * markets are as for [search].
-     */
-    fun searchSymbol(
-        symbol: String,
-        market: String?
-    ): AssetSearchResponse {
-        if (symbol.isBlank()) return AssetSearchResponse(emptyList())
-        return searchAny(symbol.trim(), market)
-    }
-
-    private fun searchAny(
-        keyword: String,
-        market: String?
-    ): AssetSearchResponse {
         val response =
             when {
                 market.equals(PrivateMarketDataProvider.ID, ignoreCase = true) -> searchPrivateAssets(keyword)
@@ -281,6 +264,9 @@ class AssetSearchService(
         // RestClients are sized for batch price downloads (EODHD: 5s connect / 30s read);
         // header-bar keystrokes can't tolerate that latency when one provider is stalled.
         private const val SEARCH_TIMEOUT_MS = 3000L
+
+        /** The shortest keyword type-ahead searches for. */
+        const val TYPE_AHEAD_MIN_LENGTH = 2
 
         // Markets that float to the top of header-bar fan-out results.
         private val US_MARKETS = setOf("US", "NYSE", "NASDAQ", "AMEX")

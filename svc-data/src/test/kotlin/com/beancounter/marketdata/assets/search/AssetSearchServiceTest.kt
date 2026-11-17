@@ -52,15 +52,15 @@ class AssetSearchServiceTest {
     }
 
     @Test
-    fun `an exact symbol search finds a one-letter code that type-ahead search ignores`() {
+    fun `a whole-code search finds a one-letter code that type-ahead search ignores`() {
         val nasdaq = Market("NASDAQ", currencyId = "USD")
         assetRepository.save(
             Asset(id = "one-letter-f", code = "F", name = "Ford Motor Co", market = nasdaq, marketCode = "NASDAQ")
         )
 
         assertThat(assetSearchService.search("F", "NASDAQ").data).isEmpty()
-        assertThat(assetSearchService.searchSymbol("F", "NASDAQ").data.map { it.symbol }).contains("F")
-        assertThat(assetSearchService.searchSymbol(" ", "NASDAQ").data).isEmpty()
+        assertThat(assetSearchService.search("F", "NASDAQ", minLength = 1).data.map { it.symbol }).contains("F")
+        assertThat(assetSearchService.search(" ", "NASDAQ", minLength = 1).data).isEmpty()
     }
 
     @Test

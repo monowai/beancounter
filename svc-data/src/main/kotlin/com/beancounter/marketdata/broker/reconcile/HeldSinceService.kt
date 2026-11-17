@@ -38,19 +38,16 @@ class HeldSinceService(
         }
     }
 
-    /** The asset's closes over the backfill window, fetched once from the provider if none are stored. */
+    /**
+     * The asset's closes over the backfill window. Prices missing from the window, such as
+     * the years before the first one stored, are fetched from the provider first; a long
+     * holding needs them.
+     */
     private fun closes(assetId: String): List<Pair<java.time.LocalDate, java.math.BigDecimal>> {
         val today = dateUtils.date
         val from = today.minusYears(MAX_BACKFILL_YEARS)
-        val stored = priceHistoryReader.getPriceHistory(assetId, from, today).prices
-        val prices =
-            stored.ifEmpty {
-                runCatching {
-                    marketDataService.backFill(assetId, from)
-                    priceHistoryReader.getPriceHistory(assetId, from, today).prices
-                }.onFailure { log.warn("Price history backfill failed for asset {}", assetId, it) }
-                    .getOrDefault(emptyList())
-            }
-        return prices.map { it.priceDate to it.close }
+        runCatching { marketDataService.backFill(assetId, from) }
+            .onFailure { log.warn("Price history backfill failed for asset {}", assetId, it) }
+        return priceHistoryReader.getPriceHistory(assetId, from, today).prices.map { it.priceDate to it.close }
     }
 }

@@ -7,6 +7,7 @@ import com.beancounter.common.model.Market
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.price.MarketDataService
 import com.beancounter.marketdata.price.history.PriceHistoryReader
+import com.beancounter.marketdata.providers.MarketDataPriceProvider.Companion.MAX_BACKFILL_YEARS
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
@@ -17,7 +18,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.math.BigDecimal
 
-/** Suggested opening dates for a statement's rows, from each asset's stored price history. */
+/** Suggested opening dates for a statement's rows, from each asset's price history. */
 class HeldSinceServiceTest {
     private val priceHistoryReader = mock<PriceHistoryReader>()
     private val marketDataService = mock<MarketDataService>()
@@ -55,7 +56,19 @@ class HeldSinceServiceTest {
                 )
             )
 
-        assertThat(suggestions).extracting<Any?> { it.heldSince }.containsOnly(today.minusDays(2))
+        assertThat(suggestions).extracting<Any?> { it.heldSince }.containsOnly(today.minusDays(1))
         verify(priceHistoryReader, times(1)).getPriceHistory(eq(asset.id), any(), any())
+    }
+
+    @Test
+    fun `should fill the history back to the backfill limit even when some prices are stored`() {
+        val today = dateUtils.date
+        whenever(priceHistoryReader.getPriceHistory(eq(asset.id), any(), any())).thenReturn(
+            PriceHistoryResponse(asset, listOf(PricePoint(priceDate = today.minusDays(1), close = BigDecimal("10"))))
+        )
+
+        service.suggest(HeldSinceRequest(listOf(HeldSinceQuery(asset.id, BigDecimal("10")))))
+
+        verify(marketDataService).backFill(asset.id, today.minusYears(MAX_BACKFILL_YEARS))
     }
 }

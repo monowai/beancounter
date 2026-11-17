@@ -4,11 +4,15 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 /**
- * When a holding was probably opened, worked out from its cost: the last day the price stood
- * at the cost per share. Only a suggestion for the user to confirm: a position bought over
- * time has an averaged cost, which leans the answer towards its most recent buys.
+ * When a holding was probably opened, worked out from its cost: the first day, oldest
+ * first, the close came within [TOLERANCE] of the cost per share, or jumped across it.
+ * Only a suggestion for the user to confirm: a position bought over time has an averaged
+ * cost, so the first day near it can be earlier than the first purchase.
  */
 internal object HeldSince {
+    /** How near the cost, as a fraction of it, a close must be. */
+    private val TOLERANCE = BigDecimal("0.10")
+
     /**
      * @property heldSince the suggested date, or null when there is none
      * @property before the earliest price, when the cost is below every price: the holding
@@ -29,12 +33,19 @@ internal object HeldSince {
     ): Estimate {
         if (closes.isEmpty() || costPerShare.signum() <= 0) return Estimate()
         val series = closes.sortedBy { it.first }
-        val risen = series.last().second >= costPerShare
-        // The last day the price was on the far side of the cost from where it is now.
-        val crossed =
-            series.lastOrNull { (_, close) ->
-                if (risen) close <= costPerShare else close >= costPerShare
+        val low = costPerShare - costPerShare * TOLERANCE
+        val high = costPerShare + costPerShare * TOLERANCE
+        val near =
+            series.indices.firstOrNull { index ->
+                val close = series[index].second
+                val crossed =
+                    index > 0 && (series[index - 1].second - costPerShare).signum() != (close - costPerShare).signum()
+                close in low..high || crossed
             }
-        return if (crossed != null) Estimate(heldSince = crossed.first) else Estimate(before = series.first().first)
+        return when {
+            near != null -> Estimate(heldSince = series[near].first)
+            series.first().second > high -> Estimate(before = series.first().first)
+            else -> Estimate()
+        }
     }
 }

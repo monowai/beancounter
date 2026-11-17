@@ -98,6 +98,15 @@ val detektBaseline by tasks.registering(JavaExec::class) {
 
 tasks.named("check") { dependsOn(detekt) }
 
+// The tracked pre-commit hook (.githooks/pre-commit) runs format, lint and the root detekt,
+// so what CI's build fails on fails locally first. Git only runs hooks from its hooks path:
+// run this once per clone. Worktrees share the clone's config and use their own .githooks.
+val installGitHooks by tasks.registering(Exec::class) {
+    group = "build setup"
+    description = "Points git at the tracked .githooks directory (run once per clone)."
+    commandLine("git", "config", "core.hooksPath", ".githooks")
+}
+
 // No `!!` in main code: detekt UnsafeCallOnNullableType and
 // UnnecessaryNotNullOperator, see detekt-null-safety.yml. Both need type
 // resolution, so this runs detekt 2.x (embeds Kotlin 2.4) per module with

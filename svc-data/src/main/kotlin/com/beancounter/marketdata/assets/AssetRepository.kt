@@ -33,6 +33,19 @@ interface AssetRepository : JpaRepository<Asset, String> {
     ): Optional<Asset>
 
     /**
+     * Every asset with [code] on a market other than the [excluded] ones. A user-owned asset is
+     * never a listing: it belongs to its owner, whatever market it names.
+     */
+    @Query(
+        "SELECT a FROM Asset a LEFT JOIN FETCH a.accountingType " +
+            "WHERE a.code = :code AND a.marketCode NOT IN :excluded AND a.systemUser IS NULL"
+    )
+    fun findByCodeOutside(
+        @Param("code") code: String,
+        @Param("excluded") excluded: Collection<String>
+    ): List<Asset>
+
+    /**
      * Find all active assets with non-empty codes for price refresh.
      * Excludes:
      * - Inactive assets (delisted, etc.)

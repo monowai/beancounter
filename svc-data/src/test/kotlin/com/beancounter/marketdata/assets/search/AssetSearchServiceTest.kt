@@ -52,6 +52,19 @@ class AssetSearchServiceTest {
     }
 
     @Test
+    fun `a whole-code search finds a one-letter code that type-ahead search ignores`() {
+        val nasdaq = Market("NASDAQ", currencyId = "USD")
+        assetRepository.save(
+            Asset(id = "one-letter-f", code = "F", name = "Ford Motor Co", market = nasdaq, marketCode = "NASDAQ")
+        )
+
+        assertThat(assetSearchService.search("F", "NASDAQ").data).isEmpty()
+        assertThat(assetSearchService.search("F", "NASDAQ", minLength = 1).data.map { it.symbol }).contains("F")
+        assertThat(assetSearchService.search(" ", "NASDAQ", minLength = 1).data).isEmpty()
+        assertThat(assetSearchService.search(" F ", "NASDAQ", minLength = 1).data.map { it.symbol }).contains("F")
+    }
+
+    @Test
     fun `search PRIVATE finds assets by code`() {
         createPrivateAsset("MY-PROP", "My Investment Property")
 

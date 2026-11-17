@@ -1,8 +1,6 @@
 package com.beancounter.marketdata.broker.reconcile
 
 import com.beancounter.common.exception.BusinessException
-import com.beancounter.common.input.AssetInput
-import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.broker.GlobalBroker
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.registration.SystemUserService
@@ -15,7 +13,8 @@ import java.math.BigDecimal
 /**
  * Compares the holdings a brokerage statement shows with what the caller holds at
  * that broker, and previews the transactions that would bring the two into line.
- * Read-only: it records nothing and creates no asset.
+ * Read-only: it records nothing and creates no asset; a listing Beancounter does not have yet
+ * is created when the row is recorded.
  */
 @Service
 class ReconcileService(
@@ -23,18 +22,18 @@ class ReconcileService(
     private val systemUserService: SystemUserService,
     private val brokerMatcher: BrokerMatcher,
     private val trnBrokerService: TrnBrokerService,
-    private val assetFinder: AssetFinder
+    private val shownAssetResolver: ShownAssetResolver
 ) {
     @Transactional(readOnly = true)
     fun preview(shown: ShownHoldings): ReconcilePreview {
-        portfolioService.find(shown.portfolioId)
+        // A portfolio is checked only when named: the user may create one when recording.
+        shown.portfolioId?.let { portfolioService.find(it) }
         if (shown.rows.size > MAX_ROWS) {
             throw BusinessException("A statement holds at most $MAX_ROWS rows, not ${shown.rows.size}")
         }
         val match = brokerMatcher.match(shown, systemUserService.getOrThrow())
         val held = match.broker?.let { trnBrokerService.getBrokerHoldings(it.id).holdings }.orEmpty()
-        val heldByAsset = held.associate { it.assetId to it.quantity }
-        val rows = shown.rows.map { previewRow(it, match.firm, heldByAsset) }
+        val rows = shown.rows.map { previewRow(it, match.firm, held) }
         return ReconcilePreview(
             globalBroker = match.firm,
             broker = match.broker?.let { MatchedBroker(it.id, it.name, it.accountNumber) },
@@ -46,12 +45,14 @@ class ReconcileService(
     private fun previewRow(
         row: ShownHolding,
         firm: GlobalBroker?,
-        heldByAsset: Map<String, BigDecimal>
+        held: List<BrokerHoldingPosition>
     ): PreviewRow {
-        val market = sequenceOf(row.market, firm?.config?.market).firstOrNull { !it.isNullOrBlank() }?.trim()
-        val asset = market?.let { assetFinder.findLocally(AssetInput(it, row.code.trim())) }
-        val held = asset?.let { heldByAsset[it.id] } ?: BigDecimal.ZERO
-        return RowReconciler.reconcile(row, market, asset, held)
+        val resolved = shownAssetResolver.resolve(row, firm, held)
+        val assetId = resolved.asset?.id
+        val quantity = assetId?.let { id -> held.firstOrNull { it.assetId == id }?.quantity }
+        return RowReconciler
+            .reconcile(row, resolved.market, resolved.asset, quantity ?: BigDecimal.ZERO)
+            .copy(marketSource = resolved.source, listedOn = resolved.listedOn)
     }
 
     private fun notShown(

@@ -44,10 +44,10 @@ class ReconcileCommitGuard(
         val reductions = confirmed.rows.filter { it.trnType == TrnType.REDUCE }
         if (reductions.isEmpty()) return
         val held = heldByAsset(confirmed)
-        val over = reductions.firstOrNull { it.quantity > (held[it.assetId] ?: BigDecimal.ZERO) } ?: return
+        val over = reductions.firstOrNull { it.quantity > (held[it.label] ?: BigDecimal.ZERO) } ?: return
         throw BusinessException(
-            "Asset ${over.assetId}: cannot reduce by ${over.quantity.toPlainString()}, the portfolio holds " +
-                "${(held[over.assetId] ?: BigDecimal.ZERO).toPlainString()} at this broker"
+            "Asset ${over.label}: cannot reduce by ${over.quantity.toPlainString()}, the portfolio holds " +
+                "${(held[over.label] ?: BigDecimal.ZERO).toPlainString()} at this broker"
         )
     }
 

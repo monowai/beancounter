@@ -72,7 +72,7 @@ class AssetMarketVerifierTest {
 
     @Test
     fun `allows when the ticker is not found anywhere (new or private ticker)`() {
-        whenever(assetSearchService.search(any(), anyOrNull()))
+        whenever(assetSearchService.search(any(), anyOrNull(), any()))
             .thenReturn(AssetSearchResponse(emptyList()))
 
         verifier.verify("NEWCO", market("US", "US"), enrichedName = null)
@@ -82,7 +82,7 @@ class AssetMarketVerifierTest {
     fun `skips the lookup entirely when the asset was enriched`() {
         verifier.verify("AAPL", market("US", "US"), enrichedName = "Apple Inc")
 
-        verify(assetSearchService, never()).search(any(), anyOrNull())
+        verify(assetSearchService, never()).search(any(), anyOrNull(), any())
     }
 
     @Test
@@ -90,12 +90,12 @@ class AssetMarketVerifierTest {
         verifier.verify("USD", market("CASH"), enrichedName = null)
         verifier.verify("MYHOUSE", market("PRIVATE"), enrichedName = null)
 
-        verify(assetSearchService, never()).search(any(), anyOrNull())
+        verify(assetSearchService, never()).search(any(), anyOrNull(), any())
     }
 
     @Test
     fun `fails open when the search provider errors`() {
-        whenever(assetSearchService.search(any(), anyOrNull()))
+        whenever(assetSearchService.search(any(), anyOrNull(), any()))
             .thenThrow(RuntimeException("provider down"))
 
         // No throw — a search outage must never block asset creation.

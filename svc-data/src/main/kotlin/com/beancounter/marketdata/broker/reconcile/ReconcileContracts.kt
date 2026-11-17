@@ -9,13 +9,14 @@ import java.time.LocalDate
 /**
  * What a brokerage statement shows, as read from a screenshot.
  *
- * @property portfolioId the portfolio the holdings would be recorded in
+ * @property portfolioId the portfolio the holdings would be recorded in; null for one the
+ * user will create when recording
  * @property brokerId the caller's broker, when the user has already chosen it
  * @property brokerName the firm's name as printed on the statement
  * @property accountNumber the visible digits of the account number, e.g. "482"
  */
 data class ShownHoldings(
-    val portfolioId: String,
+    val portfolioId: String? = null,
     val brokerId: String? = null,
     val brokerName: String? = null,
     val accountNumber: String? = null,
@@ -65,11 +66,17 @@ data class MatchedBroker(
  * @property trnType ADD or REDUCE; null unless [status] is READY or NEEDS_COST
  * @property quantity the absolute difference between [shown] and [held]
  * @property cost the cost of [quantity], for an ADD
+ * @property assetId Beancounter's asset; null for a listing it does not have yet, which
+ * recording creates under [assetCode]
+ * @property assetCode the code Beancounter knows the asset by, e.g. BRK.B for a shown BRK/B
+ * @property marketSource where [market] came from; null when there is none
+ * @property listedOn the markets that list [code], when they were looked up
  */
 data class PreviewRow(
     val code: String,
     val market: String?,
     val assetId: String?,
+    val assetCode: String? = null,
     val assetName: String?,
     val shown: BigDecimal?,
     val held: BigDecimal,
@@ -77,8 +84,25 @@ data class PreviewRow(
     val quantity: BigDecimal?,
     val cost: BigDecimal?,
     val status: RowStatus,
-    val warnings: List<RowWarning>
+    val warnings: List<RowWarning>,
+    val marketSource: MarketSource? = null,
+    val listedOn: List<String> = emptyList()
 )
+
+/** Where a preview row's market came from, strongest first. */
+enum class MarketSource {
+    /** The row named it: printed on the statement or chosen by the user. */
+    SHOWN,
+
+    /** The broker already holds an asset with this code there. */
+    HELD,
+
+    /** The firm's market, which lists the code or is the best guess. */
+    BROKERAGE,
+
+    /** The only market that lists the code. */
+    LISTED
+}
 
 enum class RowStatus {
     READY,
@@ -120,14 +144,25 @@ data class ConfirmedHoldings(
 )
 
 /**
- * One transaction to record.
+ * One transaction to record. The asset is named by [assetId], or by [market] and [code]
+ * for a listing Beancounter does not have yet, which recording creates.
  *
  * @property trnType ADD or REDUCE
  * @property cost the total cost of [quantity] in the asset's trade currency; an ADD needs one
  */
 data class ConfirmedRow(
-    val assetId: String,
+    val assetId: String?,
     val trnType: TrnType,
     val quantity: BigDecimal,
-    val cost: BigDecimal? = null
-)
+    val cost: BigDecimal? = null,
+    val market: String? = null,
+    val code: String? = null
+) {
+    /** How the row's asset is named in a message. */
+    val label: String
+        get() = assetId ?: "$market:$code"
+
+    /** Named by id, or by market and code. */
+    val named: Boolean
+        get() = !assetId.isNullOrBlank() || (!market.isNullOrBlank() && !code.isNullOrBlank())
+}

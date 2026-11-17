@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.broker.reconcile
 
-import com.beancounter.common.model.Asset
 import com.beancounter.common.model.TrnType
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -31,13 +30,14 @@ internal object RowReconciler {
 
     /**
      * @param market the market the row trades on, null when neither the row nor the firm names one
-     * @param asset the asset [row] names on [market], null when unknown
+     * @param asset the asset [row] names on [market], null when neither Beancounter nor the
+     * asset search knows it
      * @param held the quantity of [asset] held at the caller's broker
      */
     fun reconcile(
         row: ShownHolding,
         market: String?,
-        asset: Asset?,
+        asset: FoundAsset?,
         held: BigDecimal
     ): PreviewRow {
         val proposal = proposal(row, market, asset, held)
@@ -45,6 +45,7 @@ internal object RowReconciler {
             code = row.code,
             market = market,
             assetId = asset?.id,
+            assetCode = asset?.code,
             assetName = asset?.name,
             shown = row.quantity,
             held = held,
@@ -59,7 +60,7 @@ internal object RowReconciler {
     private fun proposal(
         row: ShownHolding,
         market: String?,
-        asset: Asset?,
+        asset: FoundAsset?,
         held: BigDecimal
     ): Proposal {
         val shown = row.quantity

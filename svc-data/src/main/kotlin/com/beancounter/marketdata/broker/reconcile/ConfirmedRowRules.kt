@@ -27,13 +27,25 @@ internal object ConfirmedRowRules {
             rows.size > MAX_ROWS -> "A statement holds at most $MAX_ROWS rows, not ${rows.size}"
             // The rows are recorded as settled, and a trade does not settle before its date.
             isFuture(confirmed.tradeDate) -> "The trade date ${confirmed.tradeDate} is after today"
-            else -> namedTwice(rows)?.let { "Asset $it is named more than once" }
+            else -> namedTwice(rows)?.let { namedTwiceProblem(it) }
         }
     }
 
+    /**
+     * Once every row carries its asset's id: one asset named by id in one row and by market and
+     * code in another is still named twice.
+     *
+     * @throws BusinessException naming the asset
+     */
+    fun checkResolved(resolved: ConfirmedHoldings) {
+        namedTwice(resolved.rows)?.let { throw BusinessException(namedTwiceProblem(it)) }
+    }
+
+    private fun namedTwiceProblem(label: String) = "Asset $label is named more than once"
+
     private fun namedTwice(rows: List<ConfirmedRow>): String? {
         val seen = mutableSetOf<String>()
-        return rows.firstOrNull { !seen.add(it.assetId) }?.assetId
+        return rows.firstOrNull { !seen.add(it.label) }?.label
     }
 
     private fun isFuture(tradeDate: LocalDate?): Boolean = tradeDate != null && tradeDate.isAfter(DateUtils().date)
@@ -42,13 +54,14 @@ internal object ConfirmedRowRules {
 
     private fun rowProblem(row: ConfirmedRow): String? =
         when {
-            row.trnType !in RECORDABLE -> "Asset ${row.assetId}: only ADD or REDUCE is recorded, not ${row.trnType}"
-            row.quantity.signum() <= 0 -> "Asset ${row.assetId}: the quantity must be more than zero"
+            !row.named -> "A row names its asset by id, or by market and code"
+            row.trnType !in RECORDABLE -> "Asset ${row.label}: only ADD or REDUCE is recorded, not ${row.trnType}"
+            row.quantity.signum() <= 0 -> "Asset ${row.label}: the quantity must be more than zero"
             row.trnType == TrnType.ADD &&
                 !isCost(
                     row.cost
                 )
-            -> "Asset ${row.assetId}: an ADD needs a cost of zero or more"
+            -> "Asset ${row.label}: an ADD needs a cost of zero or more"
             else -> null
         }
 }

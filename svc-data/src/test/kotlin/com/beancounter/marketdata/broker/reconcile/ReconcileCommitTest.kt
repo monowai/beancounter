@@ -19,6 +19,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.SpringMvcDbTest
+import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.broker.BrokerRepository
 import com.beancounter.marketdata.portfolio.PortfolioService
@@ -56,6 +57,9 @@ class ReconcileCommitTest {
 
     @Autowired
     private lateinit var assetService: AssetService
+
+    @Autowired
+    private lateinit var assetFinder: AssetFinder
 
     @Autowired
     private lateinit var trnRepository: TrnRepository
@@ -322,6 +326,75 @@ class ReconcileCommitTest {
         }.isInstanceOf(NotFoundException::class.java)
             .hasMessage("Asset not found: rcc-no-such-asset")
 
+        assertThat(trnsOf(portfolio)).isEmpty()
+    }
+
+    @Test
+    fun `should create an asset a row names by market and code, and record the add`() {
+        val user = login("new-asset")
+        val portfolio = portfolio("RCC-NEWASSET")
+        val broker = broker("RCC-NEWASSET-B", user)
+        val row =
+            ConfirmedRow(
+                assetId = null,
+                trnType = TrnType.ADD,
+                quantity = BigDecimal("5"),
+                cost = BigDecimal("100"),
+                market = NASDAQ.code,
+                code = "RCCNEW1"
+            )
+
+        reconcileCommitService.commit(confirmed(portfolio, broker, "rcc-new-asset-upload", row))
+
+        val created = assetFinder.findLocally(AssetInput(NASDAQ.code, "RCCNEW1"))
+        assertThat(created).isNotNull
+        val trn = trnsOf(portfolio).single()
+        assertThat(trn.asset.id).isEqualTo(created!!.id)
+        assertThat(trn.quantity).isEqualByComparingTo("5")
+    }
+
+    @Test
+    fun `should refuse a row that names neither an asset nor a market and code`() {
+        val user = login("no-name")
+        val portfolio = portfolio("RCC-NONAME")
+        val broker = broker("RCC-NONAME-B", user)
+        val row = ConfirmedRow(null, TrnType.ADD, BigDecimal.ONE, BigDecimal.TEN, market = NASDAQ.code)
+
+        assertThatThrownBy {
+            reconcileCommitService.commit(confirmed(portfolio, broker, "rcc-noname-upload", row))
+        }.isInstanceOf(BusinessException::class.java)
+            .hasMessage("A row names its asset by id, or by market and code")
+
+        assertThat(trnsOf(portfolio)).isEmpty()
+    }
+
+    @Test
+    fun `should create a share class a row writes with a slash under the dot Beancounter uses`() {
+        val user = login("slash-class")
+        val portfolio = portfolio("RCC-SLASH")
+        val broker = broker("RCC-SLASH-B", user)
+        val row = ConfirmedRow(null, TrnType.ADD, BigDecimal.ONE, BigDecimal.TEN, market = NASDAQ.code, code = "rccs/b")
+
+        reconcileCommitService.commit(confirmed(portfolio, broker, "rcc-slash-upload", row))
+
+        val created = assetFinder.findLocally(AssetInput(NASDAQ.code, "RCCS.B"))
+        assertThat(created).isNotNull
+        assertThat(trnsOf(portfolio).single().asset.id).isEqualTo(created!!.id)
+    }
+
+    @Test
+    fun `should refuse one asset named by id in one row and by market and code in another`() {
+        val user = login("twice-mixed")
+        val portfolio = portfolio("RCC-TWICEMIX")
+        val asset = asset("RCCTM1")
+        val broker = broker("RCC-TWICEMIX-B", user)
+        val byCode =
+            ConfirmedRow(null, TrnType.ADD, BigDecimal.ONE, BigDecimal.TEN, market = NASDAQ.code, code = "RCCTM1")
+
+        assertRefused(
+            confirmed(portfolio, broker, "rcc-twice-mixed-upload", add(asset, "1"), byCode),
+            "Asset ${asset.id} is named more than once"
+        )
         assertThat(trnsOf(portfolio)).isEmpty()
     }
 

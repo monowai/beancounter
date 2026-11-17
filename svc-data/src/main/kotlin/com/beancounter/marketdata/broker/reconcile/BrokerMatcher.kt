@@ -29,13 +29,22 @@ class BrokerMatcher(
      * Only ever returns a broker [user] owns. The firm that broker is linked to wins
      * over the firm the statement prints.
      *
-     * @throws NotFoundException when the statement names a broker id that is not [user]'s
+     * An account the user will create (a firm chosen, no broker id) matches no account:
+     * guessing one from the firm would show another account's holdings as held.
+     *
+     * @throws NotFoundException when the statement names a broker id that is not [user]'s,
+     * or a firm that does not exist
      */
     fun match(
         shown: ShownHoldings,
         user: SystemUser
     ): BrokerMatch {
         val firms = globalBrokerService.findAll()
+        val chosenFirm =
+            shown.globalBrokerId?.takeIf { it.isNotBlank() }?.let { id ->
+                firms.firstOrNull { it.id == id } ?: throw NotFoundException("Brokerage firm not found: $id")
+            }
+        if (chosenFirm != null && shown.brokerId.isNullOrBlank()) return BrokerMatch(firm = chosenFirm, broker = null)
         val printed = firmNamed(shown.brokerName, firms)
         val broker = callersBroker(shown, user, printed)
         val linked = broker?.globalBrokerId?.let { id -> firms.firstOrNull { it.id == id } }

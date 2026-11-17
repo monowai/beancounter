@@ -234,6 +234,42 @@ class ReconcilePreviewTest {
     }
 
     @Test
+    fun `should use the chosen firm and match no account for one the user will create`() {
+        val user = login("new-account")
+        val portfolio = portfolio("RCN-NEWACCT")
+        val firm = firm("RCN-NEWACCT", "Rcn New Account")
+        val existing = brokerRepository.save(Broker(name = "RCN-NA-LINKED", owner = user, globalBrokerId = firm.id))
+        val asset = asset("RCNA1")
+        trade(TrnType.BUY, portfolio, existing, asset, "5")
+        val request =
+            ShownHoldings(
+                portfolioId = portfolio.id,
+                globalBrokerId = firm.id,
+                brokerName = firm.name,
+                rows = listOf(shown("RCNA1", "5", market = null))
+            )
+
+        val preview = reconcileService.preview(request)
+
+        assertThat(preview.broker).isNull()
+        assertThat(preview.globalBroker?.id).isEqualTo(firm.id)
+        val row = preview.rows.single()
+        assertThat(row.market).isEqualTo(NASDAQ.code)
+        assertThat(row.held).isEqualByComparingTo("0")
+        assertThat(row.trnType).isEqualTo(TrnType.ADD)
+    }
+
+    @Test
+    fun `should not find a firm id that does not exist`() {
+        login("no-firm")
+        val portfolio = portfolio("RCN-NOFIRM")
+
+        assertThatThrownBy {
+            reconcileService.preview(ShownHoldings(portfolioId = portfolio.id, globalBrokerId = "rcn-no-such-firm"))
+        }.isInstanceOf(NotFoundException::class.java)
+    }
+
+    @Test
     fun `should not find a broker id that belongs to another user`() {
         val other = login("id-other")
         val theirs = brokerRepository.save(Broker(name = "RCN-THEIRS", owner = other))

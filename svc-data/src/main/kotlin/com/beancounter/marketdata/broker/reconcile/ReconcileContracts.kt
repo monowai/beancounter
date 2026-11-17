@@ -12,12 +12,15 @@ import java.time.LocalDate
  * @property portfolioId the portfolio the holdings would be recorded in; null for one the
  * user will create when recording
  * @property brokerId the caller's broker, when the user has already chosen it
+ * @property globalBrokerId the firm the user chose for an account they will create when
+ * recording: with no [brokerId], the preview uses this firm and matches no account
  * @property brokerName the firm's name as printed on the statement
  * @property accountNumber the visible digits of the account number, e.g. "482"
  */
 data class ShownHoldings(
     val portfolioId: String? = null,
     val brokerId: String? = null,
+    val globalBrokerId: String? = null,
     val brokerName: String? = null,
     val accountNumber: String? = null,
     val rows: List<ShownHolding> = emptyList()

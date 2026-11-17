@@ -26,8 +26,14 @@ class HeldSinceService(
                 "A statement holds at most ${ReconcileService.MAX_ROWS} rows, not ${request.rows.size}"
             )
         }
+        // A statement can list one asset in several rows: read, or backfill, each asset once.
+        val closesByAsset =
+            request.rows
+                .map { it.assetId }
+                .distinct()
+                .associateWith { closes(it) }
         return request.rows.map { query ->
-            val estimate = HeldSince.estimate(closes(query.assetId), query.costPerShare)
+            val estimate = HeldSince.estimate(closesByAsset.getValue(query.assetId), query.costPerShare)
             HeldSinceSuggestion(query.assetId, estimate.heldSince, estimate.before)
         }
     }

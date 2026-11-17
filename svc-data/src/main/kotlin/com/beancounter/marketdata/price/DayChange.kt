@@ -53,12 +53,22 @@ class DayChange(
         }
         val providerGavePreviousClose =
             marketData.previousClose.compareTo(BigDecimal.ZERO) != 0
-        if (!providerGavePreviousClose &&
-            !PriceSeriesGaps.isRoutineGap(previousDayData.priceDate, marketData.priceDate)
-        ) {
-            return withoutDayChange(marketData, previousDayData)
+        val acrossHole =
+            !providerGavePreviousClose &&
+                !PriceSeriesGaps.isRoutineGap(previousDayData.priceDate, marketData.priceDate)
+        return if (acrossHole) {
+            withoutDayChange(marketData, previousDayData)
+        } else {
+            enrichFromPriorRow(marketData, previousDayData, providerGavePreviousClose)
         }
+    }
 
+    /** [enrichWithPreviousClose] once [previousDayData] is close enough to measure a day from. */
+    private fun enrichFromPriorRow(
+        marketData: MarketData,
+        previousDayData: MarketData,
+        providerGavePreviousClose: Boolean
+    ): MarketData {
         stampMissingSplit(marketData, previousDayData)
 
         val split = marketData.split

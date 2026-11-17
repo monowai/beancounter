@@ -260,27 +260,20 @@ class MarketDataPriceProcessor(
         if (apiPrices.isNotEmpty()) {
             val toSave = apiPrices.map { it.copy() }
             CoroutineScope(Dispatchers.IO).launch {
-                backfillWhereNoDayChange(priceService.handle(PriceResponse(toSave)))
+                // A saved row still without a previousClose has no usable prior row: the
+                // asset is new to the store, or its series has a hole wider than a routine
+                // closure. Only a backfill can give it a day change; it relinks the row once
+                // the history lands. Scheduled here, not in PriceService.handle, because the
+                // backfill saves through handle and its first row never has a prior one.
+                // The coordinator's in-flight and cooldown guards stop repeat requests.
+                priceService
+                    .handle(PriceResponse(toSave))
+                    .filter { it.previousClose.compareTo(BigDecimal.ZERO) == 0 }
+                    .map { it.asset.id }
+                    .distinct()
+                    .forEach { priceBackfillCoordinator.scheduleBackfill(it, defaultBackfillFrom()) }
             }
         }
-    }
-
-    /**
-     * A saved row still without a previousClose has no usable prior row: the asset is new
-     * to the store, or its series has a hole wider than a routine market closure. Either
-     * way only a backfill can give it a day change; the backfill relinks the row once the
-     * history lands. Triggered here, not in [PriceService.handle], because the backfill
-     * itself saves through handle and its first row never has a prior one. The
-     * coordinator's in-flight and cooldown guards stop repeat requests.
-     */
-    private fun backfillWhereNoDayChange(saved: Iterable<MarketData>) {
-        saved
-            .filter { it.previousClose.compareTo(BigDecimal.ZERO) == 0 }
-            .map { it.asset.id }
-            .distinct()
-            .forEach { assetId ->
-                priceBackfillCoordinator.scheduleBackfill(assetId, defaultBackfillFrom())
-            }
     }
 
     private fun getFromProvider(

@@ -78,7 +78,8 @@ class PriceService(
         } else {
             persistInChunks(createSet)
             persistInChunks(relinked)
-            val dates = createSet.map { it.priceDate }.distinct()
+            // Relinked rows had their day change rewritten, so their dates are stale too.
+            val dates = (createSet + relinked).map { it.priceDate }.distinct()
             dates.forEach { cacheInvalidationProducer?.sendPriceEvent(it) }
             // Return the application-constructed rows. Each chunk was written in
             // ConflictTolerantWriter's own REQUIRES_NEW transaction, which has

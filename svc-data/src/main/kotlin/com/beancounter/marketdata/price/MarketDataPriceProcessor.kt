@@ -4,7 +4,9 @@ import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
+import com.beancounter.marketdata.price.backfill.PriceBackfillCoordinator
 import com.beancounter.marketdata.providers.MarketDataPriceProvider
+import com.beancounter.marketdata.providers.MarketDataPriceProvider.Companion.defaultBackfillFrom
 import com.beancounter.marketdata.providers.ProviderUtils
 import com.beancounter.marketdata.providers.cash.CashProviderService
 import kotlinx.coroutines.CoroutineScope
@@ -12,6 +14,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.math.BigDecimal
 import java.time.LocalDate
 
 /**
@@ -21,7 +24,8 @@ import java.time.LocalDate
 class MarketDataPriceProcessor(
     private val providerUtils: ProviderUtils,
     private val priceService: PriceService,
-    private val utilityService: MarketDataUtilityService
+    private val utilityService: MarketDataUtilityService,
+    private val priceBackfillCoordinator: PriceBackfillCoordinator
 ) {
     private val log = LoggerFactory.getLogger(MarketDataPriceProcessor::class.java)
 
@@ -248,13 +252,35 @@ class MarketDataPriceProcessor(
 
     /**
      * Save API prices asynchronously.
+     *
+     * [PriceService.handle] enriches the rows it is given in place, so it gets copies:
+     * the caller's response must not change depending on whether the save has run yet.
      */
     private fun saveApiPricesAsync(apiPrices: List<MarketData>) {
         if (apiPrices.isNotEmpty()) {
+            val toSave = apiPrices.map { it.copy() }
             CoroutineScope(Dispatchers.IO).launch {
-                priceService.handle(PriceResponse(apiPrices))
+                backfillWhereNoDayChange(priceService.handle(PriceResponse(toSave)))
             }
         }
+    }
+
+    /**
+     * A saved row still without a previousClose has no usable prior row: the asset is new
+     * to the store, or its series has a hole wider than a routine market closure. Either
+     * way only a backfill can give it a day change; the backfill relinks the row once the
+     * history lands. Triggered here, not in [PriceService.handle], because the backfill
+     * itself saves through handle and its first row never has a prior one. The
+     * coordinator's in-flight and cooldown guards stop repeat requests.
+     */
+    private fun backfillWhereNoDayChange(saved: Iterable<MarketData>) {
+        saved
+            .filter { it.previousClose.compareTo(BigDecimal.ZERO) == 0 }
+            .map { it.asset.id }
+            .distinct()
+            .forEach { assetId ->
+                priceBackfillCoordinator.scheduleBackfill(assetId, defaultBackfillFrom())
+            }
     }
 
     private fun getFromProvider(

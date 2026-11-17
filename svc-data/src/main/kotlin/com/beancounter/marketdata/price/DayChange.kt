@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.price
 
 import com.beancounter.common.model.MarketData
+import com.beancounter.marketdata.price.backfill.PriceSeriesGaps
 import com.beancounter.marketdata.price.history.PriceSplits
 import com.beancounter.marketdata.price.history.SplitAdjuster
 import org.slf4j.LoggerFactory
@@ -34,6 +35,11 @@ class DayChange(
      *  - Off ex-date, we only fill `previousClose` (and its derivatives) from the prior row
      *    when the provider didn't supply a value — preserving the provider's own values when
      *    it did.
+     *  - When the provider supplied no `previousClose` and the prior stored row lies across a
+     *    hole wider than [PriceSeriesGaps.MAX_CALENDAR_GAP_DAYS], the row gets no day change
+     *    at all (previousClose, change and changePercent zero) and no split rebase: a stale
+     *    close says nothing about yesterday's price or today's split basis. A later backfill
+     *    fills the hole and relinks this row.
      *
      * Example: Monday $1000 → Tuesday 25:1 split → close $40 stored, previousClose $40 stored,
      * change 0, changePercent 0.
@@ -44,6 +50,13 @@ class DayChange(
     ): MarketData {
         if (previousDayData == null) {
             return marketData
+        }
+        val providerGavePreviousClose =
+            marketData.previousClose.compareTo(BigDecimal.ZERO) != 0
+        if (!providerGavePreviousClose &&
+            !PriceSeriesGaps.isRoutineGap(previousDayData.priceDate, marketData.priceDate)
+        ) {
+            return withoutDayChange(marketData, previousDayData)
         }
 
         stampMissingSplit(marketData, previousDayData)
@@ -56,8 +69,6 @@ class DayChange(
         // already carry the same split factor. Some providers keep the split value
         // "sticky" on subsequent rows — re-adjusting those rows would divide prices twice.
         val isSplitExDate = hasSplit && previousSplit.compareTo(split) != 0
-        val providerGavePreviousClose =
-            marketData.previousClose.compareTo(BigDecimal.ZERO) != 0
 
         // Off an ex-date we respect the provider's values; only derive previousClose when absent.
         if (!isSplitExDate && providerGavePreviousClose) {
@@ -100,6 +111,22 @@ class DayChange(
             marketData.change,
             marketData.changePercent
         )
+        return marketData
+    }
+
+    private fun withoutDayChange(
+        marketData: MarketData,
+        previousDayData: MarketData
+    ): MarketData {
+        log.debug(
+            "No day change for {} on {}: prior stored row {} is across a hole",
+            marketData.asset.code,
+            marketData.priceDate,
+            previousDayData.priceDate
+        )
+        marketData.previousClose = BigDecimal.ZERO
+        marketData.change = BigDecimal.ZERO
+        marketData.changePercent = BigDecimal.ZERO
         return marketData
     }
 

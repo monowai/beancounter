@@ -2,22 +2,36 @@ package com.beancounter.marketdata.price
 
 import com.beancounter.common.contracts.PriceAsset
 import com.beancounter.common.contracts.PriceRequest
+import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
+import com.beancounter.common.utils.CashUtils
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
+import com.beancounter.marketdata.assets.AssetFinder
+import com.beancounter.marketdata.cache.CacheInvalidationProducer
+import com.beancounter.marketdata.persistence.ConflictTolerantWriter
+import com.beancounter.marketdata.price.backfill.PriceBackfillCoordinator
+import com.beancounter.marketdata.price.history.PriceSplits
+import com.beancounter.marketdata.providers.EventServiceFacade
 import com.beancounter.marketdata.providers.MarketDataPriceProvider
 import com.beancounter.marketdata.providers.ProviderUtils
 import com.beancounter.marketdata.providers.alpha.AlphaPriceService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.Mockito.anyList
 import org.mockito.Mockito.mock
+import org.mockito.Mockito.timeout
 import org.mockito.Mockito.times
 import org.mockito.Mockito.verify
 import org.mockito.Mockito.`when`
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.never
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.util.Optional
 
 /**
  * Tests for MarketDataPriceProcessor, specifically covering market closure scenarios.
@@ -28,6 +42,7 @@ class MarketDataPriceProcessorTest {
     private lateinit var priceService: PriceService
     private lateinit var utilityService: MarketDataUtilityService
     private lateinit var mockProvider: MarketDataPriceProvider
+    private lateinit var priceBackfillCoordinator: PriceBackfillCoordinator
 
     private val asset = Asset(code = "AAPL", id = "aapl-id", market = NASDAQ)
     private val priceAsset = PriceAsset(asset)
@@ -38,8 +53,9 @@ class MarketDataPriceProcessorTest {
         priceService = mock(PriceService::class.java)
         utilityService = mock(MarketDataUtilityService::class.java)
         mockProvider = mock(MarketDataPriceProvider::class.java)
+        priceBackfillCoordinator = mock(PriceBackfillCoordinator::class.java)
 
-        processor = MarketDataPriceProcessor(providerUtils, priceService, utilityService)
+        processor = MarketDataPriceProcessor(providerUtils, priceService, utilityService, priceBackfillCoordinator)
     }
 
     @Test
@@ -296,5 +312,103 @@ class MarketDataPriceProcessorTest {
         assertThat(response.data.map { it.close })
             .allMatch { it.compareTo(BigDecimal("100.00")) == 0 }
         verify(priceService, times(1)).getLatestMarketData(remainingAssets, holidayDate)
+    }
+
+    @Test
+    fun `should not return the rows the async save enriches in place`() {
+        val tradingDay = LocalDate.of(2026, 11, 16)
+        val providerPrice = MarketData(asset = asset, priceDate = tradingDay, close = BigDecimal("60.75"))
+        val priceRequest = providerReturns(tradingDay, providerPrice)
+        // The real handle() fills previousClose/change on the rows it is given.
+        `when`(priceService.handle(any())).thenAnswer { invocation ->
+            val rows = invocation.getArgument<PriceResponse>(0).data
+            rows.forEach { it.previousClose = BigDecimal("81.56") }
+            rows
+        }
+
+        val response = processor.getPriceResponse(priceRequest)
+        val handed = argumentCaptor<PriceResponse>()
+        verify(priceService, timeout(ASYNC_WAIT_MS)).handle(handed.capture())
+
+        val returned = response.data.single()
+        assertThat(returned).isNotSameAs(handed.firstValue.data.single())
+        assertThat(returned.previousClose).isEqualByComparingTo(BigDecimal.ZERO)
+    }
+
+    @Test
+    fun `should schedule a backfill when a fetched price has no stored history`() {
+        val tradingDay = LocalDate.of(2026, 11, 16)
+        val providerPrice = MarketData(asset = asset, priceDate = tradingDay, close = BigDecimal("30.10"))
+        val priceRequest = providerReturns(tradingDay, providerPrice)
+        val repo = realPriceService()
+        `when`(repo.findTop1ByAssetAndPriceDateLessThanOrderByPriceDateDesc(any(), any()))
+            .thenReturn(Optional.empty())
+
+        processor.getPriceResponse(priceRequest)
+
+        verify(priceBackfillCoordinator, timeout(ASYNC_WAIT_MS)).scheduleBackfill(eq(asset.id), any())
+    }
+
+    @Test
+    fun `should not schedule a backfill when yesterday's price is stored`() {
+        val tradingDay = LocalDate.of(2026, 11, 16)
+        val providerPrice = MarketData(asset = asset, priceDate = tradingDay, close = BigDecimal("60.75"))
+        val priceRequest = providerReturns(tradingDay, providerPrice)
+        val repo = realPriceService()
+        val yesterday = MarketData(asset = asset, priceDate = tradingDay.minusDays(3), close = BigDecimal("62.15"))
+        `when`(repo.findTop1ByAssetAndPriceDateLessThanOrderByPriceDateDesc(any(), any()))
+            .thenReturn(Optional.of(yesterday))
+
+        processor.getPriceResponse(priceRequest)
+
+        verify(repo, timeout(ASYNC_WAIT_MS)).saveAll(anyList())
+        verify(priceBackfillCoordinator, never()).scheduleBackfill(any(), any())
+    }
+
+    private fun providerReturns(
+        tradingDay: LocalDate,
+        providerPrice: MarketData
+    ): PriceRequest {
+        val priceRequest = PriceRequest(date = tradingDay.toString(), assets = listOf(priceAsset), currentMode = true)
+        `when`(providerUtils.splitProviders(priceRequest.assets))
+            .thenReturn(mutableMapOf(mockProvider to mutableListOf(asset)))
+        `when`(mockProvider.getId()).thenReturn(AlphaPriceService.ID)
+        `when`(mockProvider.isApiSupported()).thenReturn(true)
+        `when`(utilityService.getMarketDate(mockProvider, asset, priceRequest)).thenReturn(tradingDay)
+        `when`(priceService.getMarketData(any<Collection<Asset>>(), any())).thenReturn(emptyList())
+        `when`(mockProvider.getMarketData(any())).thenReturn(listOf(providerPrice))
+        `when`(providerUtils.getInputs(any<List<Asset>>())).thenReturn(listOf(priceAsset))
+        return priceRequest
+    }
+
+    /**
+     * Swap the mocked PriceService for a real one over a mocked repository, so the
+     * saved rows carry exactly the enrichment a stored history would give them.
+     * Returns the repository for the caller to stub its prior row.
+     */
+    private fun realPriceService(): MarketDataRepo {
+        val repo = mock(MarketDataRepo::class.java)
+        `when`(repo.findByAssetIdAndPriceDateBetween(any(), any(), any())).thenReturn(emptyList())
+        `when`(repo.findTop1ByAssetAndPriceDateGreaterThanOrderByPriceDateAsc(any(), any()))
+            .thenReturn(Optional.empty())
+        `when`(repo.saveAll(anyList<MarketData>())).thenAnswer { it.arguments[0] }
+        val writer =
+            mock(ConflictTolerantWriter::class.java) { invocation ->
+                @Suppress("UNCHECKED_CAST")
+                val rows = invocation.getArgument<List<MarketData>>(1)
+                repo.saveAll(rows).toList()
+            }
+        val eventServiceFacade = mock(EventServiceFacade::class.java)
+        `when`(eventServiceFacade.getEvents(any())).thenReturn(PriceResponse())
+        val invalidation = mock(CacheInvalidationProducer::class.java)
+        val priceSplits = PriceSplits(repo, mock(AssetFinder::class.java), eventServiceFacade, invalidation)
+        val realPriceService =
+            PriceService(repo, mock(CashUtils::class.java), writer, DayChange(repo, priceSplits), null, invalidation)
+        `when`(priceService.handle(any())).thenAnswer { realPriceService.handle(it.getArgument(0)) }
+        return repo
+    }
+
+    private companion object {
+        const val ASYNC_WAIT_MS = 2000L
     }
 }

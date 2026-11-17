@@ -36,6 +36,7 @@ class PriceServiceTest {
     private lateinit var cashUtils: CashUtils
     private lateinit var eventProducer: EventProducer
     private lateinit var cacheInvalidationProducer: CacheInvalidationProducer
+    private lateinit var dayChange: DayChange
     private val assetFinder = mock(AssetFinder::class.java)
     private val eventServiceFacade = mock(EventServiceFacade::class.java)
     private val asset = Asset(code = "1", market = NASDAQ)
@@ -60,12 +61,13 @@ class PriceServiceTest {
             }
         `when`(eventServiceFacade.getEvents(any())).thenReturn(PriceResponse())
         val priceSplits = PriceSplits(marketDataRepo, assetFinder, eventServiceFacade, cacheInvalidationProducer)
+        dayChange = DayChange(marketDataRepo, priceSplits)
         priceService =
             PriceService(
                 marketDataRepo,
                 cashUtils,
                 conflictTolerantWriter,
-                DayChange(marketDataRepo, priceSplits),
+                dayChange,
                 eventProducer,
                 cacheInvalidationProducer
             )
@@ -621,4 +623,117 @@ class PriceServiceTest {
         assertEquals(0, result.count(), "Negative price should not be saved")
         verify(marketDataRepo, times(0)).saveAll(anyList())
     }
+
+    @Test
+    fun `should leave the day change blank when the prior stored row is months old`() {
+        // NFLX, 2026-11-16: the stored series stopped at 2026-06-04 and EODHD's EOD row
+        // carries no previousClose. Deriving it from the June row read -25.52% for a
+        // -2.25% day; a change that spans a hole is not a day change.
+        val current = eodRow(LocalDate.of(2026, 11, 16), "60.75")
+        val prior = MarketData(asset = asset, priceDate = LocalDate.of(2026, 6, 4), close = BigDecimal("81.56"))
+
+        val enriched = dayChange.enrichWithPreviousClose(current, prior)
+
+        assertThat(enriched.previousClose).isEqualByComparingTo(BigDecimal.ZERO)
+        assertThat(enriched.change).isEqualByComparingTo(BigDecimal.ZERO)
+        assertThat(enriched.changePercent).isEqualByComparingTo(BigDecimal.ZERO)
+        assertThat(enriched.close).isEqualByComparingTo(BigDecimal("60.75"))
+    }
+
+    @Test
+    fun `should derive the day change from the prior trading day's close`() {
+        val current = eodRow(LocalDate.of(2026, 11, 16), "60.75")
+        val prior = MarketData(asset = asset, priceDate = LocalDate.of(2026, 11, 13), close = BigDecimal("62.15"))
+
+        val enriched = dayChange.enrichWithPreviousClose(current, prior)
+
+        assertThat(enriched.previousClose).isEqualByComparingTo(BigDecimal("62.15"))
+        assertThat(enriched.change).isEqualByComparingTo(BigDecimal("-1.40"))
+        assertThat(enriched.changePercent).isEqualByComparingTo(BigDecimal("-0.022526"))
+    }
+
+    @Test
+    fun `should derive the day change across a four-day holiday weekend`() {
+        // Thu 2026-12-24 close, then Tue 2026-12-29 (Christmas + Boxing Day observed).
+        val current = eodRow(LocalDate.of(2026, 12, 29), "101.00")
+        val prior = MarketData(asset = asset, priceDate = LocalDate.of(2026, 12, 24), close = BigDecimal("100.00"))
+
+        val enriched = dayChange.enrichWithPreviousClose(current, prior)
+
+        assertThat(enriched.previousClose).isEqualByComparingTo(BigDecimal("100.00"))
+        assertThat(enriched.change).isEqualByComparingTo(BigDecimal("1.00"))
+        assertThat(enriched.changePercent).isEqualByComparingTo(BigDecimal("0.010000"))
+    }
+
+    @Test
+    fun `should not rebase a split row against a prior row across a hole`() {
+        // A 4:1 split flag on a row whose last stored predecessor is months old: the
+        // stale close says nothing about whether today's OHLC is on the pre- or
+        // post-split basis, so the row is stored as delivered with no day change.
+        val current = eodRow(LocalDate.of(2026, 11, 16), "400.00").apply { split = BigDecimal("4") }
+        val prior = MarketData(asset = asset, priceDate = LocalDate.of(2026, 6, 4), close = BigDecimal("100.00"))
+
+        val enriched = dayChange.enrichWithPreviousClose(current, prior)
+
+        assertThat(enriched.close).isEqualByComparingTo(BigDecimal("400.00"))
+        assertThat(enriched.previousClose).isEqualByComparingTo(BigDecimal.ZERO)
+        assertThat(enriched.change).isEqualByComparingTo(BigDecimal.ZERO)
+        assertThat(enriched.changePercent).isEqualByComparingTo(BigDecimal.ZERO)
+    }
+
+    @Test
+    fun `should clear a stale day change when a relinked row still sits after a hole`() {
+        // PriceService relinks a stored row by zeroing previousClose and re-enriching; if
+        // the predecessor is still across a hole, the old change must not survive.
+        val stored =
+            MarketData(
+                asset = asset,
+                priceDate = LocalDate.of(2026, 11, 16),
+                close = BigDecimal("60.75"),
+                previousClose = BigDecimal.ZERO,
+                change = BigDecimal("-20.81"),
+                changePercent = BigDecimal("-0.255150")
+            )
+        val prior = MarketData(asset = asset, priceDate = LocalDate.of(2026, 6, 4), close = BigDecimal("81.56"))
+
+        val enriched = dayChange.enrichWithPreviousClose(stored, prior)
+
+        assertThat(enriched.change).isEqualByComparingTo(BigDecimal.ZERO)
+        assertThat(enriched.changePercent).isEqualByComparingTo(BigDecimal.ZERO)
+    }
+
+    @Test
+    fun `should invalidate the cached prices of a relinked row's date`() {
+        // Filling 2026-11-13 relinks the stored 11-16 row: its day change is rewritten,
+        // so caches holding 11-16 must be invalidated along with the new row's date.
+        val filled = eodRow(LocalDate.of(2026, 11, 13), "62.15")
+        val prior = MarketData(asset = asset, priceDate = LocalDate.of(2026, 11, 12), close = BigDecimal("62.00"))
+        val successor = eodRow(LocalDate.of(2026, 11, 16), "60.75")
+        `when`(cashUtils.isCash(asset)).thenReturn(false)
+        `when`(marketDataRepo.findByAssetIdAndPriceDateBetween(any(), any(), any())).thenReturn(emptyList())
+        `when`(marketDataRepo.findTop1ByAssetAndPriceDateLessThanOrderByPriceDateDesc(any(), any()))
+            .thenReturn(Optional.of(prior))
+        `when`(marketDataRepo.findTop1ByAssetAndPriceDateGreaterThanOrderByPriceDateAsc(any(), any()))
+            .thenReturn(Optional.of(successor))
+        `when`(marketDataRepo.saveAll(anyList())).thenAnswer { it.arguments[0] }
+
+        priceService.handle(PriceResponse(listOf(filled)))
+
+        assertThat(successor.previousClose).isEqualByComparingTo(BigDecimal("62.15"))
+        verify(cacheInvalidationProducer).sendPriceEvent(LocalDate.of(2026, 11, 13))
+        verify(cacheInvalidationProducer).sendPriceEvent(LocalDate.of(2026, 11, 16))
+    }
+
+    private fun eodRow(
+        date: LocalDate,
+        close: String
+    ): MarketData =
+        MarketData(
+            asset = asset,
+            priceDate = date,
+            close = BigDecimal(close),
+            previousClose = BigDecimal.ZERO,
+            change = BigDecimal.ZERO,
+            changePercent = BigDecimal.ZERO
+        )
 }

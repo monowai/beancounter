@@ -4,14 +4,18 @@ import com.beancounter.common.contracts.PriceRequest
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
+import com.beancounter.marketdata.price.backfill.PriceBackfillCoordinator
 import com.beancounter.marketdata.providers.MarketDataPriceProvider
+import com.beancounter.marketdata.providers.MarketDataPriceProvider.Companion.defaultBackfillFrom
 import com.beancounter.marketdata.providers.ProviderUtils
 import com.beancounter.marketdata.providers.cash.CashProviderService
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
+import java.math.BigDecimal
 import java.time.LocalDate
 
 /**
@@ -21,9 +25,16 @@ import java.time.LocalDate
 class MarketDataPriceProcessor(
     private val providerUtils: ProviderUtils,
     private val priceService: PriceService,
-    private val utilityService: MarketDataUtilityService
+    private val utilityService: MarketDataUtilityService,
+    private val priceBackfillCoordinator: PriceBackfillCoordinator
 ) {
     private val log = LoggerFactory.getLogger(MarketDataPriceProcessor::class.java)
+
+    /** The async save and its backfill check are best-effort; a failure is logged, not lost. */
+    private val asyncSaveFailed =
+        CoroutineExceptionHandler { _, e ->
+            log.warn("Async price save or backfill check failed: {}", e.message, e)
+        }
 
     /**
      * Immutable data class to hold price results from different sources.
@@ -248,11 +259,26 @@ class MarketDataPriceProcessor(
 
     /**
      * Save API prices asynchronously.
+     *
+     * [PriceService.handle] enriches the rows it is given in place, so it gets copies:
+     * the caller's response must not change depending on whether the save has run yet.
      */
     private fun saveApiPricesAsync(apiPrices: List<MarketData>) {
         if (apiPrices.isNotEmpty()) {
-            CoroutineScope(Dispatchers.IO).launch {
-                priceService.handle(PriceResponse(apiPrices))
+            val toSave = apiPrices.map { it.copy() }
+            CoroutineScope(Dispatchers.IO + asyncSaveFailed).launch {
+                // A saved row still without a previousClose has no usable prior row: the
+                // asset is new to the store, or its series has a hole wider than a routine
+                // closure. Only a backfill can give it a day change; it relinks the row once
+                // the history lands. Scheduled here, not in PriceService.handle, because the
+                // backfill saves through handle and its first row never has a prior one.
+                // The coordinator's in-flight and cooldown guards stop repeat requests.
+                priceService
+                    .handle(PriceResponse(toSave))
+                    .filter { it.previousClose.compareTo(BigDecimal.ZERO) == 0 }
+                    .map { it.asset.id }
+                    .distinct()
+                    .forEach { priceBackfillCoordinator.scheduleBackfill(it, defaultBackfillFrom()) }
             }
         }
     }

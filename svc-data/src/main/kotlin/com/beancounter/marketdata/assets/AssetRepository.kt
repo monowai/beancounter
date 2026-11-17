@@ -32,6 +32,16 @@ interface AssetRepository : JpaRepository<Asset, String> {
         @Param("code") code: String
     ): Optional<Asset>
 
+    /** Every asset with [code] on a market other than the [excluded] ones. */
+    @Query(
+        "SELECT a FROM Asset a LEFT JOIN FETCH a.systemUser LEFT JOIN FETCH a.accountingType " +
+            "WHERE a.code = :code AND a.marketCode NOT IN :excluded"
+    )
+    fun findByCodeOutside(
+        @Param("code") code: String,
+        @Param("excluded") excluded: Collection<String>
+    ): List<Asset>
+
     /**
      * Find all active assets with non-empty codes for price refresh.
      * Excludes:

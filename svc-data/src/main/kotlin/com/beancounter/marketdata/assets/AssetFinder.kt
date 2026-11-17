@@ -5,7 +5,11 @@ import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.SystemUser
 import com.beancounter.marketdata.assets.enrichment.PrivateMarketEnricher
+import com.beancounter.marketdata.assets.index.INDEX_MARKET_CODE
+import com.beancounter.marketdata.cash.CASH
 import com.beancounter.marketdata.markets.MarketService
+import com.beancounter.marketdata.providers.custom.PrivateMarketDataProvider
+import com.beancounter.marketdata.providers.fx.FxPairPriceService
 import jakarta.transaction.Transactional
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -105,6 +109,10 @@ class AssetFinder(
      */
     fun findByMarketCode(marketCode: String): List<Asset> = assetRepository.findByMarketCode(marketCode)
 
+    /** Every market listing of [code], case ignored; private, cash, FX and index assets excluded. */
+    fun findListed(code: String): List<Asset> =
+        assetRepository.findByCodeOutside(code.uppercase(Locale.getDefault()), UNLISTED_MARKETS)
+
     /**
      * Find all active assets for pricing.
      * Excludes inactive assets and those with empty codes.
@@ -135,5 +143,9 @@ class AssetFinder(
 
     companion object {
         private val log = LoggerFactory.getLogger(AssetFinder::class.java)
+
+        /** Markets that hold no exchange listing: private, cash, FX and index assets. */
+        private val UNLISTED_MARKETS =
+            setOf(PrivateMarketDataProvider.ID, CASH, FxPairPriceService.ID, INDEX_MARKET_CODE)
     }
 }

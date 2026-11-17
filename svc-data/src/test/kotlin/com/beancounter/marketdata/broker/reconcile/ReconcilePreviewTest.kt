@@ -3,21 +3,27 @@ package com.beancounter.marketdata.broker.reconcile
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.auth.model.Registration
 import com.beancounter.common.contracts.AssetRequest
+import com.beancounter.common.contracts.AssetSearchResponse
+import com.beancounter.common.contracts.AssetSearchResult
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Broker
+import com.beancounter.common.model.Market
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
+import com.beancounter.marketdata.Constants.Companion.ASX
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.Constants.Companion.USD
 import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetFinder
+import com.beancounter.marketdata.assets.AssetRepository
 import com.beancounter.marketdata.assets.AssetService
+import com.beancounter.marketdata.assets.search.AssetSearchService
 import com.beancounter.marketdata.broker.BrokerConfig
 import com.beancounter.marketdata.broker.BrokerRepository
 import com.beancounter.marketdata.broker.GlobalBroker
@@ -26,7 +32,11 @@ import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.trn.TrnRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
+import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.anyOrNull
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
@@ -41,6 +51,36 @@ import java.time.LocalDate
 class ReconcilePreviewTest {
     @MockitoBean
     private lateinit var jwtDecoder: JwtDecoder
+
+    /** The search the asset lookup uses: providers and FIGI are outside this test. */
+    @MockitoBean
+    private lateinit var assetSearchService: AssetSearchService
+
+    @BeforeEach
+    fun searchFindsNothing() {
+        whenever(assetSearchService.search(any(), anyOrNull())).thenReturn(AssetSearchResponse(emptyList()))
+    }
+
+    private fun searchFinds(
+        keyword: String,
+        market: String,
+        vararg results: AssetSearchResult
+    ) {
+        whenever(assetSearchService.search(keyword, market)).thenReturn(AssetSearchResponse(results.toList()))
+    }
+
+    private fun listing(
+        symbol: String,
+        market: String,
+        name: String = "$symbol listing"
+    ) = AssetSearchResult(
+        symbol = symbol,
+        name = name,
+        type = "Equity",
+        region = null,
+        currency = "USD",
+        market = market
+    )
 
     @Autowired
     private lateinit var reconcileService: ReconcileService
@@ -59,6 +99,9 @@ class ReconcilePreviewTest {
 
     @Autowired
     private lateinit var assetFinder: AssetFinder
+
+    @Autowired
+    private lateinit var assetRepository: AssetRepository
 
     @Autowired
     private lateinit var trnRepository: TrnRepository
@@ -85,6 +128,19 @@ class ReconcilePreviewTest {
         assetService
             .handle(AssetRequest(AssetInput(NASDAQ.code, code), code))
             .data[code]!!
+
+    /** A listing of [code] on ASX, saved as it is: creating it would check where the code trades. */
+    private fun asxListing(code: String): Asset =
+        assetRepository.save(
+            Asset(
+                id = "asx-$code",
+                code = code,
+                name = "$code on ASX",
+                market = Market(ASX.code, currencyId = "AUD"),
+                marketCode = ASX.code,
+                category = "Equity"
+            )
+        )
 
     private fun firm(
         code: String,
@@ -315,10 +371,9 @@ class ReconcilePreviewTest {
     }
 
     @Test
-    fun `should ask for a market when neither the row nor the firm gives one`() {
+    fun `should ask for a market when neither the row, the firm nor any listing gives one`() {
         login("needs-market")
         val portfolio = portfolio("RCN-NEEDM")
-        asset("RCNM1")
         val firm = firm("RCN-NOMKT", "Rcn No Market", BrokerConfig())
         val request =
             ShownHoldings(
@@ -331,15 +386,63 @@ class ReconcilePreviewTest {
 
         assertThat(row.status).isEqualTo(RowStatus.NEEDS_MARKET)
         assertThat(row.market).isNull()
+        assertThat(row.marketSource).isNull()
+        assertThat(row.listedOn).isEmpty()
         assertThat(row.assetId).isNull()
         assertThat(row.trnType).isNull()
     }
 
     @Test
-    fun `should fall back to the firm's market when the row has none`() {
+    fun `should use the market the row shows, even when the firm's differs`() {
+        login("shown-market")
+        val portfolio = portfolio("RCN-SHOWNMKT")
+        asset("RCNM5")
+        val asx = asxListing("RCNM5")
+        val firm = firm("RCN-SHOWN", "Rcn Shown")
+        val request =
+            ShownHoldings(
+                portfolioId = portfolio.id,
+                brokerName = firm.name,
+                rows = listOf(shown("RCNM5", "5", market = ASX.code))
+            )
+
+        val row = reconcileService.preview(request).rows.single()
+
+        assertThat(row.market).isEqualTo(ASX.code)
+        assertThat(row.assetId).isEqualTo(asx.id)
+        assertThat(row.marketSource).isEqualTo(MarketSource.SHOWN)
+    }
+
+    @Test
+    fun `should take the market of the asset the broker already holds under the code`() {
+        val user = login("held-market")
+        val portfolio = portfolio("RCN-HELDMKT")
+        asset("RCNM6")
+        val held = asxListing("RCNM6")
+        val firm = firm("RCN-HELD", "Rcn Held")
+        val broker = brokerRepository.save(Broker(name = "RCN-HELD-B", owner = user, globalBrokerId = firm.id))
+        trade(TrnType.BUY, portfolio, broker, held, "5")
+        val request =
+            ShownHoldings(
+                portfolioId = portfolio.id,
+                brokerId = broker.id,
+                rows = listOf(shown("rcnm6", "5", market = null))
+            )
+
+        val row = reconcileService.preview(request).rows.single()
+
+        assertThat(row.market).isEqualTo(ASX.code)
+        assertThat(row.assetId).isEqualTo(held.id)
+        assertThat(row.marketSource).isEqualTo(MarketSource.HELD)
+        assertThat(row.status).isEqualTo(RowStatus.UNCHANGED)
+    }
+
+    @Test
+    fun `should fall back to the firm's market when the row has none and the asset is listed there`() {
         login("firm-market")
         val portfolio = portfolio("RCN-FIRMMKT")
         val asset = asset("RCNM2")
+        asxListing("RCNM2")
         val firm = firm("RCN-MKT", "Rcn With Market")
         val request =
             ShownHoldings(
@@ -353,7 +456,146 @@ class ReconcilePreviewTest {
         assertThat(row.market).isEqualTo(NASDAQ.code)
         assertThat(row.assetId).isEqualTo(asset.id)
         assertThat(row.assetName).isEqualTo(asset.name)
+        assertThat(row.marketSource).isEqualTo(MarketSource.BROKERAGE)
         assertThat(row.status).isEqualTo(RowStatus.NEEDS_COST)
+    }
+
+    @Test
+    fun `should take the only market that lists the code when the firm's market does not`() {
+        login("listed-market")
+        val portfolio = portfolio("RCN-LISTEDMKT")
+        val asx = asxListing("RCNM7")
+        val firm = firm("RCN-LISTED", "Rcn Listed")
+        val request =
+            ShownHoldings(
+                portfolioId = portfolio.id,
+                brokerName = firm.name,
+                rows = listOf(shown("RCNM7", "5", market = null))
+            )
+
+        val row = reconcileService.preview(request).rows.single()
+
+        assertThat(row.market).isEqualTo(ASX.code)
+        assertThat(row.assetId).isEqualTo(asx.id)
+        assertThat(row.marketSource).isEqualTo(MarketSource.LISTED)
+        assertThat(row.listedOn).containsExactly(ASX.code)
+    }
+
+    @Test
+    fun `should ask for a market, naming each listing, when several markets list the code and none is preferred`() {
+        login("ambiguous-market")
+        val portfolio = portfolio("RCN-AMBIG")
+        asset("RCNM8")
+        asxListing("RCNM8")
+        val firm = firm("RCN-AMBIGF", "Rcn Ambiguous Firm", BrokerConfig())
+        val request =
+            ShownHoldings(
+                portfolioId = portfolio.id,
+                brokerName = firm.name,
+                rows = listOf(shown("RCNM8", "5", market = null))
+            )
+
+        val row = reconcileService.preview(request).rows.single()
+
+        assertThat(row.status).isEqualTo(RowStatus.NEEDS_MARKET)
+        assertThat(row.market).isNull()
+        assertThat(row.assetId).isNull()
+        assertThat(row.listedOn).containsExactly(ASX.code, NASDAQ.code)
+    }
+
+    @Test
+    fun `should read a slash in the code as the dot Beancounter uses`() {
+        login("slash")
+        val portfolio = portfolio("RCN-SLASH")
+        val asset = asset("RCNS.B")
+        val request = ShownHoldings(portfolioId = portfolio.id, rows = listOf(shown("RCNS/B", "5")))
+
+        val row = reconcileService.preview(request).rows.single()
+
+        assertThat(row.assetId).isEqualTo(asset.id)
+        assertThat(row.assetCode).isEqualTo("RCNS.B")
+        assertThat(row.code).isEqualTo("RCNS/B")
+    }
+
+    @Test
+    fun `should find a listing new to Beancounter on the firm's market, propose adding it, create nothing`() {
+        login("search-firm")
+        val portfolio = portfolio("RCN-SRCHFIRM")
+        val firm = firm("RCN-SRCH", "Rcn Search")
+        searchFinds("RCNX1", NASDAQ.code, listing("RCNX1", NASDAQ.code, "Rcn External"))
+        val request =
+            ShownHoldings(
+                portfolioId = portfolio.id,
+                brokerName = firm.name,
+                rows = listOf(shown("rcnx1", "5", market = null))
+            )
+
+        val row = reconcileService.preview(request).rows.single()
+
+        assertThat(row.market).isEqualTo(NASDAQ.code)
+        assertThat(row.marketSource).isEqualTo(MarketSource.BROKERAGE)
+        assertThat(row.assetId).isNull()
+        assertThat(row.assetCode).isEqualTo("RCNX1")
+        assertThat(row.assetName).isEqualTo("Rcn External")
+        assertThat(row.trnType).isEqualTo(TrnType.ADD)
+        assertThat(row.quantity).isEqualByComparingTo("5")
+        assertThat(row.status).isEqualTo(RowStatus.NEEDS_COST)
+        assertThat(assetFinder.findLocally(AssetInput(NASDAQ.code, "RCNX1"))).isNull()
+    }
+
+    @Test
+    fun `should match a search result whose symbol differs only in punctuation`() {
+        login("search-punct")
+        val portfolio = portfolio("RCN-SRCHPUNCT")
+        searchFinds("RCNX2.B", NASDAQ.code, listing("RCNX2-B", NASDAQ.code))
+        val request = ShownHoldings(portfolioId = portfolio.id, rows = listOf(shown("RCNX2/B", "5")))
+
+        val row = reconcileService.preview(request).rows.single()
+
+        assertThat(row.market).isEqualTo(NASDAQ.code)
+        assertThat(row.assetCode).isEqualTo("RCNX2.B")
+        assertThat(row.status).isEqualTo(RowStatus.NEEDS_COST)
+    }
+
+    @Test
+    fun `should ignore a search result for a different symbol`() {
+        login("search-other")
+        val portfolio = portfolio("RCN-SRCHOTHER")
+        searchFinds("RCNX3", NASDAQ.code, listing("RCNX33", NASDAQ.code))
+        val request = ShownHoldings(portfolioId = portfolio.id, rows = listOf(shown("RCNX3", "5")))
+
+        val row = reconcileService.preview(request).rows.single()
+
+        assertThat(row.status).isEqualTo(RowStatus.UNRESOLVED)
+        assertThat(row.assetCode).isNull()
+    }
+
+    @Test
+    fun `should search every market when neither the row nor the firm names one, and take the only listing`() {
+        login("search-global")
+        val portfolio = portfolio("RCN-SRCHGLOBAL")
+        searchFinds("RCNX4", "FIGI", listing("RCNX4", ASX.code))
+        val request = ShownHoldings(portfolioId = portfolio.id, rows = listOf(shown("RCNX4", "5", market = null)))
+
+        val row = reconcileService.preview(request).rows.single()
+
+        assertThat(row.market).isEqualTo(ASX.code)
+        assertThat(row.marketSource).isEqualTo(MarketSource.LISTED)
+        assertThat(row.assetCode).isEqualTo("RCNX4")
+        assertThat(row.listedOn).containsExactly(ASX.code)
+    }
+
+    @Test
+    fun `should ask for a market, naming the listings a global search finds on several markets`() {
+        login("search-several")
+        val portfolio = portfolio("RCN-SRCHSEVERAL")
+        searchFinds("RCNX5", "FIGI", listing("RCNX5", NASDAQ.code), listing("RCNX5", ASX.code))
+        val request = ShownHoldings(portfolioId = portfolio.id, rows = listOf(shown("RCNX5", "5", market = null)))
+
+        val row = reconcileService.preview(request).rows.single()
+
+        assertThat(row.status).isEqualTo(RowStatus.NEEDS_MARKET)
+        assertThat(row.listedOn).containsExactly(ASX.code, NASDAQ.code)
     }
 
     @Test

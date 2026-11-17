@@ -33,7 +33,7 @@ internal object ConfirmedRowRules {
 
     private fun namedTwice(rows: List<ConfirmedRow>): String? {
         val seen = mutableSetOf<String>()
-        return rows.firstOrNull { !seen.add(it.assetId) }?.assetId
+        return rows.firstOrNull { !seen.add(it.label) }?.label
     }
 
     private fun isFuture(tradeDate: LocalDate?): Boolean = tradeDate != null && tradeDate.isAfter(DateUtils().date)
@@ -42,13 +42,14 @@ internal object ConfirmedRowRules {
 
     private fun rowProblem(row: ConfirmedRow): String? =
         when {
-            row.trnType !in RECORDABLE -> "Asset ${row.assetId}: only ADD or REDUCE is recorded, not ${row.trnType}"
-            row.quantity.signum() <= 0 -> "Asset ${row.assetId}: the quantity must be more than zero"
+            !row.named -> "A row names its asset by id, or by market and code"
+            row.trnType !in RECORDABLE -> "Asset ${row.label}: only ADD or REDUCE is recorded, not ${row.trnType}"
+            row.quantity.signum() <= 0 -> "Asset ${row.label}: the quantity must be more than zero"
             row.trnType == TrnType.ADD &&
                 !isCost(
                     row.cost
                 )
-            -> "Asset ${row.assetId}: an ADD needs a cost of zero or more"
+            -> "Asset ${row.label}: an ADD needs a cost of zero or more"
             else -> null
         }
 }

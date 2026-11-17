@@ -1,5 +1,6 @@
 package com.beancounter.agent.screenshot
 
+import com.beancounter.agent.AgentModelTiers
 import com.beancounter.agent.AgentProvider
 import com.beancounter.agent.DeepSeekConnection
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
@@ -9,12 +10,15 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory
 import org.springframework.web.client.RestClient
 import java.time.Duration
 
-/** Wires the screenshot reader to the DeepSeek endpoint the agent already uses. */
+/** Wires the screenshot reader to the DeepSeek endpoint the agent already uses, asking for the vision tier's model. */
 @Configuration
 @ConditionalOnProperty(name = [AgentProvider.PROPERTY], havingValue = AgentProvider.DEEPSEEK, matchIfMissing = true)
 class ScreenshotConfig {
     @Bean
-    fun screenshotReader(connection: DeepSeekConnection): ScreenshotReader {
+    fun screenshotReader(
+        connection: DeepSeekConnection,
+        tiers: AgentModelTiers
+    ): ScreenshotReader {
         val factory =
             SimpleClientHttpRequestFactory().apply {
                 setConnectTimeout(CONNECT_TIMEOUT)
@@ -26,7 +30,7 @@ class ScreenshotConfig {
                 .baseUrl(connection.baseUrl)
                 .requestFactory(factory)
                 .build()
-        return ScreenshotReader(DeepSeekVision(http, connection.apiKey, connection.model))
+        return ScreenshotReader(DeepSeekVision(http, connection.apiKey, tiers.vision))
     }
 
     private companion object {

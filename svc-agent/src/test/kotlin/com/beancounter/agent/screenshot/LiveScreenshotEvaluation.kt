@@ -20,7 +20,15 @@ import java.time.Duration
  *
  * `SCREENSHOT_RECORD=true` also rewrites `<fixture>.reply.json`, the reply
  * [ScreenshotReaderTest] replays, for each fixture the model read correctly. The
- * model misreads a digit now and then, so a fixture can fail one run and pass the next. Reads the key from `DEEPSEEK_API_KEY`.
+ * model misreads a digit now and then, so a fixture can fail one run and pass the next. Reads the key from `DEEPSEEK_API_KEY`
+ * and the model from `AI_MODEL_VISION`.
+ *
+ * Through the gateway, where a route that drops images reads no rows and fails every fixture:
+ *
+ * ```
+ * SCREENSHOT_LIVE=true DEEPSEEK_BASE_URL=http://localhost:4000 DEEPSEEK_API_KEY=$AI_GATEWAY_KEY \
+ *   AI_MODEL_VISION=deepseek-flash-vision ./gradlew :svc-agent:test --tests '*LiveScreenshotEvaluation'
+ * ```
  */
 @EnabledIfEnvironmentVariable(named = "SCREENSHOT_LIVE", matches = "true")
 class LiveScreenshotEvaluation {
@@ -33,7 +41,7 @@ class LiveScreenshotEvaluation {
                 .requestFactory(SimpleClientHttpRequestFactory().apply { setReadTimeout(Duration.ofSeconds(90)) })
                 .build(),
             apiKey = System.getenv("DEEPSEEK_API_KEY").orEmpty(),
-            model = System.getenv("AI_MODEL_FAST") ?: "deepseek-flash"
+            model = System.getenv("AI_MODEL_VISION") ?: "deepseek-flash"
         )
 
     @ParameterizedTest

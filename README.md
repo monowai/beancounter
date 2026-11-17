@@ -109,11 +109,17 @@ See [CONTRACT_TEST_ARCHITECTURE.md](CONTRACT_TEST_ARCHITECTURE.md) for detailed 
 ### Code Quality
 
 ```bash
+# Once per clone: run the tracked pre-commit hook (gitleaks, format, lint, detekt)
+./gradlew installGitHooks
+
 # Format code
 ./gradlew formatKotlin
 
 # Lint code
 ./gradlew lintKotlin
+
+# Static analysis, as CI runs it (the root task, not :svc-data:detekt)
+./gradlew detekt
 
 # Check for issues
 ./gradlew check

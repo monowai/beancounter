@@ -1,0 +1,91 @@
+#!/usr/bin/env bash
+# >>> beancounter secret scan >>>
+# Blocks a commit that stages a literal secret. See bc-domain/security/.
+# Bypass (only when you are certain): git commit --no-verify
+#
+# The config is found at RUN time rather than baked in, because bc-view's copy
+# of this block lives in TRACKED .husky/pre-commit. A path from this machine
+# travels to every other clone, where -c points at nothing, gitleaks errors,
+# and every commit is refused under a message about staged secrets.
+# Order: an explicit override, then bc-domain beside this checkout, then
+# bc-domain beside the main checkout (for a worktree kept elsewhere). None of
+# them found is a warning, never a blocked commit.
+if command -v gitleaks >/dev/null 2>&1; then
+  bc_root="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
+  # A worktree's own folder may sit elsewhere; the main checkout's sibling is found
+  # through the shared git directory (<checkout>/.git).
+  bc_common="$(git rev-parse --path-format=absolute --git-common-dir 2>/dev/null)"
+  for bc_cfg in "${BC_GITLEAKS_CONFIG:-}" \
+                "$bc_root/../bc-domain/security/gitleaks.toml" \
+                "${bc_common:+$bc_common/../../bc-domain/security/gitleaks.toml}"; do
+    [ -n "$bc_cfg" ] && [ -f "$bc_cfg" ] && break || bc_cfg=""
+  done
+  if [ -z "$bc_cfg" ]; then
+    echo "gitleaks.toml not found — secret scan SKIPPED" >&2
+    echo "  put bc-domain beside this repo, or set BC_GITLEAKS_CONFIG" >&2
+  elif ! gitleaks protect --staged --redact --no-banner -c "$bc_cfg"; then
+    echo ""
+    echo "  A staged change looks like a literal secret."
+    echo "  Use an env var instead:  SOME_SECRET: \${SOME_SECRET}"
+    echo "  False positive? Add an allowlist entry to:"
+    echo "    $bc_cfg"
+    exit 1
+  fi
+else
+  echo "gitleaks not installed — secret scan SKIPPED (brew install gitleaks)" >&2
+fi
+# <<< beancounter secret scan <<<
+
+# Kotlin formatting, linting and static analysis: what CI's `./gradlew build`
+# would fail on, caught before the commit.
+
+echo "Running Kotlin formatting and linting..."
+
+# First run formatting on all Kotlin source sets
+echo "🔧 Running formatAllKotlin..."
+./gradlew formatAllKotlin
+
+if [ $? -ne 0 ]; then
+    echo "❌ Kotlin formatting failed. Please fix the issues and try again."
+    exit 1
+fi
+
+# Check if formatting made any changes to staged files
+STAGED_KOTLIN_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep '\.kt$')
+if [ ! -z "$STAGED_KOTLIN_FILES" ]; then
+    MODIFIED_FILES=$(git diff --name-only | grep '\.kt$')
+    if [ ! -z "$MODIFIED_FILES" ]; then
+        echo ""
+        echo "⚠️  formatAllKotlin made changes to staged files:"
+        echo "$MODIFIED_FILES"
+        echo ""
+        echo "Please stage the formatted changes and commit again:"
+        echo "git add ."
+        echo "git commit"
+        echo ""
+        exit 1
+    fi
+fi
+
+# Run linting for all Kotlin source sets
+echo "🔍 Running lintAllKotlin..."
+./gradlew lintAllKotlin
+
+if [ $? -ne 0 ]; then
+    echo "❌ Kotlin linting failed. Please fix the issues and try again."
+    exit 1
+fi
+
+# Static analysis, exactly as CI's `./gradlew build` runs it: the ROOT task, with
+# detekt.yml and detekt-baseline.xml. Not `:svc-data:detekt` — no module has a
+# task called detekt, so Gradle's prefix matching runs detektNullSafety instead
+# and the real rules (TooManyFunctions, ReturnCount, LongParameterList) never run.
+echo "🔍 Running detekt..."
+./gradlew detekt
+
+if [ $? -ne 0 ]; then
+    echo "❌ detekt found issues that are not in detekt-baseline.xml. Fix them and try again."
+    exit 1
+fi
+
+echo "✅ Kotlin formatting and linting completed successfully!"

@@ -824,6 +824,19 @@ class ReconcilePreviewTest {
     }
 
     @Test
+    fun `should preview for a portfolio not created yet`() {
+        val user = login("no-portfolio")
+        val asset = asset("RCNP1")
+        val broker = brokerRepository.save(Broker(name = "RCN-NOPF-B", owner = user))
+        val request = ShownHoldings(portfolioId = null, brokerId = broker.id, rows = listOf(shown("RCNP1", "5")))
+
+        val row = reconcileService.preview(request).rows.single()
+
+        assertThat(row.assetId).isEqualTo(asset.id)
+        assertThat(row.status).isEqualTo(RowStatus.NEEDS_COST)
+    }
+
+    @Test
     fun `should record nothing when previewing`() {
         val user = login("read-only")
         val portfolio = portfolio("RCN-READONLY")

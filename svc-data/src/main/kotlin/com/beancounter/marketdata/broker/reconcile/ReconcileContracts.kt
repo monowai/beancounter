@@ -9,13 +9,14 @@ import java.time.LocalDate
 /**
  * What a brokerage statement shows, as read from a screenshot.
  *
- * @property portfolioId the portfolio the holdings would be recorded in
+ * @property portfolioId the portfolio the holdings would be recorded in; null for one the
+ * user will create when recording
  * @property brokerId the caller's broker, when the user has already chosen it
  * @property brokerName the firm's name as printed on the statement
  * @property accountNumber the visible digits of the account number, e.g. "482"
  */
 data class ShownHoldings(
-    val portfolioId: String,
+    val portfolioId: String? = null,
     val brokerId: String? = null,
     val brokerName: String? = null,
     val accountNumber: String? = null,

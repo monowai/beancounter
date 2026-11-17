@@ -26,7 +26,8 @@ class ReconcileService(
 ) {
     @Transactional(readOnly = true)
     fun preview(shown: ShownHoldings): ReconcilePreview {
-        portfolioService.find(shown.portfolioId)
+        // A portfolio is checked only when named: the user may create one when recording.
+        shown.portfolioId?.let { portfolioService.find(it) }
         if (shown.rows.size > MAX_ROWS) {
             throw BusinessException("A statement holds at most $MAX_ROWS rows, not ${shown.rows.size}")
         }

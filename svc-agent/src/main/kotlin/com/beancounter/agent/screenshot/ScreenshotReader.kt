@@ -59,6 +59,7 @@ class ScreenshotReader(
             costBasis is the total cost of a holding. costPerShare is an average cost or a price paid for one share.
             gainLoss is the total gain or loss in money, and only from a column or label that says gain or loss: never a percentage, never the day's change, never a price.
             For a transaction: tradeDate, type as printed, amount with its sign as printed, fees.
+            For a holding, tradeDate is the date it was opened or acquired, only when the page prints one, for example in an "Acquired" or "Open date" column; otherwise null.
             Give every number as a string, copied exactly as displayed with its sign, for example "-1,415.00". Never calculate, round or guess a number. Use null for anything the screenshot does not show.
             """.trimIndent()
     }

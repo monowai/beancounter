@@ -281,6 +281,55 @@ class ReconcileCommitTest {
     }
 
     @Test
+    fun `should refuse a reduce dated before the trade that built the holding`() {
+        val user = login("reduce-early")
+        val portfolio = portfolio("RCC-EARLY")
+        val asset = asset("RCCE1")
+        val broker = broker("RCC-EARLY-B", user)
+        bought(portfolio, broker, asset, "10")
+        val early = reduce(asset, "5").copy(tradeDate = LocalDate.of(2025, 6, 1))
+
+        assertRefused(confirmed(portfolio, broker, "rcc-early-upload", early), "on 2025-06-01")
+        assertThat(heldAt(broker, portfolio, asset)).isEqualByComparingTo("10")
+    }
+
+    @Test
+    fun `should refuse a back-dated reduce that a later sale would take below zero`() {
+        val user = login("reduce-later-sale")
+        val portfolio = portfolio("RCC-LATERSALE")
+        val asset = asset("RCCL1")
+        val broker = broker("RCC-LATERSALE-B", user)
+        bought(portfolio, broker, asset, "10")
+        trnRepository.save(
+            Trn(
+                trnType = TrnType.SELL,
+                asset = asset,
+                quantity = BigDecimal("8"),
+                portfolio = portfolio,
+                broker = broker,
+                tradeDate = LocalDate.of(2026, 3, 1)
+            )
+        )
+        val between = reduce(asset, "5").copy(tradeDate = LocalDate.of(2026, 2, 1))
+
+        assertRefused(confirmed(portfolio, broker, "rcc-latersale-upload", between), asset.id)
+    }
+
+    @Test
+    fun `should record a back-dated reduce the holding covers from its date on`() {
+        val user = login("reduce-covered")
+        val portfolio = portfolio("RCC-COVERED")
+        val asset = asset("RCCC1")
+        val broker = broker("RCC-COVERED-B", user)
+        bought(portfolio, broker, asset, "10")
+        val covered = reduce(asset, "4").copy(tradeDate = LocalDate.of(2026, 2, 1))
+
+        reconcileCommitService.commit(confirmed(portfolio, broker, "rcc-covered-upload", covered))
+
+        assertThat(heldAt(broker, portfolio, asset)).isEqualByComparingTo("6")
+    }
+
+    @Test
     fun `should refuse a reduce of what only another portfolio holds at the broker`() {
         val user = login("other-pf")
         val portfolio = portfolio("RCC-OPF")

@@ -6,6 +6,7 @@ import com.beancounter.marketdata.trn.BrokerHoldingPosition
 import com.beancounter.marketdata.trn.BrokerHoldingTransaction
 import com.beancounter.marketdata.trn.BrokerPortfolioGroup
 import java.math.BigDecimal
+import java.time.LocalDate
 
 /**
  * Nets settled trns into broker holding positions: per asset, then per portfolio within the
@@ -65,31 +66,73 @@ internal object BrokerHoldingAggregation {
                     )
                 }
 
-            val quantityDelta =
-                when (trn.trnType) {
-                    TrnType.BUY, TrnType.ADD -> {
-                        trn.quantity
-                    }
-                    TrnType.SELL, TrnType.REDUCE -> {
-                        trn.quantity.negate()
-                    }
-                    // SPLIT quantity is the ratio (e.g. 4 = 4:1). The delta scales the
-                    // running holding: newQty = qty * ratio, so delta = qty * (ratio - 1).
-                    TrnType.SPLIT -> {
-                        portfolioTrns.quantity
-                            .multiply(trn.quantity)
-                            .subtract(portfolioTrns.quantity)
-                    }
-                    else -> {
-                        BigDecimal.ZERO
-                    }
-                }
+            val quantityDelta = delta(trn.trnType, trn.quantity, portfolioTrns.quantity)
             agg.quantity = agg.quantity.add(quantityDelta)
             portfolioTrns.quantity = portfolioTrns.quantity.add(quantityDelta)
             portfolioTrns.transactions.add(trn)
         }
         return assetMap
     }
+
+    private data class Step(
+        val date: LocalDate,
+        val type: TrnType,
+        val quantity: BigDecimal,
+        val candidate: Boolean
+    )
+
+    /**
+     * The lowest quantity [portfolioId] holds of [assetId], from [date] on, if [quantity] were
+     * reduced on [date]: the settled [transactions] replayed in trade-date order with the
+     * reduction inserted, splits scaling whatever is held when they occur. Below zero, the
+     * holding would not cover the reduction at some point; zero or more, it would.
+     */
+    fun lowestAfterReduction(
+        transactions: Collection<Trn>,
+        portfolioId: String,
+        assetId: String,
+        date: LocalDate,
+        quantity: BigDecimal
+    ): BigDecimal {
+        val steps =
+            transactions
+                .filter { it.portfolio.id == portfolioId && it.asset.id == assetId }
+                .map { Step(it.tradeDate, it.trnType, it.quantity, candidate = false) } +
+                Step(date, TrnType.REDUCE, quantity, candidate = true)
+        var held = BigDecimal.ZERO
+        var lowest: BigDecimal? = null
+        for (step in steps.sortedWith(compareBy({ it.date }, { sameDayOrder(it.type) }, { it.candidate }))) {
+            held = held.add(delta(step.type, step.quantity, held))
+            if (step.candidate || lowest != null) lowest = minOf(lowest ?: held, held)
+        }
+        return lowest ?: held
+    }
+
+    /** What [portfolioId] holds of [assetId] at the end of [date]: its settled [transactions] replayed. */
+    fun heldOn(
+        transactions: Collection<Trn>,
+        portfolioId: String,
+        assetId: String,
+        date: LocalDate
+    ): BigDecimal =
+        transactions
+            .filter { it.portfolio.id == portfolioId && it.asset.id == assetId && !it.tradeDate.isAfter(date) }
+            .sortedWith(compareBy({ it.tradeDate }, { sameDayOrder(it.trnType) }))
+            .fold(BigDecimal.ZERO) { held, trn -> held.add(delta(trn.trnType, trn.quantity, held)) }
+
+    /** How a trn of [type] and [quantity] changes a holding of [held]. */
+    private fun delta(
+        type: TrnType,
+        quantity: BigDecimal,
+        held: BigDecimal
+    ): BigDecimal =
+        when (type) {
+            TrnType.BUY, TrnType.ADD -> quantity
+            TrnType.SELL, TrnType.REDUCE -> quantity.negate()
+            // SPLIT quantity is the ratio (e.g. 4 = 4:1): newQty = qty * ratio.
+            TrnType.SPLIT -> held.multiply(quantity).subtract(held)
+            else -> BigDecimal.ZERO
+        }
 
     /**
      * Holdings for [transactions] by asset, sorted by asset code. Assets that net to zero are

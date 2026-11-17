@@ -132,6 +132,13 @@ class TrnBrokerService(
     }
 
     /**
+     * The settled trns, splits included, that make up the calling user's holdings at
+     * [brokerId]: what [getBrokerHoldings] nets, for a caller that replays them.
+     */
+    fun settledTrns(brokerId: String): Collection<Trn> =
+        resolveBrokerTransactions(brokerId, systemUserService.getOrThrow()).third
+
+    /**
      * Reverse lookup: which broker(s) hold [assetId] for the calling user, shaped
      * for the frontend's WeightedSellDialog. Mirrors [getBrokerHoldings]'s owner
      * scoping, SETTLED-only status, and split-adjustment handling, but groups by

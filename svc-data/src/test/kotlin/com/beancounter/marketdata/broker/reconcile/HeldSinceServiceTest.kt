@@ -13,17 +13,20 @@ import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.math.BigDecimal
+import java.time.LocalDate
 
 /** Suggested opening dates for a statement's rows, from each asset's price history. */
 class HeldSinceServiceTest {
     private val priceHistoryReader = mock<PriceHistoryReader>()
     private val marketDataService = mock<MarketDataService>()
+    private val providerHistory = mock<ProviderHistory>()
     private val dateUtils = DateUtils()
-    private val service = HeldSinceService(priceHistoryReader, marketDataService, dateUtils)
+    private val service = HeldSinceService(priceHistoryReader, marketDataService, providerHistory, dateUtils)
 
     private val asset =
         Asset(
@@ -70,5 +73,48 @@ class HeldSinceServiceTest {
         service.suggest(HeldSinceRequest(listOf(HeldSinceQuery(asset.id, BigDecimal("10")))))
 
         verify(marketDataService).backFill(asset.id, today.minusYears(MAX_BACKFILL_YEARS))
+    }
+
+    @Test
+    fun `should ask the provider for older prices when the cost is below every price in the window`() {
+        val today = dateUtils.date
+        val earliest = today.minusYears(MAX_BACKFILL_YEARS)
+        whenever(priceHistoryReader.getPriceHistory(eq(asset.id), any(), any())).thenReturn(
+            PriceHistoryResponse(asset, listOf(PricePoint(priceDate = earliest, close = BigDecimal("50"))))
+        )
+        val older = LocalDate.of(2005, 1, 3)
+        whenever(providerHistory.closesBefore(asset.id, earliest))
+            .thenReturn(listOf(older.minusDays(1) to BigDecimal("4"), older to BigDecimal("10.5")))
+
+        val suggestion = service.suggest(HeldSinceRequest(listOf(HeldSinceQuery(asset.id, BigDecimal("10"))))).single()
+
+        assertThat(suggestion.heldSince).isEqualTo(older)
+        assertThat(suggestion.before).isNull()
+    }
+
+    @Test
+    fun `should not ask the provider for older prices when the window has a date`() {
+        val today = dateUtils.date
+        whenever(priceHistoryReader.getPriceHistory(eq(asset.id), any(), any())).thenReturn(
+            PriceHistoryResponse(asset, listOf(PricePoint(priceDate = today.minusDays(1), close = BigDecimal("10"))))
+        )
+
+        service.suggest(HeldSinceRequest(listOf(HeldSinceQuery(asset.id, BigDecimal("10")))))
+
+        verify(providerHistory, never()).closesBefore(any(), any())
+    }
+
+    @Test
+    fun `should keep the window's answer when the provider has nothing older`() {
+        val today = dateUtils.date
+        val earliest = today.minusYears(MAX_BACKFILL_YEARS)
+        whenever(priceHistoryReader.getPriceHistory(eq(asset.id), any(), any())).thenReturn(
+            PriceHistoryResponse(asset, listOf(PricePoint(priceDate = earliest, close = BigDecimal("50"))))
+        )
+        whenever(providerHistory.closesBefore(asset.id, earliest)).thenThrow(IllegalStateException("provider down"))
+
+        val suggestion = service.suggest(HeldSinceRequest(listOf(HeldSinceQuery(asset.id, BigDecimal("10"))))).single()
+
+        assertThat(suggestion.before).isEqualTo(earliest)
     }
 }

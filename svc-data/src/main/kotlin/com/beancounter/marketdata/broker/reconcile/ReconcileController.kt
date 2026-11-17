@@ -14,12 +14,19 @@ import org.springframework.web.bind.annotation.RestController
 @PreAuthorize(AuthConstants.USER_OR_SYSTEM)
 class ReconcileController(
     private val reconcileService: ReconcileService,
-    private val reconcileCommitService: ReconcileCommitService
+    private val reconcileCommitService: ReconcileCommitService,
+    private val heldSinceService: HeldSinceService
 ) {
     @PostMapping
     fun preview(
         @RequestBody shown: ShownHoldings
     ): ReconcilePreviewResponse = ReconcilePreviewResponse(reconcileService.preview(shown))
+
+    /** When each holding was probably opened, from its cost and the asset's price history. */
+    @PostMapping("/held-since")
+    fun heldSince(
+        @RequestBody request: HeldSinceRequest
+    ): HeldSinceResponse = HeldSinceResponse(heldSinceService.suggest(request))
 
     @PostMapping("/commit")
     fun commit(

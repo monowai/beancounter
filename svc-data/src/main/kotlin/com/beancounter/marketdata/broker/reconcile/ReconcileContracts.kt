@@ -152,6 +152,8 @@ data class ConfirmedHoldings(
  *
  * @property trnType ADD or REDUCE
  * @property cost the total cost of [quantity] in the asset's trade currency; an ADD needs one
+ * @property tradeDate this row's date, e.g. when the holding was opened; the submission's
+ * date when absent
  */
 data class ConfirmedRow(
     val assetId: String?,
@@ -159,7 +161,8 @@ data class ConfirmedRow(
     val quantity: BigDecimal,
     val cost: BigDecimal? = null,
     val market: String? = null,
-    val code: String? = null
+    val code: String? = null,
+    val tradeDate: LocalDate? = null
 ) {
     /** How the row's asset is named in a message. */
     val label: String
@@ -169,3 +172,27 @@ data class ConfirmedRow(
     val named: Boolean
         get() = !assetId.isNullOrBlank() || (!market.isNullOrBlank() && !code.isNullOrBlank())
 }
+
+/** The holdings to suggest an opening date for, each with its cost per share. */
+data class HeldSinceRequest(
+    val rows: List<HeldSinceQuery> = emptyList()
+)
+
+data class HeldSinceQuery(
+    val assetId: String,
+    val costPerShare: BigDecimal
+)
+
+/**
+ * @property heldSince the last day the price stood at the cost per share; null when none
+ * @property before the earliest price known, when the cost is below every price since
+ */
+data class HeldSinceSuggestion(
+    val assetId: String,
+    val heldSince: LocalDate?,
+    val before: LocalDate?
+)
+
+data class HeldSinceResponse(
+    override val data: List<HeldSinceSuggestion>
+) : Payload<List<HeldSinceSuggestion>>

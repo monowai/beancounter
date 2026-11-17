@@ -47,10 +47,29 @@ class AssetSearchService(
         keyword: String,
         market: String?
     ): AssetSearchResponse {
+        // Type-ahead: one letter matches too much to be worth a search.
         if (keyword.isBlank() || keyword.length < 2) {
             return AssetSearchResponse(emptyList())
         }
+        return searchAny(keyword, market)
+    }
 
+    /**
+     * Search for one symbol, however short: F (Ford) and T (AT&T) are whole codes. The
+     * markets are as for [search].
+     */
+    fun searchSymbol(
+        symbol: String,
+        market: String?
+    ): AssetSearchResponse {
+        if (symbol.isBlank()) return AssetSearchResponse(emptyList())
+        return searchAny(symbol.trim(), market)
+    }
+
+    private fun searchAny(
+        keyword: String,
+        market: String?
+    ): AssetSearchResponse {
         val response =
             when {
                 market.equals(PrivateMarketDataProvider.ID, ignoreCase = true) -> searchPrivateAssets(keyword)

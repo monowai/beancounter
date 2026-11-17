@@ -52,6 +52,18 @@ class AssetSearchServiceTest {
     }
 
     @Test
+    fun `an exact symbol search finds a one-letter code that type-ahead search ignores`() {
+        val nasdaq = Market("NASDAQ", currencyId = "USD")
+        assetRepository.save(
+            Asset(id = "one-letter-f", code = "F", name = "Ford Motor Co", market = nasdaq, marketCode = "NASDAQ")
+        )
+
+        assertThat(assetSearchService.search("F", "NASDAQ").data).isEmpty()
+        assertThat(assetSearchService.searchSymbol("F", "NASDAQ").data.map { it.symbol }).contains("F")
+        assertThat(assetSearchService.searchSymbol(" ", "NASDAQ").data).isEmpty()
+    }
+
+    @Test
     fun `search PRIVATE finds assets by code`() {
         createPrivateAsset("MY-PROP", "My Investment Property")
 

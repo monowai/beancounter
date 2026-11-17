@@ -77,7 +77,7 @@ class ShownAssetResolver(
         // Keyed by market: one listing per market, and only results that name one.
         val everywhere =
             assetSearchService
-                .search(code, GLOBAL_SEARCH)
+                .searchSymbol(code, GLOBAL_SEARCH)
                 .data
                 .filter { sameSymbol(it.symbol, code) }
                 .mapNotNull { result -> result.market?.takeIf { it.isNotBlank() }?.let { it to result } }
@@ -102,7 +102,7 @@ class ShownAssetResolver(
         market: String
     ): FoundAsset? =
         assetSearchService
-            .search(code, market)
+            .searchSymbol(code, market)
             .data
             .firstOrNull { sameSymbol(it.symbol, code) && it.market.equals(market, ignoreCase = true) }
             ?.let { listing(code, it) }

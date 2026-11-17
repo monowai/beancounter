@@ -58,7 +58,7 @@ class ReconcilePreviewTest {
 
     @BeforeEach
     fun searchFindsNothing() {
-        whenever(assetSearchService.search(any(), anyOrNull())).thenReturn(AssetSearchResponse(emptyList()))
+        whenever(assetSearchService.searchSymbol(any(), anyOrNull())).thenReturn(AssetSearchResponse(emptyList()))
     }
 
     private fun searchFinds(
@@ -66,7 +66,7 @@ class ReconcilePreviewTest {
         market: String,
         vararg results: AssetSearchResult
     ) {
-        whenever(assetSearchService.search(keyword, market)).thenReturn(AssetSearchResponse(results.toList()))
+        whenever(assetSearchService.searchSymbol(keyword, market)).thenReturn(AssetSearchResponse(results.toList()))
     }
 
     private fun listing(

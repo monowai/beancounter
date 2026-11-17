@@ -9,6 +9,7 @@ import com.beancounter.marketdata.providers.MarketDataPriceProvider
 import com.beancounter.marketdata.providers.MarketDataPriceProvider.Companion.defaultBackfillFrom
 import com.beancounter.marketdata.providers.ProviderUtils
 import com.beancounter.marketdata.providers.cash.CashProviderService
+import kotlinx.coroutines.CoroutineExceptionHandler
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -28,6 +29,12 @@ class MarketDataPriceProcessor(
     private val priceBackfillCoordinator: PriceBackfillCoordinator
 ) {
     private val log = LoggerFactory.getLogger(MarketDataPriceProcessor::class.java)
+
+    /** The async save and its backfill check are best-effort; a failure is logged, not lost. */
+    private val asyncSaveFailed =
+        CoroutineExceptionHandler { _, e ->
+            log.warn("Async price save or backfill check failed: {}", e.message, e)
+        }
 
     /**
      * Immutable data class to hold price results from different sources.
@@ -259,7 +266,7 @@ class MarketDataPriceProcessor(
     private fun saveApiPricesAsync(apiPrices: List<MarketData>) {
         if (apiPrices.isNotEmpty()) {
             val toSave = apiPrices.map { it.copy() }
-            CoroutineScope(Dispatchers.IO).launch {
+            CoroutineScope(Dispatchers.IO + asyncSaveFailed).launch {
                 // A saved row still without a previousClose has no usable prior row: the
                 // asset is new to the store, or its series has a hole wider than a routine
                 // closure. Only a backfill can give it a day change; it relinks the row once

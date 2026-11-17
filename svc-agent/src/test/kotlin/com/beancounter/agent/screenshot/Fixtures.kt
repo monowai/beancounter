@@ -11,7 +11,8 @@ val FIXTURES =
         "etrade-web-positions",
         "mobile-dark-no-broker",
         "schwab-mobile-roth",
-        "etrade-web-transactions"
+        "etrade-web-transactions",
+        "schwab-web-dense"
     )
 
 /**

@@ -1,0 +1,216 @@
+{
+  "documentType": "HOLDINGS",
+  "brokerName": null,
+  "accountNumber": null,
+  "totalShown": 62665.33,
+  "rows": [
+    {
+      "code": "ADBE",
+      "quantity": 8.0,
+      "price": 386.42,
+      "marketValue": 3091.36,
+      "costBasis": 2118.64,
+      "gainLoss": 972.72
+    },
+    {
+      "code": "AMD",
+      "quantity": 35.0,
+      "price": 163.08,
+      "marketValue": 5707.8,
+      "costBasis": 3880.15,
+      "gainLoss": 1827.65
+    },
+    {
+      "code": "ABNB",
+      "quantity": 12.0,
+      "price": 128.36,
+      "marketValue": 1540.32,
+      "costBasis": 1861.8,
+      "gainLoss": -321.48
+    },
+    {
+      "code": "BAC",
+      "quantity": 90.0,
+      "price": 48.63,
+      "marketValue": 4376.7,
+      "costBasis": 2968.35,
+      "gainLoss": 1408.35
+    },
+    {
+      "code": "BB",
+      "quantity": 150.0,
+      "price": 3.865,
+      "marketValue": 579.75,
+      "costBasis": 712.5,
+      "gainLoss": -132.75
+    },
+    {
+      "code": "CAT",
+      "quantity": 5.0,
+      "price": 386.83,
+      "marketValue": 1934.15,
+      "costBasis": 1132.68,
+      "gainLoss": 801.47
+    },
+    {
+      "code": "CDNS",
+      "quantity": 4.0,
+      "price": 308.86,
+      "marketValue": 1235.44,
+      "costBasis": 683.36,
+      "gainLoss": 552.08
+    },
+    {
+      "code": "CSCO",
+      "quantity": 60.0,
+      "price": 68.38,
+      "marketValue": 4102.8,
+      "costBasis": 2803.8,
+      "gainLoss": 1299.0
+    },
+    {
+      "code": "COST",
+      "quantity": 3.0,
+      "price": 883.66,
+      "marketValue": 2650.98,
+      "costBasis": 1686.33,
+      "gainLoss": 964.65
+    },
+    {
+      "code": "CRWD",
+      "quantity": 6.0,
+      "price": 483.38,
+      "marketValue": 2900.28,
+      "costBasis": 1368.66,
+      "gainLoss": 1531.62
+    },
+    {
+      "code": "DIS",
+      "quantity": 25.0,
+      "price": 108.68,
+      "marketValue": 2717.0,
+      "costBasis": 3016.25,
+      "gainLoss": -299.25
+    },
+    {
+      "code": "ETSY",
+      "quantity": 18.0,
+      "price": 63.86,
+      "marketValue": 1149.48,
+      "costBasis": 1538.82,
+      "gainLoss": -389.34
+    },
+    {
+      "code": "GM",
+      "quantity": 40.0,
+      "price": 56.38,
+      "marketValue": 2255.2,
+      "costBasis": 1368.8,
+      "gainLoss": 886.4
+    },
+    {
+      "code": "HPQ",
+      "quantity": 30.0,
+      "price": 26.83,
+      "marketValue": 804.9,
+      "costBasis": 1086.3,
+      "gainLoss": -281.4
+    },
+    {
+      "code": "IBM",
+      "quantity": 7.0,
+      "price": 286.36,
+      "marketValue": 2004.52,
+      "costBasis": 1198.89,
+      "gainLoss": 805.63
+    },
+    {
+      "code": "KO",
+      "quantity": 80.0,
+      "price": 68.63,
+      "marketValue": 5490.4,
+      "costBasis": 4383.2,
+      "gainLoss": 1107.2
+    },
+    {
+      "code": "LCID",
+      "quantity": 200.0,
+      "price": 2.383,
+      "marketValue": 476.6,
+      "costBasis": 1368.0,
+      "gainLoss": -891.4
+    },
+    {
+      "code": "MU",
+      "quantity": 22.0,
+      "price": 133.68,
+      "marketValue": 2940.96,
+      "costBasis": 1638.66,
+      "gainLoss": 1302.3
+    },
+    {
+      "code": "ORCL",
+      "quantity": 14.0,
+      "price": 238.86,
+      "marketValue": 3344.04,
+      "costBasis": 1086.68,
+      "gainLoss": 2257.36
+    },
+    {
+      "code": "QCOM",
+      "quantity": 16.0,
+      "price": 168.36,
+      "marketValue": 2693.76,
+      "costBasis": 1883.36,
+      "gainLoss": 810.4
+    },
+    {
+      "code": "RIVN",
+      "quantity": 65.0,
+      "price": 13.68,
+      "marketValue": 889.2,
+      "costBasis": 1386.45,
+      "gainLoss": -497.25
+    },
+    {
+      "code": "SNAP",
+      "quantity": 120.0,
+      "price": 8.36,
+      "marketValue": 1003.2,
+      "costBasis": 1638.6,
+      "gainLoss": -635.4
+    },
+    {
+      "code": "T",
+      "quantity": 110.0,
+      "price": 26.38,
+      "marketValue": 2901.8,
+      "costBasis": 1863.3,
+      "gainLoss": 1038.5
+    },
+    {
+      "code": "UBER",
+      "quantity": 28.0,
+      "price": 86.83,
+      "marketValue": 2431.24,
+      "costBasis": 1368.36,
+      "gainLoss": 1062.88
+    },
+    {
+      "code": "WBD",
+      "quantity": 95.0,
+      "price": 18.63,
+      "marketValue": 1769.85,
+      "costBasis": 1683.15,
+      "gainLoss": 86.7
+    },
+    {
+      "code": "ZM",
+      "quantity": 20.0,
+      "price": 83.68,
+      "marketValue": 1673.6,
+      "costBasis": 1836.8,
+      "gainLoss": -163.2
+    }
+  ]
+}

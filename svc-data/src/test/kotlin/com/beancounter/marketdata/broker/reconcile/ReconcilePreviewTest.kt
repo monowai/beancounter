@@ -481,37 +481,40 @@ class ReconcilePreviewTest {
     }
 
     @Test
-    fun `should warn when quantity times price is more than one percent away from the market value`() {
+    fun `should warn when quantity times price is further from the market value than the printed rounding allows`() {
         login("warn-value")
         val portfolio = portfolio("RCN-WARNMV")
-        val priced = shown("RCNW1", "10").copy(price = BigDecimal("10"))
+        val msft = shown("RCNW1", "10").copy(price = BigDecimal("523.88"))
         val rows =
             listOf(
-                priced.copy(marketValue = BigDecimal("100")),
-                priced.copy(marketValue = BigDecimal("101")),
-                priced.copy(marketValue = BigDecimal("102")),
-                priced.copy(marketValue = BigDecimal("98")),
-                priced,
-                priced.copy(price = null, marketValue = BigDecimal("500"))
+                msft.copy(marketValue = BigDecimal("5238.80")),
+                // A vision model misread one digit of the market value.
+                msft.copy(marketValue = BigDecimal("5236.80")),
+                // A price printed to the cent, the market value worked from the unrounded price.
+                shown("RCNW1", "1000").copy(price = BigDecimal("1.23"), marketValue = BigDecimal("1234.50")),
+                shown("RCNW1", "54").copy(price = BigDecimal("4.505"), marketValue = BigDecimal("243.27")),
+                shown("RCNW1", "10").copy(price = BigDecimal("10"), marketValue = BigDecimal("101")),
+                msft,
+                msft.copy(price = null, marketValue = BigDecimal("500"))
             )
 
         val preview = reconcileService.preview(ShownHoldings(portfolioId = portfolio.id, rows = rows))
 
         val mismatch = listOf(RowWarning.MARKET_VALUE_MISMATCH)
         assertThat(preview.rows.map { it.warnings })
-            .containsExactly(emptyList(), emptyList(), mismatch, mismatch, emptyList(), emptyList())
+            .containsExactly(emptyList(), mismatch, emptyList(), emptyList(), mismatch, emptyList(), emptyList())
     }
 
     @Test
-    fun `should warn when market value less cost basis is more than one unit away from the gain or loss`() {
+    fun `should warn when market value less cost basis is more than a cent away from the gain or loss`() {
         login("warn-gain")
         val portfolio = portfolio("RCN-WARNGL")
         val valued = shown("RCNW2", null).copy(marketValue = BigDecimal("1000"), costBasis = BigDecimal("800"))
         val rows =
             listOf(
                 valued.copy(gainLoss = BigDecimal("200")),
+                valued.copy(gainLoss = BigDecimal("200.01")),
                 valued.copy(gainLoss = BigDecimal("201.00")),
-                valued.copy(gainLoss = BigDecimal("201.01")),
                 valued.copy(gainLoss = BigDecimal("-200")),
                 valued,
                 valued.copy(costBasis = null, gainLoss = BigDecimal("5"))
@@ -535,13 +538,20 @@ class ReconcilePreviewTest {
             listOf(
                 valued.copy(gainLoss = BigDecimal("200")),
                 valued.copy(gainLoss = BigDecimal("5")),
-                valued.copy(quantity = null, gainLoss = BigDecimal("5"))
+                valued.copy(quantity = null, gainLoss = BigDecimal("5")),
+                // An average cost printed to the cent, the gain worked from the unrounded cost.
+                valued.copy(
+                    quantity = BigDecimal("1000"),
+                    marketValue = BigDecimal("2000"),
+                    costPerShare = BigDecimal("1.23"),
+                    gainLoss = BigDecimal("765.50")
+                )
             )
 
         val preview = reconcileService.preview(ShownHoldings(portfolioId = portfolio.id, rows = rows))
 
         assertThat(preview.rows.map { it.warnings })
-            .containsExactly(emptyList(), listOf(RowWarning.GAIN_LOSS_MISMATCH), emptyList())
+            .containsExactly(emptyList(), listOf(RowWarning.GAIN_LOSS_MISMATCH), emptyList(), emptyList())
     }
 
     @Test

@@ -58,4 +58,28 @@ class DeepSeekVisionTest {
             .andRespond(withSuccess("""{"choices":[]}""", MediaType.APPLICATION_JSON))
         assertThatThrownBy { vision.read("read this", screenshot) }.isInstanceOf(VisionUnavailableException::class.java)
     }
+
+    private fun replying(content: String) =
+        withSuccess(
+            """{"choices":[{"index":0,"message":{"role":"assistant","content":"$content"}}]}""",
+            MediaType.APPLICATION_JSON
+        )
+
+    @Test
+    fun `should ask once more when the model answers with nothing but white space`() {
+        server.expect(requestTo("https://llm.test/chat/completions")).andRespond(replying("\\n"))
+        server.expect(requestTo("https://llm.test/chat/completions")).andRespond(replying("{}"))
+
+        assertThat(vision.read("read this", screenshot)).isEqualTo("{}")
+        server.verify()
+    }
+
+    @Test
+    fun `should report the model as unavailable when it answers with white space twice`() {
+        server.expect(requestTo("https://llm.test/chat/completions")).andRespond(replying(" "))
+        server.expect(requestTo("https://llm.test/chat/completions")).andRespond(replying("\\n "))
+
+        assertThatThrownBy { vision.read("read this", screenshot) }.isInstanceOf(VisionUnavailableException::class.java)
+        server.verify()
+    }
 }

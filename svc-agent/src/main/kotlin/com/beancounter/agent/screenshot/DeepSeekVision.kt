@@ -1,6 +1,7 @@
 package com.beancounter.agent.screenshot
 
 import com.beancounter.common.utils.BcJson
+import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.web.client.RestClient
@@ -17,7 +18,20 @@ class DeepSeekVision(
     private val apiKey: String,
     private val model: String
 ) : VisionModel {
+    /** Asks twice when the first answer is only white space, which DeepSeek gives now and then for the same image. */
     override fun read(
+        instruction: String,
+        screenshot: Screenshot
+    ): String =
+        answer(instruction, screenshot)
+            .ifBlank {
+                log.warn("Vision model {} answered with nothing; asking once more", model)
+                answer(instruction, screenshot)
+            }.ifBlank {
+                throw VisionUnavailableException("The vision model answered with nothing")
+            }
+
+    private fun answer(
         instruction: String,
         screenshot: Screenshot
     ): String {
@@ -87,5 +101,6 @@ class DeepSeekVision(
 
     private companion object {
         const val MAX_TOKENS = 8192
+        val log = LoggerFactory.getLogger(DeepSeekVision::class.java)
     }
 }

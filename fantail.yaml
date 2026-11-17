@@ -80,6 +80,12 @@ services:
       POSITION_URL: "${svc:svc-position.url}/api"
       RETIRE_URL: "${svc:svc-retire.url}/api"
       REBALANCE_URL: "${svc:svc-rebalance.url}/api"
+      # Through the local gateway, as on kauri (bc-deploy env/kauri.yaml). AI_GATEWAY_KEY
+      # comes from the shell. The gateway's deepseek-flash route drops images, so
+      # screenshots use deepseek-flash-vision (waharoa#10). One gateway serves every
+      # stack, so its port is fixed: ${svc:waharoa.url} adds a worktree's port offset.
+      AI_GATEWAY_URL: "http://localhost:4000"
+      AI_MODEL_VISION: "deepseek-flash-vision"
     reload:
       gradle: ":svc-agent"
     requires:

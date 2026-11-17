@@ -3,9 +3,11 @@ package com.beancounter.agent.screenshot
 import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.MethodSource
+import org.springframework.http.client.SimpleClientHttpRequestFactory
 import org.springframework.web.client.RestClient
 import java.nio.file.Files
 import java.nio.file.Path
+import java.time.Duration
 
 /**
  * Sends each fixture screenshot to the real vision model. It costs tokens, so it
@@ -18,15 +20,28 @@ import java.nio.file.Path
  *
  * `SCREENSHOT_RECORD=true` also rewrites `<fixture>.reply.json`, the reply
  * [ScreenshotReaderTest] replays, for each fixture the model read correctly. The
- * model misreads a digit now and then, so a fixture can fail one run and pass the next. Reads the key from `DEEPSEEK_API_KEY`.
+ * model misreads a digit now and then, so a fixture can fail one run and pass the next. Reads the key from `DEEPSEEK_API_KEY`
+ * and the model from `AI_MODEL_VISION`.
+ *
+ * Through the gateway, where a route that drops images reads no rows and fails every fixture:
+ *
+ * ```
+ * SCREENSHOT_LIVE=true DEEPSEEK_BASE_URL=http://localhost:4000 DEEPSEEK_API_KEY=$AI_GATEWAY_KEY \
+ *   AI_MODEL_VISION=deepseek-flash-vision ./gradlew :svc-agent:test --tests '*LiveScreenshotEvaluation'
+ * ```
  */
 @EnabledIfEnvironmentVariable(named = "SCREENSHOT_LIVE", matches = "true")
 class LiveScreenshotEvaluation {
     private val vision =
         DeepSeekVision(
-            RestClient.builder().baseUrl(System.getenv("DEEPSEEK_BASE_URL") ?: "https://api.deepseek.com").build(),
+            RestClient
+                .builder()
+                .baseUrl(System.getenv("DEEPSEEK_BASE_URL") ?: "https://api.deepseek.com")
+                // A dense page takes the model twenty seconds or more; the default client gives up first.
+                .requestFactory(SimpleClientHttpRequestFactory().apply { setReadTimeout(Duration.ofSeconds(90)) })
+                .build(),
             apiKey = System.getenv("DEEPSEEK_API_KEY").orEmpty(),
-            model = System.getenv("AI_MODEL_FAST") ?: "deepseek-flash"
+            model = System.getenv("AI_MODEL_VISION") ?: "deepseek-flash"
         )
 
     @ParameterizedTest

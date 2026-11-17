@@ -55,7 +55,7 @@ class ReconcileCommitService(
         val tradeDate = confirmed.tradeDate ?: DateUtils().date
         val inputs =
             confirmed.rows.map { row ->
-                trnInput(row, tradeDate).copy(
+                trnInput(row, row.tradeDate ?: tradeDate).copy(
                     brokerId = broker.id,
                     tradeCurrency = tradeCurrencies.getValue(row.label),
                     // A caller reference is unique across all users: without the owner, two users

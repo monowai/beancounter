@@ -57,6 +57,7 @@ internal object ConfirmedRowRules {
             !row.named -> "A row names its asset by id, or by market and code"
             row.trnType !in RECORDABLE -> "Asset ${row.label}: only ADD or REDUCE is recorded, not ${row.trnType}"
             row.quantity.signum() <= 0 -> "Asset ${row.label}: the quantity must be more than zero"
+            isFuture(row.tradeDate) -> "Asset ${row.label}: the trade date ${row.tradeDate} is after today"
             row.trnType == TrnType.ADD &&
                 !isCost(
                     row.cost

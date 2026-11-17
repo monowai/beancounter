@@ -12,6 +12,7 @@ import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Broker
 import com.beancounter.common.model.Market
+import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
@@ -29,6 +30,7 @@ import com.beancounter.marketdata.broker.BrokerRepository
 import com.beancounter.marketdata.broker.GlobalBroker
 import com.beancounter.marketdata.broker.GlobalBrokerRepository
 import com.beancounter.marketdata.portfolio.PortfolioService
+import com.beancounter.marketdata.price.MarketDataRepo
 import com.beancounter.marketdata.trn.TrnRepository
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
@@ -102,6 +104,12 @@ class ReconcilePreviewTest {
 
     @Autowired
     private lateinit var assetRepository: AssetRepository
+
+    @Autowired
+    private lateinit var heldSinceService: HeldSinceService
+
+    @Autowired
+    private lateinit var marketDataRepo: MarketDataRepo
 
     @Autowired
     private lateinit var trnRepository: TrnRepository
@@ -231,6 +239,42 @@ class ReconcilePreviewTest {
 
         assertThat(preview.broker).isEqualTo(MatchedBroker(broker.id, "RCN-LINKED-B", null))
         assertThat(preview.globalBroker?.id).isEqualTo(linked.id)
+    }
+
+    @Test
+    fun `should use the chosen firm and match no account for one the user will create`() {
+        val user = login("new-account")
+        val portfolio = portfolio("RCN-NEWACCT")
+        val firm = firm("RCN-NEWACCT", "Rcn New Account")
+        val existing = brokerRepository.save(Broker(name = "RCN-NA-LINKED", owner = user, globalBrokerId = firm.id))
+        val asset = asset("RCNA1")
+        trade(TrnType.BUY, portfolio, existing, asset, "5")
+        val request =
+            ShownHoldings(
+                portfolioId = portfolio.id,
+                globalBrokerId = firm.id,
+                brokerName = firm.name,
+                rows = listOf(shown("RCNA1", "5", market = null))
+            )
+
+        val preview = reconcileService.preview(request)
+
+        assertThat(preview.broker).isNull()
+        assertThat(preview.globalBroker?.id).isEqualTo(firm.id)
+        val row = preview.rows.single()
+        assertThat(row.market).isEqualTo(NASDAQ.code)
+        assertThat(row.held).isEqualByComparingTo("0")
+        assertThat(row.trnType).isEqualTo(TrnType.ADD)
+    }
+
+    @Test
+    fun `should not find a firm id that does not exist`() {
+        login("no-firm")
+        val portfolio = portfolio("RCN-NOFIRM")
+
+        assertThatThrownBy {
+            reconcileService.preview(ShownHoldings(portfolioId = portfolio.id, globalBrokerId = "rcn-no-such-firm"))
+        }.isInstanceOf(NotFoundException::class.java)
     }
 
     @Test
@@ -859,6 +903,27 @@ class ReconcilePreviewTest {
 
         assertThat(row.assetId).isEqualTo(asset.id)
         assertThat(row.status).isEqualTo(RowStatus.NEEDS_COST)
+    }
+
+    @Test
+    fun `should suggest when a holding was opened from its cost and the stored prices`() {
+        login("held-since")
+        val asset = asset("RCNH9")
+        val today = LocalDate.now()
+        listOf(400 to "8", 300 to "9.5", 200 to "14", 100 to "18").forEach { (daysAgo, close) ->
+            marketDataRepo.save(
+                MarketData(asset = asset, priceDate = today.minusDays(daysAgo.toLong()), close = BigDecimal(close))
+            )
+        }
+
+        val suggestion =
+            heldSinceService
+                .suggest(HeldSinceRequest(listOf(HeldSinceQuery(asset.id, BigDecimal("10")))))
+                .single()
+
+        assertThat(suggestion.assetId).isEqualTo(asset.id)
+        assertThat(suggestion.heldSince).isEqualTo(today.minusDays(300))
+        assertThat(suggestion.before).isNull()
     }
 
     @Test

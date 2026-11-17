@@ -588,6 +588,37 @@ class ReconcileCommitTest {
     }
 
     @Test
+    fun `should date a row by its own trade date, and the rest by the submission's`() {
+        val user = login("row-date")
+        val portfolio = portfolio("RCC-ROWDATE")
+        val held = asset("RCCD1")
+        val other = asset("RCCD2")
+        val broker = broker("RCC-ROWDATE-B", user)
+        val dated = add(held, "5").copy(tradeDate = LocalDate.of(2019, 3, 4))
+        val submission =
+            confirmed(portfolio, broker, "rcc-rowdate-upload", dated, add(other, "2"))
+                .copy(tradeDate = LocalDate.of(2026, 1, 2))
+
+        reconcileCommitService.commit(submission)
+
+        val dates = trnsOf(portfolio).associate { it.asset.id to it.tradeDate }
+        assertThat(dates[held.id]).isEqualTo(LocalDate.of(2019, 3, 4))
+        assertThat(dates[other.id]).isEqualTo(LocalDate.of(2026, 1, 2))
+    }
+
+    @Test
+    fun `should refuse a row dated after today`() {
+        val user = login("row-future")
+        val portfolio = portfolio("RCC-ROWFUTURE")
+        val asset = asset("RCCF1")
+        val broker = broker("RCC-ROWFUTURE-B", user)
+        val future = add(asset, "1").copy(tradeDate = DateUtils().date.plusDays(1))
+
+        assertRefused(confirmed(portfolio, broker, "rcc-rowfuture-upload", future), "is after today")
+        assertThat(trnsOf(portfolio)).isEmpty()
+    }
+
+    @Test
     fun `should refuse a trade date after today`() {
         val user = login("future")
         val portfolio = portfolio("RCC-FUTURE")

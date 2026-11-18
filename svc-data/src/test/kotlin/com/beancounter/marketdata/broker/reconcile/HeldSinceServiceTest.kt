@@ -25,8 +25,10 @@ class HeldSinceServiceTest {
     private val priceHistoryReader = mock<PriceHistoryReader>()
     private val marketDataService = mock<MarketDataService>()
     private val providerHistory = mock<ProviderHistory>()
+    private val confirmedAssets = mock<ConfirmedAssets>()
     private val dateUtils = DateUtils()
-    private val service = HeldSinceService(priceHistoryReader, marketDataService, providerHistory, dateUtils)
+    private val service =
+        HeldSinceService(priceHistoryReader, marketDataService, providerHistory, confirmedAssets, dateUtils)
 
     private val asset =
         Asset(
@@ -116,5 +118,53 @@ class HeldSinceServiceTest {
         val suggestion = service.suggest(HeldSinceRequest(listOf(HeldSinceQuery(asset.id, BigDecimal("10"))))).single()
 
         assertThat(suggestion.before).isEqualTo(earliest)
+    }
+
+    @Test
+    fun `should create a listing new to Beancounter and suggest from its prices`() {
+        val today = dateUtils.date
+        whenever(confirmedAssets.idFor("NASDAQ", "NEW")).thenReturn(asset.id)
+        whenever(priceHistoryReader.getPriceHistory(eq(asset.id), any(), any())).thenReturn(
+            PriceHistoryResponse(
+                asset,
+                listOf(
+                    PricePoint(priceDate = today.minusDays(2), close = BigDecimal("4")),
+                    PricePoint(priceDate = today.minusDays(1), close = BigDecimal("10"))
+                )
+            )
+        )
+
+        val suggestion =
+            service
+                .suggest(
+                    HeldSinceRequest(
+                        listOf(HeldSinceQuery(costPerShare = BigDecimal("10"), market = "NASDAQ", code = "NEW"))
+                    )
+                ).single()
+
+        assertThat(suggestion.assetId).isEqualTo(asset.id)
+        assertThat(suggestion.heldSince).isEqualTo(today.minusDays(1))
+        verify(marketDataService).backFill(asset.id, today.minusYears(MAX_BACKFILL_YEARS))
+    }
+
+    @Test
+    fun `should suggest nothing for a row naming no asset, or one that cannot be created`() {
+        whenever(confirmedAssets.idFor("NASDAQ", "BAD")).thenThrow(IllegalStateException("no such listing"))
+
+        val suggestions =
+            service.suggest(
+                HeldSinceRequest(
+                    listOf(
+                        HeldSinceQuery(costPerShare = BigDecimal("10")),
+                        HeldSinceQuery(costPerShare = BigDecimal("10"), market = "NASDAQ", code = "BAD")
+                    )
+                )
+            )
+
+        assertThat(suggestions).hasSize(2).allSatisfy {
+            assertThat(it.assetId).isNull()
+            assertThat(it.heldSince).isNull()
+            assertThat(it.before).isNull()
+        }
     }
 }

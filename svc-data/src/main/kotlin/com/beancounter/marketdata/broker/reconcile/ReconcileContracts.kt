@@ -178,17 +178,27 @@ data class HeldSinceRequest(
     val rows: List<HeldSinceQuery> = emptyList()
 )
 
+/**
+ * One holding to suggest an opening date for, named by [assetId], or by [market] and [code]
+ * for a listing Beancounter does not have yet, which the suggestion creates.
+ */
 data class HeldSinceQuery(
-    val assetId: String,
-    val costPerShare: BigDecimal
+    val assetId: String? = null,
+    val costPerShare: BigDecimal,
+    val market: String? = null,
+    val code: String? = null
 )
 
 /**
- * @property heldSince the last day the price stood at the cost per share; null when none
+ * One per query, in the order asked.
+ *
+ * @property assetId the asset suggested for, created for a listing new to Beancounter; null
+ * when the query named none that could be found or created
+ * @property heldSince the first day the price came near the cost per share; null when none
  * @property before the earliest price known, when the cost is below every price since
  */
 data class HeldSinceSuggestion(
-    val assetId: String,
+    val assetId: String?,
     val heldSince: LocalDate?,
     val before: LocalDate?
 )

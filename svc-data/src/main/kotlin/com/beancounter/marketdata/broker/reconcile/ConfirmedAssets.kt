@@ -18,9 +18,17 @@ class ConfirmedAssets(
      */
     fun withAssetId(row: ConfirmedRow): ConfirmedRow {
         if (!row.assetId.isNullOrBlank()) return row
-        val code = ShownAssetResolver.beancounterCode(checkNotNull(row.code))
-        val created = assetService.handle(AssetRequest(AssetInput(checkNotNull(row.market), code), code))
-        return row.copy(assetId = created.data.getValue(code).id)
+        return row.copy(assetId = idFor(checkNotNull(row.market), checkNotNull(row.code)))
+    }
+
+    /** The id of the asset [market] and [code] name, created when Beancounter does not have it yet. */
+    fun idFor(
+        market: String,
+        code: String
+    ): String {
+        val beancounterCode = ShownAssetResolver.beancounterCode(code)
+        val created = assetService.handle(AssetRequest(AssetInput(market, beancounterCode), beancounterCode))
+        return created.data.getValue(beancounterCode).id
     }
 
     /**

@@ -263,13 +263,33 @@ class CorporateEventEndpointTest {
     }
 
     @Test
+    fun `should start a background load from today's date when asAt is today`() {
+        val portfolio = TestHelpers.createTestPortfolio(id = "background-today")
+        whenever(portfolioService.getPortfolioById(portfolio.id)).thenReturn(portfolio)
+        val loaded = CountDownLatch(1)
+        doAnswer {
+            loaded.countDown()
+            0
+        }.whenever(rangeEventLoader).load(any<Portfolio>(), any())
+        val today = dateUtils.date
+
+        backgroundLoad(portfolio.id, DateUtils.TODAY)
+            .andExpect(status().isAccepted)
+            .andExpect(jsonPath("$.status").value("STARTED"))
+            .andExpect(jsonPath("$.asAt").value(today.toString()))
+
+        assertThat(loaded.await(WAIT_SECONDS, TimeUnit.SECONDS)).isTrue()
+        verify(rangeEventLoader).load(portfolio, today)
+    }
+
+    @Test
     fun `should return 404 without a background load when the portfolio is not found`() {
         whenever(portfolioService.getPortfolioById("missing-portfolio"))
             .thenThrow(NotFoundException("Portfolio missing-portfolio not found"))
 
         backgroundLoad("missing-portfolio", "2024-01-15").andExpect(status().isNotFound)
 
-        verifyNoInteractions(eventLoader)
+        verifyNoInteractions(eventLoader, rangeEventLoader)
     }
 
     @Test
@@ -277,7 +297,7 @@ class CorporateEventEndpointTest {
         backgroundLoad("future-background", dateUtils.date.plusDays(1).toString())
             .andExpect(status().isBadRequest)
 
-        verifyNoInteractions(eventLoader)
+        verifyNoInteractions(eventLoader, rangeEventLoader)
         verify(portfolioService, never()).getPortfolioById(any())
     }
 

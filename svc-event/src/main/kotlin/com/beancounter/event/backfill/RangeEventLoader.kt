@@ -25,32 +25,38 @@ class RangeEventLoader(
     private val assetEventLoader: AssetEventLoader,
     private val eventStore: CorporateEventStore,
     private val eventDistribution: EventDistribution,
-    private val loginService: LoginService
+    private val loginService: LoginService,
+    private val dateUtils: DateUtils
 ) {
     private val log = LoggerFactory.getLogger(RangeEventLoader::class.java)
 
-    /** Returns the number of events processed. */
+    /**
+     * Returns the number of events processed. A long load can outlive the M2M token, so each
+     * call is retried once with a fresh token rather than failing every asset after expiry.
+     */
     fun load(
         portfolio: Portfolio,
         from: LocalDate
     ): Int {
-        loginService.setAuthContext(loginService.loginM2m())
-        val today = DateUtils().date
+        val today = dateUtils.date
         val assetIds =
-            positionService
-                .getPositions(portfolio, today.toString())
-                .data.positions.values
-                .filter { positionService.includePosition(it) }
-                .map { it.asset.id }
-                .distinct()
+            loginService.retryOnJwtExpiry {
+                loginService.setAuthContext(loginService.loginM2m())
+                positionService
+                    .getPositions(portfolio, today.toString())
+                    .data.positions.values
+                    .filter { positionService.includePosition(it) }
+                    .map { it.asset.id }
+                    .distinct()
+            }
         log.info("Loading events from {} for {} assets, portfolio: {}", from, assetIds.size, portfolio.code)
         assetIds.forEach { assetId ->
-            runCatching { assetEventLoader.loadBetween(assetId, from, today) }
+            runCatching { loginService.retryOnJwtExpiry { assetEventLoader.loadBetween(assetId, from, today) } }
                 .onFailure { log.warn("Event load failed, asset: {}, from: {}", assetId, from, it) }
         }
         val events = assetIds.flatMap { eventStore.findInRange(it, from, today) }
         events.forEach { event ->
-            runCatching { eventDistribution.processEvent(event) }
+            runCatching { loginService.retryOnJwtExpiry { eventDistribution.processEvent(event) } }
                 .onFailure { log.warn("Event processing failed, event: {}", event.id, it) }
         }
         log.info("Processed {} events from {}, portfolio: {}", events.size, from, portfolio.code)

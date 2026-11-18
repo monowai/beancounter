@@ -29,13 +29,13 @@ class BackgroundEventLoad(
 
     fun start(
         portfolio: Portfolio,
-        asAt: String
+        from: LocalDate
     ): BackgroundLoadStatus {
         if (!running.add(portfolio.id)) {
             log.info("Background event load already running, portfolio: ${describe(portfolio)}")
             return BackgroundLoadStatus.ALREADY_RUNNING
         }
-        submit(portfolio, asAt)
+        submit(portfolio, from)
         return BackgroundLoadStatus.STARTED
     }
 
@@ -43,10 +43,10 @@ class BackgroundEventLoad(
 
     private fun submit(
         portfolio: Portfolio,
-        asAt: String
+        from: LocalDate
     ) {
         try {
-            executor.execute { run(portfolio, asAt) }
+            executor.execute { run(portfolio, from) }
         } catch (e: RejectedExecutionException) {
             running.remove(portfolio.id)
             throw e
@@ -55,15 +55,26 @@ class BackgroundEventLoad(
 
     private fun run(
         portfolio: Portfolio,
-        asAt: String
+        from: LocalDate
     ) {
-        log.info("Background event load started, portfolio: ${describe(portfolio)}, asAt: $asAt")
-        runCatching { rangeEventLoader.load(portfolio, LocalDate.parse(asAt)) }
-            .onSuccess { log.info("Background event load finished, portfolio: ${describe(portfolio)}, asAt: $asAt") }
-            .onFailure { log.error("Background event load failed, portfolio: ${describe(portfolio)}, asAt: $asAt", it) }
-        running.remove(portfolio.id)
-        // The load sets an M2M context on this pooled thread; do not leave it for the next job.
-        SecurityContextHolder.clearContext()
+        log.info("Background event load started, portfolio: ${describe(portfolio)}, from: $from")
+        try {
+            runCatching { rangeEventLoader.load(portfolio, from) }
+                .onSuccess {
+                    log.info(
+                        "Background event load finished, portfolio: ${describe(portfolio)}, from: $from"
+                    )
+                }.onFailure {
+                    log.error(
+                        "Background event load failed, portfolio: ${describe(portfolio)}, from: $from",
+                        it
+                    )
+                }
+        } finally {
+            running.remove(portfolio.id)
+            // The load sets an M2M context on this pooled thread; do not leave it for the next job.
+            SecurityContextHolder.clearContext()
+        }
     }
 
     private fun describe(portfolio: Portfolio) = "${portfolio.code}/${portfolio.id}"

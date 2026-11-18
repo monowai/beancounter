@@ -75,9 +75,10 @@ class BackgroundLoadController(
         )
         @RequestParam(required = false) asAt: String = DateUtils.TODAY
     ): ResponseEntity<BackgroundLoadResponse> {
-        dateUtils.requireNotAfterToday("asAt", asAt)
+        dateUtils.requireNotAfterToday(AS_AT, asAt)
+        val from = dateUtils.getDate(asAt)
         val portfolio = portfolioService.getPortfolioById(portfolioId)
-        val status = backgroundEventLoad.start(portfolio, asAt)
-        return ResponseEntity.accepted().body(BackgroundLoadResponse(status, portfolio.id, asAt))
+        val status = backgroundEventLoad.start(portfolio, from)
+        return ResponseEntity.accepted().body(BackgroundLoadResponse(status, portfolio.id, from.toString()))
     }
 }

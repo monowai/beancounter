@@ -9,6 +9,7 @@ import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.event.CorporateEvent
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.event.corporate.CorporateEventStore
 import com.beancounter.event.distribution.EventDistribution
 import com.beancounter.event.distribution.PositionService
@@ -22,6 +23,7 @@ import org.mockito.kotlin.mock
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
+import org.springframework.security.oauth2.jwt.JwtException
 import java.math.BigDecimal
 import java.time.LocalDate
 
@@ -43,7 +45,8 @@ class RangeEventLoaderTest {
             AssetEventLoader(priceService, eventStore, DAYS_TO_ADD),
             eventStore,
             eventDistribution,
-            loginService
+            loginService,
+            DateUtils()
         )
 
     private fun holding(vararg assetCodes: String) {
@@ -57,6 +60,14 @@ class RangeEventLoaderTest {
         whenever(loginService.loginM2m(any())).thenReturn(OpenIdResponse("token", "scope", 60L, "Bearer"))
         whenever(positionService.getPositions(eq(portfolio), any())).thenReturn(PositionResponse(positions))
         whenever(positionService.includePosition(any())).thenReturn(true)
+        whenever(loginService.retryOnJwtExpiry<Any>(any())).thenAnswer { invocation ->
+            val operation = invocation.getArgument<() -> Any>(0)
+            try {
+                operation()
+            } catch (_: JwtException) {
+                operation()
+            }
+        }
     }
 
     private fun event(
@@ -117,6 +128,19 @@ class RangeEventLoaderTest {
         assertThat(processed).isEqualTo(2)
         verify(eventDistribution).processEvent(aaa)
         verify(eventDistribution).processEvent(ccc)
+    }
+
+    @Test
+    fun `should retry an asset's fetch with a fresh token when the token expires mid-load`() {
+        holding("AAA")
+        whenever(priceService.getEvents("AAA"))
+            .thenThrow(JwtException("expired"))
+            .thenReturn(PriceResponse(listOf(TestHelpers.createTestMarketData(priceDate = from))))
+
+        loader.load(portfolio, from)
+
+        verify(priceService, times(2)).getEvents("AAA")
+        verify(eventStore, times(1)).save(any())
     }
 
     private companion object {

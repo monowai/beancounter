@@ -26,7 +26,7 @@ private const val PORTFOLIO_ID = "portfolioId"
 private const val PORTFOLIOS = "portfolios"
 private const val FROM_DATE = "fromDate"
 private const val TO_DATE = "toDate"
-private const val AS_AT = "asAt"
+internal const val AS_AT = "asAt"
 
 /**
  * Corporate event ingest: fetches events from external market data sources (load) and

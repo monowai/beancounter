@@ -53,7 +53,7 @@ class BackgroundEventLoadTest {
         assertThat(finished.count).isEqualTo(1)
         release.countDown()
         assertThat(finished.await(WAIT_SECONDS, TimeUnit.SECONDS)).isTrue()
-        verify(eventLoader).load(portfolio, LocalDate.parse(AS_AT))
+        verify(eventLoader).load(portfolio, AS_AT)
     }
 
     @Test
@@ -66,7 +66,7 @@ class BackgroundEventLoadTest {
         assertThat(second).isEqualTo(BackgroundLoadStatus.ALREADY_RUNNING)
         release.countDown()
         assertThat(finished.await(WAIT_SECONDS, TimeUnit.SECONDS)).isTrue()
-        verify(eventLoader, times(1)).load(portfolio, LocalDate.parse(AS_AT))
+        verify(eventLoader, times(1)).load(portfolio, AS_AT)
     }
 
     @Test
@@ -113,7 +113,7 @@ class BackgroundEventLoadTest {
     }
 
     private companion object {
-        const val AS_AT = "2024-01-15"
+        val AS_AT: LocalDate = LocalDate.of(2024, 1, 15)
         const val WAIT_SECONDS = 5L
     }
 }

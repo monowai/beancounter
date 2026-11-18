@@ -45,11 +45,15 @@ class ReconcileCommitService(
         val resolved = submitted.copy(rows = submitted.rows.map { confirmedAssets.withAssetId(it) })
         ConfirmedRowRules.checkResolved(resolved)
         val tradeDate = resolved.tradeDate ?: DateUtils().date
-        // A back-dated row is recorded in its own date's share basis, before the holdings check
-        // replays it against the split transactions that follow.
-        val based = resolved.rows.map { confirmedAssets.onItsDate(it, tradeDate) }
-        val confirmed = resolved.copy(rows = based.map { it.first })
-        val notes = based.mapNotNull { (row, note) -> note?.let { row.label to it } }.toMap()
+        // A statement shows what is held on its record date, so an added row is recorded then.
+        // When it was opened is kept only as a note: the date it was bought at its cost, from
+        // which performance can be derived, not a trade that splits and dividends apply to.
+        val notes =
+            resolved.rows
+                .filter { it.trnType == TrnType.ADD && it.tradeDate?.isBefore(tradeDate) == true }
+                .associate { it.label to "Held since ${it.tradeDate}" }
+        val confirmed =
+            resolved.copy(rows = resolved.rows.map { if (it.trnType == TrnType.ADD) it.copy(tradeDate = null) else it })
         // An asset that does not exist fails here, before any write. The currency is the one
         // the transaction mapper falls back to when a request names none.
         val tradeCurrencies =

@@ -10,7 +10,6 @@ import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Broker
 import com.beancounter.common.model.CallerRef
-import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
@@ -26,7 +25,6 @@ import com.beancounter.marketdata.broker.BrokerRepository
 import com.beancounter.marketdata.broker.BrokerSettlementAccount
 import com.beancounter.marketdata.broker.BrokerSettlementAccountRepository
 import com.beancounter.marketdata.portfolio.PortfolioService
-import com.beancounter.marketdata.price.MarketDataRepo
 import com.beancounter.marketdata.trn.TrnRepository
 import com.beancounter.marketdata.trn.broker.TrnBrokerService
 import org.assertj.core.api.Assertions.assertThat
@@ -67,9 +65,6 @@ class ReconcileCommitTest {
 
     @Autowired
     private lateinit var trnRepository: TrnRepository
-
-    @Autowired
-    private lateinit var marketDataRepo: MarketDataRepo
 
     @Autowired
     private lateinit var brokerSettlementAccountRepository: BrokerSettlementAccountRepository
@@ -658,7 +653,7 @@ class ReconcileCommitTest {
     }
 
     @Test
-    fun `should date a row by its own trade date, and the rest by the submission's`() {
+    fun `should record an added row on the record date, with its held-since date in the comment`() {
         val user = login("row-date")
         val portfolio = portfolio("RCC-ROWDATE")
         val held = asset("RCCD1")
@@ -671,9 +666,12 @@ class ReconcileCommitTest {
 
         reconcileCommitService.commit(submission)
 
-        val dates = trnsOf(portfolio).associate { it.asset.id to it.tradeDate }
-        assertThat(dates[held.id]).isEqualTo(LocalDate.of(2019, 3, 4))
-        assertThat(dates[other.id]).isEqualTo(LocalDate.of(2026, 1, 2))
+        val trns = trnsOf(portfolio).associateBy { it.asset.id }
+        assertThat(trns.getValue(held.id).tradeDate).isEqualTo(LocalDate.of(2026, 1, 2))
+        assertThat(trns.getValue(held.id).quantity).isEqualByComparingTo("5")
+        assertThat(trns.getValue(held.id).comments).isEqualTo("Held since 2019-03-04")
+        assertThat(trns.getValue(other.id).tradeDate).isEqualTo(LocalDate.of(2026, 1, 2))
+        assertThat(trns.getValue(other.id).comments).isNull()
     }
 
     @Test
@@ -829,48 +827,5 @@ class ReconcileCommitTest {
 
         assertThat(trnsOf(portfolio)).isEmpty()
         assertThat(assetFinder.findLocally(AssetInput("CASH", "ZZZ"))).isNull()
-    }
-
-    @Test
-    fun `should record a back-dated holding in its own date's share basis`() {
-        val owner = login("split-basis")
-        val portfolio = portfolio("RCC-SPLIT")
-        val broker = broker("Split Basis Broker", owner)
-        val asset = asset("SPLT")
-        val held = LocalDate.of(2021, 1, 4)
-        marketDataRepo.saveAll(
-            listOf(
-                MarketData(asset, held, BigDecimal("2000")),
-                MarketData(asset, LocalDate.of(2022, 7, 15), BigDecimal("2200")),
-                // A sticky stamp: the split's marker repeats on the rows after its ex-date.
-                MarketData(asset, LocalDate.of(2022, 7, 18), BigDecimal("110"), split = BigDecimal("20")),
-                MarketData(asset, LocalDate.of(2022, 7, 19), BigDecimal("111"), split = BigDecimal("20")),
-                MarketData(asset, LocalDate.of(2022, 7, 20), BigDecimal("112"), split = BigDecimal("20"))
-            )
-        )
-
-        reconcileCommitService.commit(
-            ConfirmedHoldings(
-                portfolioId = portfolio.id,
-                brokerId = broker.id,
-                uploadId = "split-basis-1",
-                rows =
-                    listOf(
-                        ConfirmedRow(
-                            assetId = asset.id,
-                            trnType = TrnType.ADD,
-                            quantity = BigDecimal("40"),
-                            cost = BigDecimal("1000"),
-                            tradeDate = held
-                        )
-                    )
-            )
-        )
-
-        val recorded = trnRepository.findByCallerRefProviderAndCallerRefBatch("SCREENSHOT", "split-basis-1").single()
-        assertThat(recorded.quantity).isEqualByComparingTo("2")
-        assertThat(recorded.tradeAmount).isEqualByComparingTo("1000")
-        assertThat(recorded.price).isEqualByComparingTo("500")
-        assertThat(recorded.comments).contains("40")
     }
 }

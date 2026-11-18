@@ -42,8 +42,14 @@ class ReconcileCommitService(
                 .orElseThrow { NotFoundException("Broker not found: ${submitted.brokerId}") }
         ConfirmedRowRules.check(submitted)
         // A listing Beancounter does not have yet is created here; a later refusal rolls it back.
-        val confirmed = submitted.copy(rows = submitted.rows.map { confirmedAssets.withAssetId(it) })
-        ConfirmedRowRules.checkResolved(confirmed)
+        val resolved = submitted.copy(rows = submitted.rows.map { confirmedAssets.withAssetId(it) })
+        ConfirmedRowRules.checkResolved(resolved)
+        val tradeDate = resolved.tradeDate ?: DateUtils().date
+        // A back-dated row is recorded in its own date's share basis, before the holdings check
+        // replays it against the split transactions that follow.
+        val based = resolved.rows.map { confirmedAssets.onItsDate(it, tradeDate) }
+        val confirmed = resolved.copy(rows = based.map { it.first })
+        val notes = based.mapNotNull { (row, note) -> note?.let { row.label to it } }.toMap()
         // An asset that does not exist fails here, before any write. The currency is the one
         // the transaction mapper falls back to when a request names none.
         val tradeCurrencies =
@@ -52,7 +58,6 @@ class ReconcileCommitService(
         // held, and the user should be told it is recorded, not that it reduces too much.
         commitGuard.refuseRecorded(confirmed.uploadId, owner)
         commitGuard.refuseOverReduction(confirmed)
-        val tradeDate = confirmed.tradeDate ?: DateUtils().date
         val recordedBy = ReconcileCommitGuard.recordedBy(owner)
         val inputs =
             confirmed.rows.map { row ->
@@ -61,7 +66,8 @@ class ReconcileCommitService(
                     tradeCurrency = tradeCurrencies.getValue(row.label),
                     // A caller reference is unique across all users: without the owner, two users
                     // who send the same upload id for the same asset would collide in the database.
-                    callerRef = CallerRef(ReconcileCommitGuard.PROVIDER, confirmed.uploadId, recordedBy + row.label)
+                    callerRef = CallerRef(ReconcileCommitGuard.PROVIDER, confirmed.uploadId, recordedBy + row.label),
+                    comments = notes[row.label]
                 )
             }
         val deposit =

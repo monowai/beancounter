@@ -204,6 +204,22 @@ class TrnIoDefinitionTest {
     }
 
     @Test
+    fun exportsTheCostDate() {
+        val trn =
+            Trn(
+                trnType = TrnType.ADD,
+                asset = Asset(code = "AAPL", market = nasdaq, name = "Apple Inc."),
+                quantity = BigDecimal("10"),
+                tradeDate = LocalDate.of(2026, 6, 24),
+                costDate = LocalDate.of(2016, 11, 18)
+            )
+
+        val row = trnIoDefinition.export(trn)
+
+        assertThat(row[TrnIoDefinition.Columns.CostDate.ordinal]).isEqualTo("2016-11-18")
+    }
+
+    @Test
     fun exportWithNullSubAccounts() {
         val asset =
             Asset(

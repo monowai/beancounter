@@ -38,7 +38,8 @@ class TrnIoDefinition(
         Comments,
         Status,
         Broker,
-        SubAccounts
+        SubAccounts,
+        CostDate
     }
 
     fun headers(): Array<String> =
@@ -82,6 +83,7 @@ class TrnIoDefinition(
             Pair(
                 Columns.SubAccounts.ordinal,
                 trn.subAccounts?.let { objectMapper.writeValueAsString(it) }
-            )
+            ),
+            Pair(Columns.CostDate.ordinal, trn.costDate?.toString())
         )
 }

@@ -141,9 +141,18 @@ class BcRowAdapter(
             comments = row[Columns.Comments.ordinal],
             status = status,
             brokerId = brokerId,
-            subAccounts = getSubAccounts(row)
+            subAccounts = getSubAccounts(row),
+            costDate = getCostDate(row)
         )
     }
+
+    // An optional trailing column: rows written before it existed have none.
+    private fun getCostDate(row: List<String>): LocalDate? =
+        row
+            .getOrNull(Columns.CostDate.ordinal)
+            ?.trim()
+            ?.takeIf { it.isNotEmpty() }
+            ?.let { dateUtils.getDate(it) }
 
     private fun getBrokerId(row: List<String>): String? {
         // Handle backwards compatibility: if broker column doesn't exist or is empty, return null

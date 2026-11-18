@@ -3,6 +3,7 @@ package com.beancounter.marketdata.trn
 import com.beancounter.client.FxService
 import com.beancounter.client.ingest.FxTransactions
 import com.beancounter.common.contracts.TrnRequest
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.AccountingType
@@ -32,6 +33,7 @@ import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.markets.MarketConfig
 import com.beancounter.marketdata.portfolio.PortfolioService
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.Mockito
@@ -608,6 +610,29 @@ internal class TrnInputMapperTest {
         val trn = trnInputMapper.map(getPortfolio(portfolioId), costDateInput(null, TrnType.BUY), existing)
 
         assertThat(trn.costDate).isNull()
+    }
+
+    @Test
+    fun `should clear the cost date when it equals the trade date`() {
+        val existing =
+            Trn(
+                trnType = TrnType.ADD,
+                asset = asset,
+                costDate = LocalDate.of(2016, 11, 18),
+                portfolio = getPortfolio(portfolioId)
+            )
+
+        val trn = trnInputMapper.map(getPortfolio(portfolioId), costDateInput(theDate), existing)
+
+        assertThat(trn.costDate).isNull()
+    }
+
+    @Test
+    fun `should reject a cost date after the trade date`() {
+        assertThatThrownBy {
+            trnInputMapper.map(getPortfolio(portfolioId), costDateInput(theDate.plusDays(1)))
+        }.isInstanceOf(BusinessException::class.java)
+            .hasMessage("Cost date cannot be after the trade date")
     }
 
     private fun costDateInput(

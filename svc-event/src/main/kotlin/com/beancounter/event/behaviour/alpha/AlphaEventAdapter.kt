@@ -112,6 +112,13 @@ class AlphaEventAdapter(
         )
     }
 
+    /**
+     * A split is not elective, so one dated today or earlier is SETTLED: it has happened, and a
+     * backfill records it as fact. A future one is PROPOSED, so the user may still cancel it.
+     */
+    private fun statusOn(tradeDate: LocalDate): TrnStatus =
+        if (tradeDate.isAfter(dateUtils.date)) TrnStatus.PROPOSED else TrnStatus.SETTLED
+
     private fun toSplit(
         currentPosition: Position,
         corporateEvent: CorporateEvent
@@ -128,7 +135,7 @@ class AlphaEventAdapter(
             quantity = corporateEvent.split,
             tradeDate = corporateEvent.recordDate,
             price = corporateEvent.split,
-            status = TrnStatus.PROPOSED,
+            status = statusOn(corporateEvent.recordDate),
             cashCurrency = currentPosition.asset.market.currency.code
         )
     }
@@ -138,8 +145,9 @@ class AlphaEventAdapter(
         corporateEvent: CorporateEvent,
         payDate: LocalDate
     ): TrnInput {
-        // All dividends are created as PROPOSED transactions regardless of pay date.
-        // A daily scheduler will auto-settle them when the tradeDate arrives.
+        // Always PROPOSED: the owner may take the dividend as shares in a reinvestment plan
+        // (DRIP), which Beancounter does not record, so they choose which to keep as income.
+        // svc-data's daily job settles one proposed before its pay date when that date arrives.
         val gross =
             calculateGross(
                 currentPosition,

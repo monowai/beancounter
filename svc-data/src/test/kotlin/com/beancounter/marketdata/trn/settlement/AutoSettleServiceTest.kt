@@ -63,6 +63,7 @@ class AutoSettleServiceTest {
                 t
             }
         `when`(dateUtils.date).thenReturn(today)
+        `when`(dateUtils.zoneId).thenReturn(java.time.ZoneOffset.UTC)
         // Default: every owner opted in.
         `when`(userPreferencesService.getOrCreate(kAny<SystemUser>()))
             .thenAnswer { invocation ->
@@ -119,6 +120,30 @@ class AutoSettleServiceTest {
         assertThat(result).isEqualTo(1)
         verify(trnSettlementService).settle(testPortfolio, proposedTrn)
         assertThat(proposedTrn.status).isEqualTo(TrnStatus.SETTLED)
+    }
+
+    @Test
+    fun `should leave a dividend proposed after its pay date for the owner to decide`() {
+        // A backfill proposes past dividends: the owner may have reinvested them (DRIP).
+        val backfilled = createProposedTransaction("trn-1", today.minusDays(400), TrnType.DIVI, proposedOn = today)
+        `when`(trnRepository.findDueEventTransactions(TrnStatus.PROPOSED, EVENT_TYPES, today))
+            .thenReturn(listOf(backfilled))
+
+        val result = autoSettleService.autoSettleDueTransactions()
+
+        assertThat(result).isZero()
+        verify(trnSettlementService, never()).settle(testPortfolio, backfilled)
+        assertThat(backfilled.status).isEqualTo(TrnStatus.PROPOSED)
+    }
+
+    @Test
+    fun `should still settle a split proposed after its date`() {
+        val backfilled = createProposedTransaction("trn-1", today.minusDays(400), TrnType.SPLIT, proposedOn = today)
+        `when`(trnRepository.findDueEventTransactions(TrnStatus.PROPOSED, EVENT_TYPES, today))
+            .thenReturn(listOf(backfilled))
+
+        assertThat(autoSettleService.autoSettleDueTransactions()).isEqualTo(1)
+        verify(trnSettlementService).settle(testPortfolio, backfilled)
     }
 
     @Test
@@ -227,7 +252,8 @@ class AutoSettleServiceTest {
     private fun createProposedTransaction(
         id: String,
         tradeDate: LocalDate,
-        trnType: TrnType = TrnType.DIVI
+        trnType: TrnType = TrnType.DIVI,
+        proposedOn: LocalDate = tradeDate.minusDays(10)
     ): Trn =
         Trn(
             id = id,
@@ -240,5 +266,5 @@ class AutoSettleServiceTest {
             tradeAmount = BigDecimal("50.00"),
             tradeCurrency = USD,
             status = TrnStatus.PROPOSED
-        )
+        ).apply { createdAt = proposedOn.atStartOfDay(java.time.ZoneOffset.UTC).toInstant() }
 }

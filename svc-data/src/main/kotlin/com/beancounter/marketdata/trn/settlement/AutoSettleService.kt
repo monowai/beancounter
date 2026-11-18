@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.trn.settlement
 
+import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
@@ -66,7 +67,7 @@ class AutoSettleService(
         // the user_preferences table once per transaction.
         val autoSettleByOwner = mutableMapOf<String, Boolean>()
         var settledCount = 0
-        for (trn in dueTransactions) {
+        for (trn in dueTransactions.filterNot(::proposedAfterItsPayDate)) {
             val owner = trn.portfolio.owner
             val ownerOptIn =
                 autoSettleByOwner.getOrPut(owner.id) {
@@ -98,4 +99,16 @@ class AutoSettleService(
         log.info("Auto-settled {} transactions", settledCount)
         return settledCount
     }
+
+    /**
+     * A dividend proposed after its pay date came from a backfill: the owner may have
+     * reinvested it (a DRIP), which Beancounter does not record, so it waits for them to
+     * settle it as income or delete it. One proposed before its pay date had that chance.
+     */
+    private fun proposedAfterItsPayDate(trn: Trn): Boolean =
+        trn.trnType == TrnType.DIVI &&
+            trn.createdAt
+                .atZone(dateUtils.zoneId)
+                .toLocalDate()
+                .isAfter(trn.tradeDate)
 }

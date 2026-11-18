@@ -75,7 +75,7 @@ class TestAlphaEventAdapter {
                 TrnType.DIVI
             ).hasFieldOrPropertyWithValue(
                 "status",
-                TrnStatus.SETTLED
+                TrnStatus.PROPOSED
             ).hasFieldOrPropertyWithValue(
                 "tradeDate",
                 expectedPayDate

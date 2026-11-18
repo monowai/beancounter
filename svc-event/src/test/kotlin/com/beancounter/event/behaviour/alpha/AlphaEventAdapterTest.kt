@@ -480,7 +480,7 @@ class AlphaEventAdapterTest {
     }
 
     @Test
-    fun `past dated DIVIDEND should be SETTLED, as it has already been paid`() {
+    fun `past dated DIVIDEND should stay PROPOSED, as it may have been reinvested`() {
         val pastRecordDate = LocalDate.of(2024, 1, 15)
         val dividendEvent =
             CorporateEvent(
@@ -494,13 +494,13 @@ class AlphaEventAdapterTest {
 
         val result = alphaEventAdapter.calculate(testPortfolio, testPosition, dividendEvent)
 
-        assertThat(result.trnInput.status).isEqualTo(TrnStatus.SETTLED)
+        assertThat(result.trnInput.status).isEqualTo(TrnStatus.PROPOSED)
         assertThat(result.trnInput.tradeDate)
             .isEqualTo(pastRecordDate.plusDays(AlphaEventAdapter.DEFAULT_DAYS_TO_ADD))
     }
 
     @Test
-    fun `DIVIDEND paid today should be SETTLED`() {
+    fun `DIVIDEND paid today should stay PROPOSED`() {
         val today = LocalDate.now(DateUtils().zoneId)
         val dividendEvent =
             CorporateEvent(
@@ -515,7 +515,7 @@ class AlphaEventAdapterTest {
         val result = alphaEventAdapter.calculate(testPortfolio, testPosition, dividendEvent)
 
         assertThat(result.trnInput.tradeDate).isEqualTo(today)
-        assertThat(result.trnInput.status).isEqualTo(TrnStatus.SETTLED)
+        assertThat(result.trnInput.status).isEqualTo(TrnStatus.PROPOSED)
     }
 
     @Test

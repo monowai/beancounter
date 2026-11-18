@@ -9,6 +9,7 @@ import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
 import com.beancounter.marketdata.metrics.TrnMetrics
 import com.beancounter.marketdata.portfolio.PortfolioService
+import com.beancounter.marketdata.trn.SoleBroker
 import com.beancounter.marketdata.trn.TrnRepository
 import com.beancounter.marketdata.trn.TrnService
 import org.slf4j.LoggerFactory
@@ -103,7 +104,7 @@ class TrnImportService(
             val written =
                 writeTrn(
                     trustedTrnEvent.portfolio,
-                    trustedTrnEvent.trnInput
+                    withSoleBroker(trustedTrnEvent)
                 )
             trnMetrics.recordTrnWritten(trustedTrnEvent.trnInput.trnType.name, written.size)
             written
@@ -126,6 +127,15 @@ class TrnImportService(
             start,
             endDate
         )
+    }
+
+    /** The event's input, with the portfolio's only broker for the asset when it names none. */
+    private fun withSoleBroker(trustedTrnEvent: TrustedTrnEvent): TrnInput {
+        val input = trustedTrnEvent.trnInput
+        val assetId = input.assetId
+        if (input.brokerId != null || !SoleBroker.isEvent(input.trnType) || assetId == null) return input
+        val broker = SoleBroker.of(trnRepository, trustedTrnEvent.portfolio.id, assetId, input.tradeDate)
+        return input.copy(brokerId = broker?.id)
     }
 
     private fun writeTrn(

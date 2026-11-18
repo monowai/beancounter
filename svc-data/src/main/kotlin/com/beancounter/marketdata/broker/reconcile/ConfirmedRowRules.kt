@@ -23,13 +23,20 @@ internal object ConfirmedRowRules {
         val rows = confirmed.rows
         return when {
             confirmed.uploadId.isBlank() -> "A submission needs the id of its upload"
-            rows.isEmpty() -> "A submission with no rows records nothing"
+            rows.isEmpty() && confirmed.cash == null -> "A submission with no rows and no cash records nothing"
             rows.size > MAX_ROWS -> "A statement holds at most $MAX_ROWS rows, not ${rows.size}"
             // The rows are recorded as settled, and a trade does not settle before its date.
             isFuture(confirmed.tradeDate) -> "The trade date ${confirmed.tradeDate} is after today"
-            else -> namedTwice(rows)?.let { namedTwiceProblem(it) }
+            else -> confirmed.cash?.let { cashProblem(it) } ?: namedTwice(rows)?.let { namedTwiceProblem(it) }
         }
     }
+
+    private fun cashProblem(cash: ConfirmedCash): String? =
+        when {
+            cash.amount.signum() <= 0 -> "The cash balance must be more than zero, not ${cash.amount.toPlainString()}"
+            cash.currency.isBlank() -> "The cash balance needs a currency"
+            else -> null
+        }
 
     /**
      * Once every row carries its asset's id: one asset named by id in one row and by market and

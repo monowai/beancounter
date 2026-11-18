@@ -2,15 +2,18 @@ package com.beancounter.marketdata.broker.reconcile
 
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.input.AssetInput
+import com.beancounter.common.model.TrnType
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
+import com.beancounter.marketdata.trn.CashTrnServices
 import org.springframework.stereotype.Component
 
 /** The assets a confirmed submission names: found, or created for a listing new to Beancounter. */
 @Component
 class ConfirmedAssets(
     private val assetFinder: AssetFinder,
-    private val assetService: AssetService
+    private val assetService: AssetService,
+    private val cashTrnServices: CashTrnServices
 ) {
     /**
      * [row] named by id: as it is, or with the id of the asset its market and code now create.
@@ -39,4 +42,17 @@ class ConfirmedAssets(
         val asset = assetFinder.find(assetId)
         return (asset.accountingType?.currency ?: asset.market.currency).code
     }
+
+    /**
+     * The id of the cash asset a deposit in [currency] at [brokerId] lands in: the broker's
+     * settlement account for the currency, else the generic cash balance for it.
+     */
+    fun cashAssetId(
+        currency: String,
+        ownerId: String,
+        brokerId: String
+    ): String =
+        checkNotNull(cashTrnServices.getCashAsset(TrnType.DEPOSIT, null, currency, ownerId, brokerId)) {
+            "No cash asset for $currency"
+        }.id
 }

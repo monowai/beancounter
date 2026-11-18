@@ -22,6 +22,8 @@ import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.broker.BrokerRepository
+import com.beancounter.marketdata.broker.BrokerSettlementAccount
+import com.beancounter.marketdata.broker.BrokerSettlementAccountRepository
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.trn.TrnRepository
 import com.beancounter.marketdata.trn.broker.TrnBrokerService
@@ -63,6 +65,9 @@ class ReconcileCommitTest {
 
     @Autowired
     private lateinit var trnRepository: TrnRepository
+
+    @Autowired
+    private lateinit var brokerSettlementAccountRepository: BrokerSettlementAccountRepository
 
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
@@ -151,6 +156,17 @@ class ReconcileCommitTest {
             .flatMap { it.portfolioGroups }
             .filter { it.portfolioId == portfolio.id }
             .fold(BigDecimal.ZERO) { total, group -> total.add(group.quantity) }
+
+    /** The cash [portfolio] holds in [currency]: every settled cash movement in it, summed. */
+    private fun cashIn(
+        portfolio: Portfolio,
+        currency: String
+    ): BigDecimal =
+        trnsOf(portfolio)
+            .filter { it.cashCurrency?.code == currency && it.status == TrnStatus.SETTLED }
+            .fold(BigDecimal.ZERO) { total, trn -> total.add(trn.cashAmount) }
+
+    private fun cash(amount: String) = ConfirmedCash(BigDecimal(amount), USD.code)
 
     private fun assertRefused(
         submission: ConfirmedHoldings,
@@ -706,5 +722,107 @@ class ReconcileCommitTest {
             assertThat(it.cashAmount).isEqualByComparingTo("0")
         }
         assertThat(result.warnings).isEmpty()
+    }
+
+    @Test
+    fun `should record an opening cash balance as a deposit at the broker, with the holdings`() {
+        val user = login("open-cash")
+        val portfolio = portfolio("RCC-OPENCASH")
+        val asset = asset("RCCOC1")
+        val broker = broker("RCC-OPENCASH-B", user)
+        val tradeDate = LocalDate.of(2026, 3, 2)
+
+        val result =
+            reconcileCommitService.commit(
+                confirmed(portfolio, broker, "rcc-opencash-upload", add(asset, "8", "100"))
+                    .copy(tradeDate = tradeDate, cash = cash("2500.50"))
+            )
+
+        val deposit = trnsOf(portfolio).single { it.trnType == TrnType.DEPOSIT }
+        assertThat(result.trns.map { it.id }).contains(deposit.id).hasSize(2)
+        assertThat(deposit.status).isEqualTo(TrnStatus.SETTLED)
+        assertThat(deposit.broker?.id).isEqualTo(broker.id)
+        assertThat(deposit.asset.id).isEqualTo(deposit.cashAsset?.id)
+        assertThat(deposit.quantity).isEqualByComparingTo("2500.50")
+        assertThat(deposit.cashAmount).isEqualByComparingTo("2500.50")
+        assertThat(deposit.price).isEqualByComparingTo("1")
+        assertThat(deposit.tradeCurrency.code).isEqualTo(USD.code)
+        assertThat(deposit.cashCurrency?.code).isEqualTo(USD.code)
+        assertThat(deposit.tradeDate).isEqualTo(tradeDate)
+        assertThat(deposit.comments).isEqualTo("Opening cash balance")
+        assertThat(deposit.callerRef).isEqualTo(CallerRef("SCREENSHOT", "rcc-opencash-upload", "${user.id}:cash"))
+        assertThat(cashIn(portfolio, USD.code)).isEqualByComparingTo("2500.50")
+        assertThat(heldAt(broker, portfolio, asset)).isEqualByComparingTo("8")
+    }
+
+    @Test
+    fun `should deposit opening cash into the broker's settlement account for the currency`() {
+        val user = login("open-cash-settle")
+        val portfolio = portfolio("RCC-OCSETTLE")
+        val broker = broker("RCC-OCSETTLE-B", user)
+        val settlement = asset("RCC-OCSETTLE-USD")
+        brokerSettlementAccountRepository.save(
+            BrokerSettlementAccount(broker = broker, currencyCode = USD.code, account = settlement)
+        )
+
+        reconcileCommitService.commit(
+            confirmed(portfolio, broker, "rcc-ocsettle-upload", add(asset("RCCOS1"), "1")).copy(cash = cash("40"))
+        )
+
+        val deposit = trnsOf(portfolio).single { it.trnType == TrnType.DEPOSIT }
+        assertThat(deposit.asset.id).isEqualTo(settlement.id)
+        assertThat(deposit.cashAsset?.id).isEqualTo(settlement.id)
+        assertThat(cashIn(portfolio, USD.code)).isEqualByComparingTo("40")
+    }
+
+    @Test
+    fun `should record opening cash with no holdings`() {
+        val user = login("cash-only")
+        val portfolio = portfolio("RCC-CASHONLY")
+        val broker = broker("RCC-CASHONLY-B", user)
+
+        reconcileCommitService.commit(confirmed(portfolio, broker, "rcc-cashonly-upload").copy(cash = cash("75")))
+
+        assertThat(trnsOf(portfolio)).extracting("trnType").containsExactly(TrnType.DEPOSIT)
+        assertThat(cashIn(portfolio, USD.code)).isEqualByComparingTo("75")
+    }
+
+    @Test
+    fun `should record neither the holdings nor the cash when the submission is refused`() {
+        val user = login("cash-refused")
+        val portfolio = portfolio("RCC-CASHREF")
+        val unheld = asset("RCCCR2")
+        val broker = broker("RCC-CASHREF-B", user)
+
+        assertRefused(
+            confirmed(portfolio, broker, "rcc-cashref-upload", add(asset("RCCCR1"), "1"), reduce(unheld, "1"))
+                .copy(cash = cash("500")),
+            unheld.id
+        )
+
+        assertThat(trnsOf(portfolio)).isEmpty()
+        assertThat(cashIn(portfolio, USD.code)).isEqualByComparingTo("0")
+    }
+
+    @Test
+    fun `should refuse opening cash that is zero or negative, or has no currency`() {
+        val user = login("cash-bad")
+        val portfolio = portfolio("RCC-CASHBAD")
+        val asset = asset("RCCCB1")
+        val broker = broker("RCC-CASHBAD-B", user)
+        val refusals =
+            mapOf(
+                cash("0") to "cash balance must be more than zero",
+                cash("-1") to "cash balance must be more than zero",
+                ConfirmedCash(BigDecimal.TEN, " ") to "cash balance needs a currency",
+                ConfirmedCash(BigDecimal.TEN, "ZZZ") to "[ZZZ] is an unknown currency"
+            )
+
+        for ((bad, message) in refusals) {
+            assertRefused(confirmed(portfolio, broker, "rcc-cashbad-upload", add(asset, "1")).copy(cash = bad), message)
+        }
+
+        assertThat(trnsOf(portfolio)).isEmpty()
+        assertThat(assetFinder.findLocally(AssetInput("CASH", "ZZZ"))).isNull()
     }
 }

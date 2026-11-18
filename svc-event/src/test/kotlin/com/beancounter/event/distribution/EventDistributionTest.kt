@@ -49,6 +49,9 @@ class EventDistributionTest {
     @Mock
     private lateinit var eventMetrics: EventMetrics
 
+    @Mock
+    private lateinit var costDatedHoldings: CostDatedHoldings
+
     private lateinit var eventDistribution: EventDistribution
 
     private lateinit var testCorporateEvent: CorporateEvent
@@ -69,7 +72,8 @@ class EventDistributionTest {
                 positionService,
                 CorporateEventStore(eventRepository, keyGenUtils),
                 eventMetrics,
-                eventPublisher
+                eventPublisher,
+                costDatedHoldings
             )
 
         testCorporateEvent = TestHelpers.createTestCorporateEvent()

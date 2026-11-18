@@ -83,7 +83,9 @@ class EventSoleBrokerTest {
     private fun added(
         portfolio: Portfolio,
         asset: Asset,
-        broker: Broker?
+        broker: Broker?,
+        tradeDate: LocalDate = held,
+        costDate: LocalDate? = null
     ) {
         trnRepository.save(
             Trn(
@@ -92,7 +94,8 @@ class EventSoleBrokerTest {
                 quantity = BigDecimal("10"),
                 portfolio = portfolio,
                 broker = broker,
-                tradeDate = held,
+                tradeDate = tradeDate,
+                costDate = costDate,
                 status = TrnStatus.SETTLED
             )
         )
@@ -132,6 +135,17 @@ class EventSoleBrokerTest {
         added(portfolio, asset, broker)
 
         assertThat(dividend(portfolio, asset, "esb-sole").broker?.id).isEqualTo(broker.id)
+    }
+
+    @Test
+    fun `should give a dividend paid before an imported holding's trade date the holding's broker`() {
+        val owner = login("import")
+        val portfolio = portfolio("ESB-IMPORT")
+        val broker = brokerRepository.save(Broker(name = "Import Broker", owner = owner))
+        val asset = asset("ESBE")
+        added(portfolio, asset, broker, tradeDate = paid.plusYears(2), costDate = held.minusYears(5))
+
+        assertThat(dividend(portfolio, asset, "esb-import").broker?.id).isEqualTo(broker.id)
     }
 
     @Test

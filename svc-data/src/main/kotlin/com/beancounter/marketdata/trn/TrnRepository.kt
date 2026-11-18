@@ -135,6 +135,29 @@ interface TrnRepository :
         tradeDate: LocalDate
     ): Collection<Trn>
 
+    /**
+     * Settled imported holdings of an asset (ADDs with a cost date) in active portfolios that
+     * were held on [recordDate] by their cost date but not yet traded: costDate <= recordDate <
+     * tradeDate. Dividends only; see svc-event's cost-dated holdings.
+     */
+    @Query(
+        "select t from Trn t " +
+            "join fetch t.asset " +
+            "join fetch t.tradeCurrency " +
+            "join fetch t.portfolio " +
+            "where t.asset.id = :assetId " +
+            "and t.trnType = com.beancounter.common.model.TrnType.ADD " +
+            "and t.status = com.beancounter.common.model.TrnStatus.SETTLED " +
+            "and t.costDate <= :recordDate " +
+            "and t.tradeDate > :recordDate " +
+            "and t.portfolio.active = true " +
+            "order by t.tradeDate asc, t.createdAt asc"
+    )
+    fun findCostDatedAdds(
+        @Param("assetId") assetId: String,
+        @Param("recordDate") recordDate: LocalDate
+    ): Collection<Trn>
+
     @Query(
         "select t from Trn t " +
             "join fetch t.asset " +
@@ -478,11 +501,16 @@ interface TrnRepository :
     )
     fun countByTrnType(): List<com.beancounter.marketdata.metrics.TypeCount>
 
-    /** The brokers a portfolio's settled holding trades for an asset name, up to a date. */
+    /**
+     * The brokers a portfolio's settled holding trades for an asset name, up to a date. An
+     * imported holding (an ADD with a cost date) counts from its cost date, as its dividends do.
+     */
     @Query(
         "select distinct t.broker from Trn t " +
             "where t.portfolio.id = :portfolioId and t.asset.id = :assetId " +
-            "and t.broker is not null and t.tradeDate <= :date " +
+            "and t.broker is not null " +
+            "and (t.tradeDate <= :date or (t.trnType = com.beancounter.common.model.TrnType.ADD " +
+            "and t.costDate <= :date)) " +
             "and t.trnType in :types and t.status = com.beancounter.common.model.TrnStatus.SETTLED"
     )
     fun findHoldingBrokers(
@@ -492,11 +520,16 @@ interface TrnRepository :
         @Param("types") types: Collection<TrnType>
     ): List<Broker>
 
-    /** Whether any of a portfolio's settled holding trades for an asset, up to a date, has no broker. */
+    /**
+     * Whether any of a portfolio's settled holding trades for an asset, up to a date, has no
+     * broker. An imported holding counts from its cost date.
+     */
     @Query(
         "select count(t) > 0 from Trn t " +
             "where t.portfolio.id = :portfolioId and t.asset.id = :assetId " +
-            "and t.broker is null and t.tradeDate <= :date " +
+            "and t.broker is null " +
+            "and (t.tradeDate <= :date or (t.trnType = com.beancounter.common.model.TrnType.ADD " +
+            "and t.costDate <= :date)) " +
             "and t.trnType in :types and t.status = com.beancounter.common.model.TrnStatus.SETTLED"
     )
     fun hasUnbrokeredHolding(

@@ -77,6 +77,17 @@ class PositionService(
         portfolio: Portfolio,
         event: CorporateEvent,
         overridePayDate: String? = null
+    ): TrustedTrnEvent = process(portfolio, event, overridePayDate, null)
+
+    /**
+     * As [process], with the shares the portfolio's imported holdings are owed added to what
+     * svc-position reports it held on the record date, usually nothing.
+     */
+    fun process(
+        portfolio: Portfolio,
+        event: CorporateEvent,
+        overridePayDate: String?,
+        imported: ImportedShares?
     ): TrustedTrnEvent {
         val positionResponse =
             positionGateway.query(
@@ -87,22 +98,23 @@ class PositionService(
                     event.assetId
                 )
             )
-        if (positionResponse != null && positionResponse.data.hasPositions()) {
-            for (position in positionResponse.data.positions.values) {
-                // Cash positions do not have Events and Interest is not currently calculated.
-                if (includePosition(position)) {
-                    return behaviourFactory
-                        .getAdapter()
-                        .calculate(
-                            positionResponse.data.portfolio,
-                            position,
-                            event,
-                            overridePayDate
-                        )
-                }
-            }
-        }
-        return TrustedTrnEvent(portfolio) // Ignore
+        // Cash positions do not have Events and Interest is not currently calculated.
+        val held =
+            positionResponse
+                ?.data
+                ?.takeIf { it.hasPositions() }
+                ?.positions
+                ?.values
+                ?.firstOrNull { includePosition(it) }
+        val position = imported?.addedTo(held) ?: held ?: return TrustedTrnEvent(portfolio) // Ignore
+        return behaviourFactory
+            .getAdapter()
+            .calculate(
+                positionResponse?.data?.portfolio ?: portfolio,
+                position,
+                event,
+                overridePayDate
+            )
     }
 
     fun includePosition(position: Position): Boolean {

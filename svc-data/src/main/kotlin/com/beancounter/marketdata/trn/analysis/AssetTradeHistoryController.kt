@@ -4,6 +4,7 @@ import com.beancounter.auth.model.AuthConstants
 import com.beancounter.common.contracts.TrnGroupBy
 import com.beancounter.common.contracts.TrnResponse
 import com.beancounter.common.input.TrustedTrnQuery
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.trn.TrnQueryService
 import io.swagger.v3.oas.annotations.Operation
@@ -37,7 +38,8 @@ import org.springframework.web.bind.annotation.RestController
 )
 class AssetTradeHistoryController(
     private val trnQueryService: TrnQueryService,
-    private val portfolioService: PortfolioService
+    private val portfolioService: PortfolioService,
+    private val dateUtils: DateUtils
 ) {
     @GetMapping(
         value = ["/{portfolioId}/asset/{assetId}/events"],
@@ -177,6 +179,44 @@ class AssetTradeHistoryController(
             TrnTradeSummaryBuilder.build(trns, TrnGroupBy.PORTFOLIO)
         )
     }
+
+    @GetMapping(
+        value = ["/asset/{assetId}/cost-dated"],
+        produces = [MediaType.APPLICATION_JSON_VALUE]
+    )
+    @Operation(
+        summary = "Find imported holdings of an asset owed a dividend on a record date",
+        description = """
+            Returns the settled ADDs of an asset that carry a cost date on or before asAt and
+            a trade date after it, in active portfolios the caller can view. A screenshot import
+            records its holding on the statement date; it is owed dividends from its cost date.
+
+            Use this to:
+            * Find who is owed a dividend recorded before an imported holding was traded
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "Cost-dated ADDs retrieved (empty when there are none)"
+            ),
+            ApiResponse(
+                responseCode = "400",
+                description = "Invalid date format"
+            )
+        ]
+    )
+    fun findCostDatedAdds(
+        @Parameter(
+            description = "Asset identifier",
+            example = "asset-123"
+        ) @PathVariable("assetId") assetId: String,
+        @Parameter(
+            description = "The dividend's record date (YYYY-MM-DD format)",
+            example = "2019-05-10"
+        ) @RequestParam("asAt") asAt: String
+    ): TrnResponse = TrnResponse(trnQueryService.findCostDatedAdds(assetId, dateUtils.getFormattedDate(asAt)))
 
     @PostMapping(
         value = ["/query"]

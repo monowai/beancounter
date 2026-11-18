@@ -50,6 +50,20 @@ class TrnQueryService(
         )
     }
 
+    /**
+     * Imported holdings of an asset owed a dividend recorded on [recordDate]: ADDs whose cost
+     * date is on or before it and whose trade date is after it, in portfolios the caller can
+     * view. Like the holders of an asset, a service caller sees every portfolio.
+     */
+    fun findCostDatedAdds(
+        assetId: String,
+        recordDate: LocalDate
+    ): Collection<Trn> =
+        trnPostProcessor.postProcess(
+            trnRepository.findCostDatedAdds(assetId, recordDate),
+            true
+        )
+
     private val eventFilter = listOf(TrnType.DIVI, TrnType.SPLIT)
 
     private val tradeFilter =

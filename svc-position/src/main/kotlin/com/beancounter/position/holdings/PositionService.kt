@@ -4,6 +4,7 @@ import com.beancounter.common.contracts.PositionRequest
 import com.beancounter.common.contracts.PositionResponse
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Positions
+import com.beancounter.position.accumulation.AccumulationOrder
 import com.beancounter.position.accumulation.Accumulator
 import org.springframework.stereotype.Service
 
@@ -22,7 +23,7 @@ class PositionService internal constructor(
         positionRequest: PositionRequest
     ): PositionResponse {
         val positions = Positions(portfolio)
-        for (trn in positionRequest.trns) {
+        for (trn in AccumulationOrder.of(positionRequest.trns.toList())) {
             accumulator.accumulate(
                 trn,
                 positions

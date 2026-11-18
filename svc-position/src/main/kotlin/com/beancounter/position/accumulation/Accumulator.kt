@@ -15,6 +15,7 @@ import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.irr.IrrCalculator
 import org.springframework.context.annotation.Import
 import org.springframework.stereotype.Service
+import java.time.LocalDate
 
 /**
  * Service to apply transaction-specific accumulation logic to positions,
@@ -73,7 +74,7 @@ class Accumulator(
             trn,
             positions
         )
-        position.dateValues.last = trn.tradeDate
+        position.dateValues.last = latest(position.dateValues.last, trn.tradeDate)
 
         // Is cash impacted by this transaction opposed to being a "cash" transaction
         val cashAsset = trn.cashAsset
@@ -121,6 +122,12 @@ class Accumulator(
 
         return position
     }
+
+    // Never backwards: an imported holding's earlier dividends accumulate after its ADD.
+    private fun latest(
+        last: LocalDate?,
+        tradeDate: LocalDate
+    ): LocalDate = if (last != null && last > tradeDate) last else tradeDate
 
     /**
      * Determines if cash accumulation should occur for a given transaction.

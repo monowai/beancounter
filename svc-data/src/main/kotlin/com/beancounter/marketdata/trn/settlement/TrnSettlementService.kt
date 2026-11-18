@@ -165,11 +165,6 @@ class TrnSettlementService(
         portfolio: Portfolio,
         trn: Trn
     ): Settled? {
-        // An event proposed before its broker could be told (svc-event knows none) takes the
-        // portfolio's only broker for the asset when there is one.
-        if (trn.broker == null && SoleBroker.isEvent(trn.trnType)) {
-            trn.broker = SoleBroker.of(trnRepository, portfolio.id, trn.asset.id, trn.tradeDate)
-        }
         try {
             // Resolve FX now that settlement is confirmed. Ingest of forward-dated
             // event trns (DIVI payDate) defers FX; providers reject future dates.
@@ -192,6 +187,12 @@ class TrnSettlementService(
         // Now that the rate is resolved, derive it before the cash legs are emitted.
         if (needsCashAmount(trn)) {
             trn.cashAmount = CashTrnServices.cashImpact(trn.trnType, trn.tradeAmount, trn.tradeCashRate)
+        }
+        // An event proposed before its broker could be told (svc-event knows none) takes the
+        // portfolio's only broker for the asset when there is one. Done after the FX gate, so
+        // a trn left PROPOSED for retry is left untouched.
+        if (trn.broker == null && SoleBroker.isEvent(trn.trnType)) {
+            trn.broker = SoleBroker.of(trnRepository, portfolio.id, trn.asset.id, trn.tradeDate)
         }
         trn.status = TrnStatus.SETTLED
         trnRepository.save(trn)

@@ -421,6 +421,25 @@ class BcRowAdapterTest {
         }
     }
 
+    @Test
+    fun `reads the cost date from its trailing column`() {
+        val tradeDate = LocalDate.now(DateUtils().zoneId).minusDays(1)
+        val row = buyRow(tradeDate.toString()) + listOf("SETTLED", "", "", "2016-11-18")
+
+        val result = bcRowAdapter.transform(trustedTrnImportRequest(row))
+
+        assertThat(result.costDate).isEqualTo(LocalDate.of(2016, 11, 18))
+    }
+
+    @Test
+    fun `a row without the cost date column has none`() {
+        val tradeDate = LocalDate.now(DateUtils().zoneId).minusDays(1)
+
+        val result = bcRowAdapter.transform(trustedTrnImportRequest(buyRow(tradeDate.toString())))
+
+        assertThat(result.costDate).isNull()
+    }
+
     private fun buyRow(tradeDate: String): List<String> =
         listOf(
             BATCH_USX,

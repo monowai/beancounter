@@ -20,6 +20,7 @@ import com.beancounter.marketdata.currency.CurrencyService
 import com.beancounter.marketdata.trn.io.BcRowAdapter
 import org.springframework.stereotype.Service
 import java.math.BigDecimal
+import java.time.LocalDate
 
 /**
  * Map TrnInput objects to the Trn persistent model.
@@ -101,9 +102,7 @@ class TrnInputMapper(
             portfolio = portfolio,
             // Sign this value
             settleDate = trnInput.settleDate,
-            // Only an ADD has a cost date. A client that does not know the field sends none:
-            // keep the stored one.
-            costDate = (trnInput.costDate ?: existing?.costDate).takeIf { trnInput.trnType == TrnType.ADD },
+            costDate = costDate(trnInput, existing),
             fees = trnInput.fees,
             tax = trnInput.tax,
             comments = trnInput.comments ?: existing?.comments,
@@ -112,6 +111,23 @@ class TrnInputMapper(
             modelId = trnInput.modelId ?: existing?.modelId,
             subAccounts = trnInput.subAccounts ?: existing?.subAccounts
         )
+    }
+
+    /**
+     * Only an ADD has a cost date. A client that does not know the field sends none: keep the
+     * stored one. A cost date on the trade date means none, so the edit screen clears it by
+     * sending the trade date; a cost date after the trade date is refused.
+     */
+    private fun costDate(
+        trnInput: TrnInput,
+        existing: Trn?
+    ): LocalDate? {
+        val sent = trnInput.costDate
+        if (trnInput.trnType == TrnType.ADD && sent?.isAfter(trnInput.tradeDate) == true) {
+            throw BusinessException(COST_DATE_AFTER_TRADE_DATE)
+        }
+        return (sent ?: existing?.costDate)
+            ?.takeIf { trnInput.trnType == TrnType.ADD && it.isBefore(trnInput.tradeDate) }
     }
 
     /**
@@ -256,5 +272,9 @@ class TrnInputMapper(
         } else {
             currencyService.getCode(requestedCode)
         }
+    }
+
+    companion object {
+        const val COST_DATE_AFTER_TRADE_DATE = "Cost date cannot be after the trade date"
     }
 }

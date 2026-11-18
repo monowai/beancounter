@@ -89,6 +89,16 @@ data class Trn(
         pattern = "yyyy-MM-dd"
     )
     var settleDate: LocalDate? = null,
+    /**
+     * When the cost was paid, for performance only; quantity, splits and dividends follow
+     * tradeDate. Null means tradeDate.
+     */
+    @JsonFormat(
+        shape = JsonFormat.Shape.STRING,
+        pattern = "yyyy-MM-dd"
+    )
+    @Column(name = "cost_date")
+    var costDate: LocalDate? = null,
     // In trade Currency
     var fees: BigDecimal = BigDecimal.ZERO,
     // In trade Currency
@@ -123,3 +133,11 @@ data class Trn(
         const val VERSION: String = "4"
     }
 }
+
+/**
+ * When this transaction's cost was paid: an ADD's [Trn.costDate] when it has one, otherwise
+ * the trade date. Only an ADD records a holding bought before it, so any other type's cost
+ * date is ignored.
+ */
+val Trn.costPaidOn: LocalDate
+    get() = costDate?.takeIf { trnType == TrnType.ADD } ?: tradeDate

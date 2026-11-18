@@ -18,6 +18,8 @@ import java.time.temporal.ChronoUnit
  * - [ofPosition] measures the current holding, from the position's `opened` date to
  *   the valuation date. `opened` survives a sell-out and resets on re-entry, so a
  *   position re-bought last month reports ROI even when its first trade is years old.
+ *   An ADD with a cost date opens on that date, so a holding recorded today at a cost
+ *   paid years ago is annualised.
  * - [IrrCalculator.calculate] measures the cash flows, first to last. It is the only
  *   check a portfolio's combined flows get, and it still applies to a position that
  *   passed the first.

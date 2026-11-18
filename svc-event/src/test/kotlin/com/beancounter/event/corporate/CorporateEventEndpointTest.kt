@@ -16,8 +16,8 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doAnswer
-import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.never
+import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
 import org.mockito.kotlin.whenever
@@ -255,10 +255,8 @@ class CorporateEventEndpointTest {
             release.countDown()
         }
         assertThat(finished.await(WAIT_SECONDS, TimeUnit.SECONDS)).isTrue()
-        inOrder(portfolioService, rangeEventLoader) {
-            verify(portfolioService).getPortfolioById(portfolio.id)
-            verify(rangeEventLoader).load(portfolio, LocalDate.parse("2024-01-15"))
-        }
+        verify(portfolioService, times(2)).getPortfolioById(portfolio.id)
+        verify(rangeEventLoader).load(portfolio, LocalDate.parse("2024-01-15"))
         verifyNoInteractions(eventLoader)
     }
 

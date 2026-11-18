@@ -90,8 +90,8 @@ data class Trn(
     )
     var settleDate: LocalDate? = null,
     /**
-     * When the cost was paid, for performance only; quantity, splits and dividends follow
-     * tradeDate. Null means tradeDate.
+     * When the cost was paid. Null means tradeDate. Performance runs from it, and an ADD's
+     * quantity is owed dividends from it; quantity and splits follow tradeDate.
      */
     @JsonFormat(
         shape = JsonFormat.Shape.STRING,

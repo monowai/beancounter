@@ -12,6 +12,7 @@ import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Service
 import org.springframework.web.client.RestClient
+import java.time.LocalDate
 
 /**
  * Obtain transactions from the backend.
@@ -56,6 +57,22 @@ class TrnService(
             .retrieve()
             .body(TrnResponse::class.java)
             ?: throw BusinessException("Failed to query portfolio transactions")
+
+    /**
+     * Imported holdings of an asset owed a dividend recorded on [recordDate]: ADDs with a cost
+     * date on or before it and a trade date after it, in portfolios the caller can view.
+     */
+    fun queryCostDated(
+        assetId: String,
+        recordDate: LocalDate
+    ): TrnResponse =
+        restClient
+            .get()
+            .uri("/trns/asset/{assetId}/cost-dated?asAt={asAt}", assetId, recordDate.toString())
+            .header(HttpHeaders.AUTHORIZATION, tokenService.bearerToken)
+            .retrieve()
+            .body(TrnResponse::class.java)
+            ?: throw BusinessException("Failed to query cost-dated holdings")
 
     /**
      * PROPOSED cash legs (DEPOSIT / WITHDRAWAL) for a portfolio as at a date.

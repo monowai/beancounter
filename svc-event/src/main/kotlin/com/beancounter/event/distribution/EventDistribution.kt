@@ -22,7 +22,8 @@ class EventDistribution(
     private val positionService: PositionService,
     private val eventStore: CorporateEventStore,
     private val eventMetrics: EventMetrics,
-    private val eventPublisher: EventPublisher
+    private val eventPublisher: EventPublisher,
+    private val costDatedHoldings: CostDatedHoldings
 ) {
     private val log = LoggerFactory.getLogger(this::class.java)
 
@@ -51,19 +52,23 @@ class EventDistribution(
                 event.assetId,
                 event.recordDate
             )
+        // Imported holdings owed a dividend before their trade date, which svc-position cannot see.
+        val imported = costDatedHoldings.owed(event)
+        val holders = (response.data + imported.values.map { it.portfolio }).distinctBy { it.id }
 
-        val portfolioCount = response.data.size
+        val portfolioCount = holders.size
         var ignoredCount = 0
         var transactionCount = 0
 
         val results =
-            response.data.mapNotNull { portfolio ->
+            holders.mapNotNull { portfolio ->
+                val importedShares = imported[portfolio.id]
                 val trnEvent =
-                    positionService.process(
-                        portfolio,
-                        event,
-                        overridePayDate
-                    )
+                    if (importedShares == null) {
+                        positionService.process(portfolio, event, overridePayDate)
+                    } else {
+                        positionService.process(portfolio, event, overridePayDate, importedShares)
+                    }
                 // Skip ignored transactions (e.g., unsupported event types)
                 if (trnEvent.trnInput.trnType == TrnType.IGNORE) {
                     ignoredCount++

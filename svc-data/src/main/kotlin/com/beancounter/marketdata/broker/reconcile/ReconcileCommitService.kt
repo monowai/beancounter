@@ -53,6 +53,7 @@ class ReconcileCommitService(
         commitGuard.refuseRecorded(confirmed.uploadId, owner)
         commitGuard.refuseOverReduction(confirmed)
         val tradeDate = confirmed.tradeDate ?: DateUtils().date
+        val recordedBy = ReconcileCommitGuard.recordedBy(owner)
         val inputs =
             confirmed.rows.map { row ->
                 trnInput(row, row.tradeDate ?: tradeDate).copy(
@@ -60,16 +61,40 @@ class ReconcileCommitService(
                     tradeCurrency = tradeCurrencies.getValue(row.label),
                     // A caller reference is unique across all users: without the owner, two users
                     // who send the same upload id for the same asset would collide in the database.
-                    callerRef =
-                        CallerRef(
-                            ReconcileCommitGuard.PROVIDER,
-                            confirmed.uploadId,
-                            ReconcileCommitGuard.recordedBy(owner) + row.label
-                        )
+                    callerRef = CallerRef(ReconcileCommitGuard.PROVIDER, confirmed.uploadId, recordedBy + row.label)
                 )
             }
-        return trnService.saveWithResult(portfolio, TrnRequest(portfolio.id, inputs))
+        val deposit =
+            confirmed.cash?.let { cash ->
+                depositInput(cash, confirmedAssets.cashAssetId(cash.currency, owner.id, broker.id), tradeDate).copy(
+                    brokerId = broker.id,
+                    callerRef = CallerRef(ReconcileCommitGuard.PROVIDER, confirmed.uploadId, recordedBy + CASH_REF)
+                )
+            }
+        // One save: a refusal of any holding records no cash, and the reverse.
+        return trnService.saveWithResult(portfolio, TrnRequest(portfolio.id, inputs + listOfNotNull(deposit)))
     }
+
+    /**
+     * The account's opening cash as one settled deposit into [cashAssetId], shaped as the
+     * Set Balance dialog sends one: the asset is its own settlement account.
+     */
+    private fun depositInput(
+        cash: ConfirmedCash,
+        cashAssetId: String,
+        tradeDate: LocalDate
+    ) = TrnInput(
+        assetId = cashAssetId,
+        cashAssetId = cashAssetId,
+        trnType = TrnType.DEPOSIT,
+        quantity = cash.amount,
+        cashAmount = cash.amount,
+        tradeCurrency = cash.currency,
+        cashCurrency = cash.currency,
+        tradeDate = tradeDate,
+        status = TrnStatus.SETTLED,
+        comments = OPENING_CASH
+    )
 
     /**
      * An ADD carries its cost. A REDUCE carries no amount: the position service then takes the
@@ -94,5 +119,10 @@ class ReconcileCommitService(
     companion object {
         /** The scale of the stored price column. */
         private const val PRICE_SCALE = 6
+
+        /** The caller id suffix of the opening cash deposit; no row label, an id or market:code, is "cash". */
+        private const val CASH_REF = "cash"
+
+        private const val OPENING_CASH = "Opening cash balance"
     }
 }

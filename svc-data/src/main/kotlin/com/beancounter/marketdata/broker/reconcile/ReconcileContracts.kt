@@ -137,13 +137,27 @@ data class ReconcilePreviewResponse(
  *
  * @property uploadId identifies the uploaded statement; one upload is recorded once
  * @property tradeDate the date the transactions carry; today when absent
+ * @property cash the account's opening cash balance, recorded as one deposit with [rows];
+ * absent when none was given
  */
 data class ConfirmedHoldings(
     val portfolioId: String,
     val brokerId: String,
     val uploadId: String,
     val tradeDate: LocalDate? = null,
-    val rows: List<ConfirmedRow>
+    val rows: List<ConfirmedRow> = emptyList(),
+    val cash: ConfirmedCash? = null
+)
+
+/**
+ * Cash the account holds, deposited at the broker on the submission's date.
+ *
+ * @property amount more than zero
+ * @property currency the ISO code of the cash, e.g. USD
+ */
+data class ConfirmedCash(
+    val amount: BigDecimal,
+    val currency: String
 )
 
 /**

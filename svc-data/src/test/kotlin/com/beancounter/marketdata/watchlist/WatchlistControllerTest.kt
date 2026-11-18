@@ -13,6 +13,7 @@ import com.beancounter.marketdata.SpringMvcDbTest
 import com.beancounter.marketdata.assets.AssetRepository
 import com.beancounter.marketdata.assets.admin.AssetAdministration
 import com.beancounter.marketdata.price.MarketDataRepo
+import com.beancounter.marketdata.price.backfill.PriceBackfillCoordinator
 import com.beancounter.marketdata.providers.alpha.AlphaPriceService
 import com.beancounter.marketdata.registration.SystemUserRepository
 import com.beancounter.marketdata.utils.RegistrationUtils
@@ -72,6 +73,13 @@ class WatchlistControllerTest {
     // no test calls out. Closes it "returns" are keyed by asset code.
     @MockitoBean
     private lateinit var alphaPriceService: AlphaPriceService
+
+    // Adding a never-priced asset saves its price asynchronously and schedules a history
+    // backfill, which calls the provider mock on a background thread. Mockito stubbing is not
+    // thread-safe: a background call landing between `getQuotes(any())` and `thenAnswer` takes
+    // the answer, leaving getQuotes unstubbed (#1341). No test here exercises the backfill.
+    @MockitoBean
+    private lateinit var priceBackfillCoordinator: PriceBackfillCoordinator
 
     @Autowired
     private lateinit var cacheManager: CacheManager

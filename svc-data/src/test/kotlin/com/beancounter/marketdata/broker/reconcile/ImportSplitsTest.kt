@@ -59,7 +59,7 @@ class ImportSplitsTest {
     @Test
     fun `should take the stored factor when stored history reaches back to the trade date`() {
         stored("40")
-        whenever(marketDataRepo.findLatestByAssetInAndPriceDateLessThanEqual(listOf(asset), from))
+        whenever(marketDataRepo.findLatestByAssetInAndPriceDateLessThanEqual(listOf(asset), from.minusDays(1)))
             .thenReturn(listOf(MarketData(asset, from.minusDays(1), BigDecimal("1000"))))
 
         assertThat(splits.factor(asset.id, from, to)).isEqualByComparingTo("40")
@@ -71,7 +71,7 @@ class ImportSplitsTest {
         val storedFrom = LocalDate.of(2016, 11, 18)
         stored("20")
         whenever(
-            marketDataRepo.findLatestByAssetInAndPriceDateLessThanEqual(listOf(asset), from)
+            marketDataRepo.findLatestByAssetInAndPriceDateLessThanEqual(listOf(asset), from.minusDays(1))
         ).thenReturn(emptyList())
         whenever(
             marketDataRepo.findSplitHistory(listOf(asset.id), from, to.minusDays(1))
@@ -90,10 +90,23 @@ class ImportSplitsTest {
     }
 
     @Test
+    fun `should ask the provider for a split on the trade date when stored history opens that day`() {
+        stored("1")
+        whenever(marketDataRepo.findLatestByAssetInAndPriceDateLessThanEqual(listOf(asset), from))
+            .thenReturn(listOf(MarketData(asset, from, BigDecimal("1000"))))
+        whenever(
+            marketDataRepo.findSplitHistory(listOf(asset.id), from, to.minusDays(1))
+        ).thenReturn(listOf(row(from)))
+        whenever(eventServiceFacade.getEvents(asset.id)).thenReturn(PriceResponse(listOf(split(from, "20"))))
+
+        assertThat(splits.factor(asset.id, from, to)).isEqualByComparingTo("20")
+    }
+
+    @Test
     fun `should say the factor is unknown when the provider cannot be asked`() {
         stored("1")
         whenever(
-            marketDataRepo.findLatestByAssetInAndPriceDateLessThanEqual(listOf(asset), from)
+            marketDataRepo.findLatestByAssetInAndPriceDateLessThanEqual(listOf(asset), from.minusDays(1))
         ).thenReturn(emptyList())
         whenever(marketDataRepo.findSplitHistory(listOf(asset.id), from, to.minusDays(1))).thenReturn(emptyList())
         whenever(eventServiceFacade.getEvents(asset.id)).thenThrow(IllegalStateException("provider down"))

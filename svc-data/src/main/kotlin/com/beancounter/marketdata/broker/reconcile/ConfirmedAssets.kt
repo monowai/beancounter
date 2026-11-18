@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.broker.reconcile
 
 import com.beancounter.common.contracts.AssetRequest
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.TrnType
 import com.beancounter.marketdata.assets.AssetFinder
@@ -38,6 +39,12 @@ class ConfirmedAssets(
                     "before $recordDate was unavailable, so any splits since $date are not applied"
         if (factor.compareTo(BigDecimal.ONE) == 0) return row to null
         val quantity = row.quantity.divide(factor, QUANTITY_SCALE, RoundingMode.HALF_UP).stripTrailingZeros()
+        if (quantity.signum() <= 0) {
+            throw BusinessException(
+                "Asset ${row.label}: ${row.quantity.toPlainString()} held on $recordDate is less than the " +
+                    "smallest quantity recordable on $date, before splits of ${factor.toPlainString()} since"
+            )
+        }
         val note =
             "Imported as ${row.quantity.toPlainString()} held on $recordDate: " +
                 "${quantity.toPlainString()} on $date, before splits of ${factor.toPlainString()} since"

@@ -1,7 +1,9 @@
 package com.beancounter.marketdata.broker.reconcile
 
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.TrnType
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.mock
 import org.mockito.kotlin.whenever
@@ -41,5 +43,14 @@ class ConfirmedAssetsTest {
 
         assertThat(based).isEqualTo(row)
         assertThat(note).contains("unavailable", "not applied")
+    }
+
+    @Test
+    fun `should refuse a back-dated row whose quantity before the splits rounds to nothing`() {
+        whenever(importSplits.factor("splt", held, recordDate)).thenReturn(BigDecimal("20"))
+
+        assertThatThrownBy { confirmedAssets.onItsDate(row.copy(quantity = BigDecimal("0.000001")), recordDate) }
+            .isInstanceOf(BusinessException::class.java)
+            .hasMessageContainingAll("splt", "0.000001", "20")
     }
 }

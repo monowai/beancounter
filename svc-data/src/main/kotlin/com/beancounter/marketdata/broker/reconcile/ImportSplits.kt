@@ -46,8 +46,10 @@ class ImportSplits(
             priceSplits
                 .splitFactorsAfter(mapOf(asset to listOf(after)), to.minusDays(1))[asset.id]
                 ?.get(after) ?: BigDecimal.ONE
+        // A row before [from] is needed: the first row of a series is never read as a split, so
+        // history that opens on [from] would miss a split stamped that day.
         val storedReachesBack =
-            marketDataRepo.findLatestByAssetInAndPriceDateLessThanEqual(listOf(asset), from).isNotEmpty()
+            marketDataRepo.findLatestByAssetInAndPriceDateLessThanEqual(listOf(asset), after).isNotEmpty()
         return if (storedReachesBack) stored else withOlder(stored, assetId, from, to)
     }
 

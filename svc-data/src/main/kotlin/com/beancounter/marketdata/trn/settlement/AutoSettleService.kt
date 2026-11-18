@@ -67,20 +67,11 @@ class AutoSettleService(
         // the user_preferences table once per transaction.
         val autoSettleByOwner = mutableMapOf<String, Boolean>()
         var settledCount = 0
-        for (trn in dueTransactions.filterNot(::proposedAfterItsPayDate)) {
-            val owner = trn.portfolio.owner
-            val ownerOptIn =
-                autoSettleByOwner.getOrPut(owner.id) {
-                    userPreferencesService.getOrCreate(owner).autoSettle
-                }
-            if (!ownerOptIn) {
-                log.debug(
-                    "Skipping auto-settle for {} — owner {} has autoSettle disabled",
-                    trn.id,
-                    owner.id
-                )
-                continue
-            }
+        val settleable =
+            dueTransactions
+                .filterNot(::proposedAfterItsPayDate)
+                .filter { ownerOptedIn(it, autoSettleByOwner) }
+        for (trn in settleable) {
             // Shared settle core — FX + status flip + cash emit. Same path as the
             // manual TrnService.settleTransactions, so a scheduled DIVI/SPLIT settle
             // produces its cash leg identically. Null = FX not yet resolvable; leave
@@ -98,6 +89,21 @@ class AutoSettleService(
 
         log.info("Auto-settled {} transactions", settledCount)
         return settledCount
+    }
+
+    private fun ownerOptedIn(
+        trn: Trn,
+        autoSettleByOwner: MutableMap<String, Boolean>
+    ): Boolean {
+        val owner = trn.portfolio.owner
+        val optedIn =
+            autoSettleByOwner.getOrPut(owner.id) {
+                userPreferencesService.getOrCreate(owner).autoSettle
+            }
+        if (!optedIn) {
+            log.debug("Skipping auto-settle for {} — owner {} has autoSettle disabled", trn.id, owner.id)
+        }
+        return optedIn
     }
 
     /**

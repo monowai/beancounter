@@ -25,12 +25,21 @@ class AssetEventLoader(
     fun load(
         assetId: String,
         date: LocalDate
+    ): Int = loadBetween(assetId, date.minusDays(daysToAdd), date)
+
+    /**
+     * Stores the asset's events dated from [from] to [to] plus [daysToAdd], fetched once,
+     * so upcoming ones are pre-loaded. Returns the number of events stored.
+     */
+    fun loadBetween(
+        assetId: String,
+        from: LocalDate,
+        to: LocalDate
     ): Int {
-        val windowStart = date.minusDays(daysToAdd)
-        val windowEnd = date.plusDays(daysToAdd)
+        val windowEnd = to.plusDays(daysToAdd)
         val inWindow =
             priceService.getEvents(assetId).data.filter {
-                !it.priceDate.isBefore(windowStart) && !it.priceDate.isAfter(windowEnd)
+                !it.priceDate.isBefore(from) && !it.priceDate.isAfter(windowEnd)
             }
         inWindow.forEach { priceResponse ->
             eventStore.save(

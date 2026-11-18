@@ -2,7 +2,6 @@ package com.beancounter.event.backfill
 
 import com.beancounter.auth.model.AuthConstants
 import com.beancounter.client.services.PortfolioServiceClient
-import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.event.corporate.CorporateEventResponses
 import com.beancounter.event.corporate.CorporateEventStore
@@ -27,7 +26,7 @@ private const val PORTFOLIO_ID = "portfolioId"
 private const val PORTFOLIOS = "portfolios"
 private const val FROM_DATE = "fromDate"
 private const val TO_DATE = "toDate"
-private const val AS_AT = "asAt"
+internal const val AS_AT = "asAt"
 
 /**
  * Corporate event ingest: fetches events from external market data sources (load) and
@@ -212,7 +211,7 @@ class CorporateEventIngestController(
         )
         @RequestParam(required = false) fromDate: String = DateUtils.TODAY
     ): Map<String, Any> {
-        requireNotAfterToday(FROM_DATE, fromDate)
+        dateUtils.requireNotAfterToday(FROM_DATE, fromDate)
         eventLoader.loadEvents(fromDate)
         return mapOf(
             STATUS to COMPLETED,
@@ -268,7 +267,7 @@ class CorporateEventIngestController(
         )
         @RequestParam(required = false) asAt: String = DateUtils.TODAY
     ): Map<String, Any> {
-        requireNotAfterToday(AS_AT, asAt)
+        dateUtils.requireNotAfterToday(AS_AT, asAt)
         eventLoader.loadEvents(
             portfolioId,
             asAt
@@ -322,15 +321,5 @@ class CorporateEventIngestController(
         assetEventLoader.load(assetId, date)
         // Return all events for this asset after loading
         return eventStore.getAssetEvents(assetId)
-    }
-
-    /** Loading runs from the date up to today, so a later date has nothing to load. */
-    private fun requireNotAfterToday(
-        name: String,
-        date: String
-    ) {
-        if (dateUtils.getDate(date).isAfter(dateUtils.date)) {
-            throw BusinessException("$name $date is after today; events load from a date up to today")
-        }
     }
 }

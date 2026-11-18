@@ -15,10 +15,16 @@ fun interface VisionModel {
     ): String
 }
 
-/** The vision model failed or gave no answer; the screenshot itself may be fine. */
+/**
+ * The vision model failed or gave no answer; the screenshot itself may be fine.
+ *
+ * @property refused the gateway turned the request away (its key or model is not allowed),
+ * which retrying will not fix; false for an outage or an empty answer
+ */
 class VisionUnavailableException(
     message: String,
-    cause: Throwable? = null
+    cause: Throwable? = null,
+    val refused: Boolean = false
 ) : RuntimeException(message, cause)
 
 /** The model answered, but not with a proposal: the image is not a readable brokerage page. */

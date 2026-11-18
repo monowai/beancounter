@@ -9,6 +9,8 @@ import com.beancounter.agent.quota.TurnQuota
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
+import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RequestPart
@@ -32,6 +34,15 @@ class ScreenshotController(
     private val quota: TurnQuota,
     private val owner: ConversationOwner
 ) {
+    /**
+     * A refusal with its reason: `code` is the stable code the client maps to its own
+     * words, `message` the server's. Without this the default error body carries only
+     * the status phrase ("Forbidden").
+     */
+    @ExceptionHandler(ScreenshotRefusal::class)
+    fun refused(e: ScreenshotRefusal): ResponseEntity<Map<String, String?>> =
+        ResponseEntity.status(e.statusCode).body(mapOf("code" to e.code, "message" to e.reason))
+
     @PostMapping(consumes = [MediaType.MULTIPART_FORM_DATA_VALUE])
     fun read(
         @RequestPart("file") file: MultipartFile
@@ -45,7 +56,16 @@ class ScreenshotController(
             } catch (e: UnreadableScreenshotException) {
                 throw ResponseStatusException(HttpStatus.UNPROCESSABLE_CONTENT, e.message, e)
             } catch (e: VisionUnavailableException) {
-                throw ResponseStatusException(HttpStatus.BAD_GATEWAY, "The screenshot reader is unavailable", e)
+                throw if (e.refused) {
+                    ScreenshotRefusal(HttpStatus.BAD_GATEWAY, VISION_REFUSED, READER_MISCONFIGURED, e)
+                } else {
+                    ScreenshotRefusal(
+                        HttpStatus.BAD_GATEWAY,
+                        VISION_UNAVAILABLE,
+                        "The screenshot reader is unavailable",
+                        e
+                    )
+                }
             }
         meter?.let(quota::spend)
         return proposal
@@ -58,7 +78,7 @@ class ScreenshotController(
     private fun admit(): String? {
         val meter = if (scopeAuthorizer.unlimited()) null else owner.id()
         turnMetering.refusalFor(meter)?.let { code ->
-            throw ResponseStatusException(HttpStatus.valueOf(TurnFailure.statusFor(code)), TurnFailure.messageFor(code))
+            throw ScreenshotRefusal(HttpStatus.valueOf(TurnFailure.statusFor(code)), code, TurnFailure.messageFor(code))
         }
         return meter
     }
@@ -84,6 +104,22 @@ class ScreenshotController(
     }
 
     companion object {
+        /** The gateway turned the vision call away: its key or model is not allowed. */
+        const val VISION_REFUSED = "vision-refused"
+
+        /** The vision model could not be reached or gave no answer. */
+        const val VISION_UNAVAILABLE = "vision-unavailable"
+
+        private const val READER_MISCONFIGURED =
+            "The screenshot reader is not set up correctly, so nothing was read. Tell the administrator."
         const val MAX_BYTES = 8 * 1024 * 1024
     }
 }
+
+/** A refused read, with the code the client shows its own words for. */
+class ScreenshotRefusal(
+    status: HttpStatus,
+    val code: String,
+    message: String,
+    cause: Throwable? = null
+) : ResponseStatusException(status, message, cause)

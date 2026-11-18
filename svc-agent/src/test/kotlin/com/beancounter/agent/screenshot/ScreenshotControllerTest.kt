@@ -1,5 +1,6 @@
 package com.beancounter.agent.screenshot
 
+import com.beancounter.agent.TurnFailure
 import com.beancounter.agent.TurnMetering
 import com.beancounter.agent.config.AgentScopeAuthorizer
 import com.beancounter.agent.conversation.ConversationOwner
@@ -125,6 +126,40 @@ class ScreenshotControllerTest {
 
         assertThat(reads).isEmpty()
         assertThat(quota.spent).isEmpty()
+    }
+
+    private fun refusalBody(action: () -> Unit): Map<String, String?> {
+        var body: Map<String, String?>? = null
+        assertThatThrownBy(action).isInstanceOfSatisfying(ScreenshotRefusal::class.java) {
+            body = controller.refused(it).body
+        }
+        return checkNotNull(body)
+    }
+
+    @Test
+    fun `should say why a metered caller is refused, by code and in words`() {
+        authenticateAs(AuthConstants.SCOPE_PREVIEW)
+        assertThat(refusalBody { controller.read(upload()) })
+            .containsEntry("code", TurnFailure.EMAIL_UNVERIFIED)
+            .containsEntry("message", TurnFailure.messageFor(TurnFailure.EMAIL_UNVERIFIED))
+
+        authenticateAs(AuthConstants.SCOPE_PREVIEW, AuthConstants.SCOPE_VERIFIED)
+        quota.off = true
+        assertThat(refusalBody { controller.read(upload()) }).containsEntry("code", TurnFailure.AI_DISABLED)
+    }
+
+    @Test
+    fun `should tell a refused vision call from an outage`() {
+        authenticateAs(AuthConstants.SCOPE_AI)
+
+        modelFailure = VisionUnavailableException("refused", refused = true)
+        assertThat(refusal { controller.read(upload()) }).isEqualTo(HttpStatus.BAD_GATEWAY)
+        assertThat(refusalBody { controller.read(upload()) })
+            .containsEntry("code", ScreenshotController.VISION_REFUSED)
+
+        modelFailure = VisionUnavailableException("down")
+        assertThat(refusalBody { controller.read(upload()) })
+            .containsEntry("code", ScreenshotController.VISION_UNAVAILABLE)
     }
 
     @Test

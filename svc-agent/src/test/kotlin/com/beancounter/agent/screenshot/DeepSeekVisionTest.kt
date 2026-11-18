@@ -59,6 +59,27 @@ class DeepSeekVisionTest {
         assertThatThrownBy { vision.read("read this", screenshot) }.isInstanceOf(VisionUnavailableException::class.java)
     }
 
+    @Test
+    fun `should say the gateway refused the request when it rejects the key or the model`() {
+        for (status in listOf(HttpStatus.UNAUTHORIZED, HttpStatus.FORBIDDEN, HttpStatus.NOT_FOUND)) {
+            server.reset()
+            server
+                .expect(requestTo("https://llm.test/chat/completions"))
+                .andRespond(withStatus(status).body("""{"error":"key not allowed to access model"}"""))
+
+            assertThatThrownBy { vision.read("read this", screenshot) }
+                .isInstanceOfSatisfying(VisionUnavailableException::class.java) { assertThat(it.refused).isTrue() }
+        }
+    }
+
+    @Test
+    fun `should not call an outage a refusal`() {
+        server.expect(requestTo("https://llm.test/chat/completions")).andRespond(withStatus(HttpStatus.BAD_GATEWAY))
+
+        assertThatThrownBy { vision.read("read this", screenshot) }
+            .isInstanceOfSatisfying(VisionUnavailableException::class.java) { assertThat(it.refused).isFalse() }
+    }
+
     private fun replying(content: String) =
         withSuccess(
             """{"choices":[{"index":0,"message":{"role":"assistant","content":"$content"}}]}""",

@@ -4,6 +4,7 @@ import com.beancounter.common.utils.BcJson
 import org.slf4j.LoggerFactory
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
+import org.springframework.web.client.HttpClientErrorException
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientException
 import tools.jackson.core.JacksonException
@@ -46,9 +47,26 @@ class DeepSeekVision(
                     .retrieve()
                     .body(String::class.java)
             } catch (e: RestClientException) {
-                throw VisionUnavailableException("The vision model did not answer", e)
+                throw unavailable(e)
             }
         return content(body) ?: throw VisionUnavailableException("The vision model gave no answer")
+    }
+
+    /**
+     * The failure to report. A gateway that turns the key or model away is a configuration
+     * fault, not an outage: it is logged with what the gateway objected to and marked refused.
+     */
+    private fun unavailable(e: RestClientException): VisionUnavailableException {
+        if (e !is HttpClientErrorException || e.statusCode.value() !in REFUSALS) {
+            return VisionUnavailableException("The vision model did not answer", e)
+        }
+        log.error(
+            "Vision gateway refused model {} with {}: {}",
+            model,
+            e.statusCode.value(),
+            e.responseBodyAsString.take(REFUSAL_BODY_CHARS)
+        )
+        return VisionUnavailableException("The vision gateway refused the request", e, refused = true)
     }
 
     private fun request(
@@ -101,6 +119,10 @@ class DeepSeekVision(
 
     private companion object {
         const val MAX_TOKENS = 8192
+
+        /** Statuses with which a gateway turns away a key or a model it does not allow. */
+        val REFUSALS = setOf(401, 403, 404)
+        const val REFUSAL_BODY_CHARS = 300
         val log = LoggerFactory.getLogger(DeepSeekVision::class.java)
     }
 }

@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.trn
 
+import com.beancounter.common.model.Broker
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
@@ -476,4 +477,32 @@ interface TrnRepository :
             "FROM Trn t GROUP BY t.trnType ORDER BY COUNT(t) DESC"
     )
     fun countByTrnType(): List<com.beancounter.marketdata.metrics.TypeCount>
+
+    /** The brokers a portfolio's settled holding trades for an asset name, up to a date. */
+    @Query(
+        "select distinct t.broker from Trn t " +
+            "where t.portfolio.id = :portfolioId and t.asset.id = :assetId " +
+            "and t.broker is not null and t.tradeDate <= :date " +
+            "and t.trnType in :types and t.status = com.beancounter.common.model.TrnStatus.SETTLED"
+    )
+    fun findHoldingBrokers(
+        @Param("portfolioId") portfolioId: String,
+        @Param("assetId") assetId: String,
+        @Param("date") date: LocalDate,
+        @Param("types") types: Collection<TrnType>
+    ): List<Broker>
+
+    /** Whether any of a portfolio's settled holding trades for an asset, up to a date, has no broker. */
+    @Query(
+        "select count(t) > 0 from Trn t " +
+            "where t.portfolio.id = :portfolioId and t.asset.id = :assetId " +
+            "and t.broker is null and t.tradeDate <= :date " +
+            "and t.trnType in :types and t.status = com.beancounter.common.model.TrnStatus.SETTLED"
+    )
+    fun hasUnbrokeredHolding(
+        @Param("portfolioId") portfolioId: String,
+        @Param("assetId") assetId: String,
+        @Param("date") date: LocalDate,
+        @Param("types") types: Collection<TrnType>
+    ): Boolean
 }

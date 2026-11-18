@@ -1,6 +1,5 @@
 package com.beancounter.marketdata.broker.reconcile
 
-import com.beancounter.common.model.MarketData
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.providers.ProviderUtils
@@ -37,25 +36,6 @@ class ProviderHistory(
             .flatMap { it.backFill(asset, from).data }
             .filter { it.priceDate.isBefore(before) && it.close.signum() > 0 }
             .map { it.priceDate to it.close }
-    }
-
-    /**
-     * The provider's splits dated on or after [from] and before [before], whatever its closes:
-     * a split's ratio does not depend on price adjustment. None for an unknown asset.
-     */
-    fun splitsBetween(
-        assetId: String,
-        from: LocalDate,
-        before: LocalDate
-    ): List<Pair<LocalDate, BigDecimal>> {
-        val asset = assetFinder.findOrNull(assetId) ?: return emptyList()
-        return providerUtils
-            .splitProviders(providerUtils.getInputs(listOf(asset)))
-            .keys
-            .flatMap { it.backFill(asset, from).data }
-            .filter { MarketData.isSplit(it) && !it.priceDate.isBefore(from) && it.priceDate.isBefore(before) }
-            .map { it.priceDate to it.split }
-            .distinctBy { it.first }
     }
 
     companion object {

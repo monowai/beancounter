@@ -841,7 +841,11 @@ class ReconcileCommitTest {
         marketDataRepo.saveAll(
             listOf(
                 MarketData(asset, held, BigDecimal("2000")),
-                MarketData(asset, LocalDate.of(2022, 7, 18), BigDecimal("110"), split = BigDecimal("20"))
+                MarketData(asset, LocalDate.of(2022, 7, 15), BigDecimal("2200")),
+                // A sticky stamp: the split's marker repeats on the rows after its ex-date.
+                MarketData(asset, LocalDate.of(2022, 7, 18), BigDecimal("110"), split = BigDecimal("20")),
+                MarketData(asset, LocalDate.of(2022, 7, 19), BigDecimal("111"), split = BigDecimal("20")),
+                MarketData(asset, LocalDate.of(2022, 7, 20), BigDecimal("112"), split = BigDecimal("20"))
             )
         )
 

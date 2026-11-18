@@ -1,6 +1,10 @@
 package com.beancounter.marketdata.broker.reconcile
 
+import com.beancounter.common.model.MarketData
+import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.price.MarketDataRepo
+import com.beancounter.marketdata.price.history.PriceSplits
+import com.beancounter.marketdata.providers.EventServiceFacade
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Component
 import java.math.BigDecimal
@@ -14,50 +18,66 @@ import java.time.LocalDate
 @Component
 class ImportSplits(
     private val marketDataRepo: MarketDataRepo,
-    private val providerHistory: ProviderHistory
+    private val assetFinder: AssetFinder,
+    private val priceSplits: PriceSplits,
+    private val eventServiceFacade: EventServiceFacade
 ) {
     private val log = LoggerFactory.getLogger(ImportSplits::class.java)
 
     /**
-     * What one share held on [from] has become by [to]: the product of the splits dated on or
-     * after [from] and before [to]. A split on [from] counts, as a holding added that day is
-     * split with it. Stored price history is read first; where it does not reach back to
-     * [from], the provider's split history is asked, and kept nowhere. 1 when none is known;
-     * null when the provider could not be asked, so the splits before the stored history are
-     * unknown rather than absent. A ratio that is not positive is not a split and is ignored.
+     * What one share held on [from] has become by [to]: the product of the splits with an
+     * ex-date on or after [from] and before [to]. A split on [from] counts, as a holding added
+     * that day is split with it.
+     *
+     * Stored price history is read through [PriceSplits.splitFactorsAfter], which counts a
+     * split once where its stamp first appears, however many rows repeat it. Where stored
+     * history does not reach back to [from], the provider's split events (one row per event)
+     * cover the years before it. 1 for an asset Beancounter does not have; null when the
+     * provider could not be asked, so the older splits are unknown rather than absent.
      */
     fun factor(
         assetId: String,
         from: LocalDate,
         to: LocalDate
     ): BigDecimal? {
-        val stored = marketDataRepo.findSplitHistory(listOf(assetId), from, to.minusDays(1))
-        val splits =
-            stored
-                .filter { it.split.compareTo(BigDecimal.ONE) != 0 }
-                .associate { it.priceDate to it.split }
-                .toMutableMap()
-        val storedFrom = stored.minOfOrNull { it.priceDate }
-        if (storedFrom == null || storedFrom.isAfter(from.plusDays(STORED_GAP_DAYS))) {
-            val older = older(assetId, from, storedFrom ?: to) ?: return null
-            older.forEach { (date, split) -> splits.putIfAbsent(date, split) }
-        }
-        return splits.values
-            .filter { it.signum() > 0 }
-            .fold(BigDecimal.ONE) { product, split -> product.multiply(split) }
+        val asset = assetFinder.findOrNull(assetId) ?: return BigDecimal.ONE
+        val after = from.minusDays(1)
+        val stored =
+            priceSplits
+                .splitFactorsAfter(mapOf(asset to listOf(after)), to.minusDays(1))[asset.id]
+                ?.get(after) ?: BigDecimal.ONE
+        val storedReachesBack =
+            marketDataRepo.findLatestByAssetInAndPriceDateLessThanEqual(listOf(asset), from).isNotEmpty()
+        return if (storedReachesBack) stored else withOlder(stored, assetId, from, to)
     }
 
-    private fun older(
+    /**
+     * [stored] times the provider's splits from [from] up to and including the first stored
+     * day: that first row has no predecessor, so a split stamped on it is not counted in
+     * [stored], and the provider's event counts it once. Null when the provider cannot be asked.
+     */
+    private fun withOlder(
+        stored: BigDecimal,
         assetId: String,
         from: LocalDate,
-        before: LocalDate
-    ): List<Pair<LocalDate, BigDecimal>>? =
-        runCatching { providerHistory.splitsBetween(assetId, from, before) }
+        to: LocalDate
+    ): BigDecimal? {
+        val storedFrom =
+            marketDataRepo.findSplitHistory(listOf(assetId), from, to.minusDays(1)).minOfOrNull { it.priceDate }
+        return olderSplits(assetId, from, storedFrom ?: to.minusDays(1))
+            ?.fold(stored) { product, split -> product.multiply(split) }
+    }
+
+    private fun olderSplits(
+        assetId: String,
+        from: LocalDate,
+        through: LocalDate
+    ): List<BigDecimal>? =
+        runCatching { eventServiceFacade.getEvents(assetId).data }
             .onFailure { log.warn("Split history unavailable for asset {} from {}", assetId, from, it) }
             .getOrNull()
-
-    private companion object {
-        /** Stored history starting within this many days of the trade date covers it (weekends, holidays). */
-        const val STORED_GAP_DAYS = 7L
-    }
+            ?.filter { MarketData.isSplit(it) && it.split.signum() > 0 }
+            ?.filter { !it.priceDate.isBefore(from) && !it.priceDate.isAfter(through) }
+            ?.distinctBy { it.priceDate }
+            ?.map { it.split }
 }

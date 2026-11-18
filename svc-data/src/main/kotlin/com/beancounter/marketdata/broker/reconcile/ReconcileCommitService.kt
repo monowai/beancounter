@@ -77,7 +77,8 @@ class ReconcileCommitService(
 
     /**
      * The account's opening cash as one settled deposit into [cashAssetId], shaped as the
-     * Set Balance dialog sends one: the asset is its own settlement account.
+     * Set Balance dialog sends one: the asset is its own settlement account. A unit of cash
+     * is priced at one, as every other cash leg is.
      */
     private fun depositInput(
         cash: ConfirmedCash,
@@ -89,6 +90,7 @@ class ReconcileCommitService(
         trnType = TrnType.DEPOSIT,
         quantity = cash.amount,
         cashAmount = cash.amount,
+        price = BigDecimal.ONE,
         tradeCurrency = cash.currency,
         cashCurrency = cash.currency,
         tradeDate = tradeDate,

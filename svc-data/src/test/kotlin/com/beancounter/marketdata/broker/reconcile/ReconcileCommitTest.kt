@@ -745,6 +745,7 @@ class ReconcileCommitTest {
         assertThat(deposit.asset.id).isEqualTo(deposit.cashAsset?.id)
         assertThat(deposit.quantity).isEqualByComparingTo("2500.50")
         assertThat(deposit.cashAmount).isEqualByComparingTo("2500.50")
+        assertThat(deposit.price).isEqualByComparingTo("1")
         assertThat(deposit.tradeCurrency.code).isEqualTo(USD.code)
         assertThat(deposit.cashCurrency?.code).isEqualTo(USD.code)
         assertThat(deposit.tradeDate).isEqualTo(tradeDate)
@@ -813,7 +814,8 @@ class ReconcileCommitTest {
             mapOf(
                 cash("0") to "cash balance must be more than zero",
                 cash("-1") to "cash balance must be more than zero",
-                ConfirmedCash(BigDecimal.TEN, " ") to "cash balance needs a currency"
+                ConfirmedCash(BigDecimal.TEN, " ") to "cash balance needs a currency",
+                ConfirmedCash(BigDecimal.TEN, "ZZZ") to "[ZZZ] is an unknown currency"
             )
 
         for ((bad, message) in refusals) {
@@ -821,5 +823,6 @@ class ReconcileCommitTest {
         }
 
         assertThat(trnsOf(portfolio)).isEmpty()
+        assertThat(assetFinder.findLocally(AssetInput("CASH", "ZZZ"))).isNull()
     }
 }

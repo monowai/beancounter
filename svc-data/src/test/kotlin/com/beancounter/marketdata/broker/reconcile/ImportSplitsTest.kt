@@ -55,8 +55,30 @@ class ImportSplitsTest {
     @Test
     fun `should count no split when none is known`() {
         whenever(marketDataRepo.findSplitHistory(listOf(assetId), from, to.minusDays(1))).thenReturn(emptyList())
-        whenever(providerHistory.splitsBetween(assetId, from, to)).thenThrow(IllegalStateException("provider down"))
+        whenever(providerHistory.splitsBetween(assetId, from, to)).thenReturn(emptyList())
 
         assertThat(splits.factor(assetId, from, to)).isEqualByComparingTo("1")
+    }
+
+    @Test
+    fun `should know no factor when the provider cannot be asked`() {
+        whenever(marketDataRepo.findSplitHistory(listOf(assetId), from, to.minusDays(1))).thenReturn(emptyList())
+        whenever(providerHistory.splitsBetween(assetId, from, to)).thenThrow(IllegalStateException("provider down"))
+
+        assertThat(splits.factor(assetId, from, to)).isNull()
+    }
+
+    @Test
+    fun `should ignore a ratio that is not positive`() {
+        whenever(marketDataRepo.findSplitHistory(listOf(assetId), from, to.minusDays(1))).thenReturn(
+            listOf(
+                row(from),
+                row(LocalDate.of(2014, 3, 27), "0"),
+                row(LocalDate.of(2018, 5, 1), "-3"),
+                row(LocalDate.of(2022, 7, 18), "20")
+            )
+        )
+
+        assertThat(splits.factor(assetId, from, to)).isEqualByComparingTo("20")
     }
 }

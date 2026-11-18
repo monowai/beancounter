@@ -23,14 +23,19 @@ class ConfirmedAssets(
      * [row] in the share basis of its own date, with a note saying so when that differs from
      * the record date's. A statement shows the quantity held on [recordDate]; a row dated
      * earlier is divided by the splits in between, so the split transactions bring it back to
-     * the quantity shown. The cost is unchanged, so the price per share rises to match.
+     * the quantity shown. The cost is unchanged, so the price per share rises to match. Where
+     * the splits in between cannot be known, the row is kept as shown and the note says so.
      */
     fun onItsDate(
         row: ConfirmedRow,
         recordDate: LocalDate
     ): Pair<ConfirmedRow, String?> {
         val date = row.tradeDate?.takeIf { it.isBefore(recordDate) } ?: return row to null
-        val factor = importSplits.factor(row.label, date, recordDate)
+        val factor =
+            importSplits.factor(row.label, date, recordDate)
+                ?: return row to
+                    "Imported as ${row.quantity.toPlainString()} held on $recordDate: split history " +
+                    "before $recordDate was unavailable, so any splits since $date are not applied"
         if (factor.compareTo(BigDecimal.ONE) == 0) return row to null
         val quantity = row.quantity.divide(factor, QUANTITY_SCALE, RoundingMode.HALF_UP).stripTrailingZeros()
         val note =

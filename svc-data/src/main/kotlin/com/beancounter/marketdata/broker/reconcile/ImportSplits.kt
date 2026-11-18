@@ -22,13 +22,15 @@ class ImportSplits(
      * What one share held on [from] has become by [to]: the product of the splits dated on or
      * after [from] and before [to]. A split on [from] counts, as a holding added that day is
      * split with it. Stored price history is read first; where it does not reach back to
-     * [from], the provider's split history is asked, and kept nowhere. 1 when none is known.
+     * [from], the provider's split history is asked, and kept nowhere. 1 when none is known;
+     * null when the provider could not be asked, so the splits before the stored history are
+     * unknown rather than absent. A ratio that is not positive is not a split and is ignored.
      */
     fun factor(
         assetId: String,
         from: LocalDate,
         to: LocalDate
-    ): BigDecimal {
+    ): BigDecimal? {
         val stored = marketDataRepo.findSplitHistory(listOf(assetId), from, to.minusDays(1))
         val splits =
             stored
@@ -37,19 +39,22 @@ class ImportSplits(
                 .toMutableMap()
         val storedFrom = stored.minOfOrNull { it.priceDate }
         if (storedFrom == null || storedFrom.isAfter(from.plusDays(STORED_GAP_DAYS))) {
-            older(assetId, from, storedFrom ?: to).forEach { (date, split) -> splits.putIfAbsent(date, split) }
+            val older = older(assetId, from, storedFrom ?: to) ?: return null
+            older.forEach { (date, split) -> splits.putIfAbsent(date, split) }
         }
-        return splits.values.fold(BigDecimal.ONE) { product, split -> product.multiply(split) }
+        return splits.values
+            .filter { it.signum() > 0 }
+            .fold(BigDecimal.ONE) { product, split -> product.multiply(split) }
     }
 
     private fun older(
         assetId: String,
         from: LocalDate,
         before: LocalDate
-    ): List<Pair<LocalDate, BigDecimal>> =
+    ): List<Pair<LocalDate, BigDecimal>>? =
         runCatching { providerHistory.splitsBetween(assetId, from, before) }
             .onFailure { log.warn("Split history unavailable for asset {} from {}", assetId, from, it) }
-            .getOrDefault(emptyList())
+            .getOrNull()
 
     private companion object {
         /** Stored history starting within this many days of the trade date covers it (weekends, holidays). */

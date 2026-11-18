@@ -37,6 +37,12 @@ data class TrnDto(
         pattern = "yyyy-MM-dd"
     )
     val settleDate: LocalDate? = null,
+    // When the cost was paid, for performance only; see Trn.costDate.
+    @JsonFormat(
+        shape = JsonFormat.Shape.STRING,
+        pattern = "yyyy-MM-dd"
+    )
+    val costDate: LocalDate? = null,
     val fees: BigDecimal = BigDecimal.ZERO,
     val tax: BigDecimal = BigDecimal.ZERO,
     val comments: String? = null,
@@ -70,6 +76,7 @@ data class TrnDto(
                 cashAmount = trn.cashAmount,
                 portfolioId = trn.portfolio.id,
                 settleDate = trn.settleDate,
+                costDate = trn.costDate,
                 fees = trn.fees,
                 tax = trn.tax,
                 comments = trn.comments,

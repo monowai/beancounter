@@ -42,6 +42,7 @@ import java.math.BigDecimal
 import java.math.BigDecimal.ONE
 import java.math.BigDecimal.TEN
 import java.math.BigDecimal.ZERO
+import java.time.LocalDate
 import java.util.Locale
 import java.util.Optional
 
@@ -558,6 +559,46 @@ internal class TrnInputMapperTest {
         assertThat(trn.broker).isEqualTo(broker)
         assertThat(trn.cashAsset).isEqualTo(usdCashBalance)
     }
+
+    @Test
+    fun `should carry the cost date from the input to the transaction`() {
+        val costDate = LocalDate.of(2016, 11, 18)
+
+        val trn = trnInputMapper.map(getPortfolio(portfolioId), costDateInput(costDate))
+
+        assertThat(trn.costDate).isEqualTo(costDate)
+        assertThat(trn.tradeDate).isEqualTo(theDate)
+    }
+
+    @Test
+    fun `should keep the stored cost date when a patch names none`() {
+        val costDate = LocalDate.of(2016, 11, 18)
+        val existing =
+            Trn(
+                trnType = TrnType.ADD,
+                asset = asset,
+                costDate = costDate,
+                portfolio = getPortfolio(portfolioId)
+            )
+
+        val trn = trnInputMapper.map(getPortfolio(portfolioId), costDateInput(null), existing)
+
+        assertThat(trn.costDate).isEqualTo(costDate)
+    }
+
+    private fun costDateInput(costDate: LocalDate?) =
+        TrnInput(
+            CallerRef(portfolioId.uppercase(Locale.getDefault()), one, one),
+            assetId = asset.id,
+            trnType = TrnType.ADD,
+            quantity = TEN,
+            price = price,
+            tradeDate = theDate,
+            costDate = costDate,
+            tradeBaseRate = ONE,
+            tradeCashRate = ONE,
+            tradePortfolioRate = ONE
+        )
 
     @Test
     fun `explicit cashCurrency differing from trade currency wins`() {

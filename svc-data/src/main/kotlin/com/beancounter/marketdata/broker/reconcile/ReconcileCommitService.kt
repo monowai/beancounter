@@ -46,12 +46,13 @@ class ReconcileCommitService(
         ConfirmedRowRules.checkResolved(resolved)
         val tradeDate = resolved.tradeDate ?: DateUtils().date
         // A statement shows what is held on its record date, so an added row is recorded then.
-        // When it was opened is kept only as a note: the date it was bought at its cost, from
-        // which performance can be derived, not a trade that splits and dividends apply to.
-        val notes =
+        // When it was opened is the date it was bought at its cost: kept as the cost date, from
+        // which performance runs, and as a note a person reads. It is not a trade that splits
+        // and dividends apply to.
+        val heldSince =
             resolved.rows
                 .filter { it.trnType == TrnType.ADD && it.tradeDate?.isBefore(tradeDate) == true }
-                .associate { it.label to "Held since ${it.tradeDate}" }
+                .associate { it.label to it.tradeDate }
         val confirmed =
             resolved.copy(rows = resolved.rows.map { if (it.trnType == TrnType.ADD) it.copy(tradeDate = null) else it })
         // An asset that does not exist fails here, before any write. The currency is the one
@@ -71,7 +72,8 @@ class ReconcileCommitService(
                     // A caller reference is unique across all users: without the owner, two users
                     // who send the same upload id for the same asset would collide in the database.
                     callerRef = CallerRef(ReconcileCommitGuard.PROVIDER, confirmed.uploadId, recordedBy + row.label),
-                    comments = notes[row.label]
+                    costDate = heldSince[row.label],
+                    comments = heldSince[row.label]?.let { "Held since $it" }
                 )
             }
         val deposit =

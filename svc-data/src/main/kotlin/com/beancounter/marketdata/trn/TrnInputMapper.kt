@@ -101,6 +101,8 @@ class TrnInputMapper(
             portfolio = portfolio,
             // Sign this value
             settleDate = trnInput.settleDate,
+            // A client that does not know the field sends none: keep the stored one.
+            costDate = trnInput.costDate ?: existing?.costDate,
             fees = trnInput.fees,
             tax = trnInput.tax,
             comments = trnInput.comments ?: existing?.comments,

@@ -15,9 +15,11 @@ import java.time.temporal.ChronoUnit
  * Simple ROI replaces XIRR for short periods, because XIRR annualises a short
  * holding into extreme figures. One threshold, [IrrCalculator.minHoldingDays]
  * (`beancounter.irr`), drives two checks that measure different spans:
- * - [ofPosition] measures the current holding, from the position's `opened` date to
- *   the valuation date. `opened` survives a sell-out and resets on re-entry, so a
- *   position re-bought last month reports ROI even when its first trade is years old.
+ * - [ofPosition] measures the current holding, from the earlier of the position's
+ *   `opened` date and its first cash flow to the valuation date. `opened` survives a
+ *   sell-out and resets on re-entry, so a position re-bought last month reports ROI even
+ *   when its first trade is years old. A cash flow precedes `opened` only when a
+ *   transaction's `costDate` is before its trade date.
  * - [IrrCalculator.calculate] measures the cash flows, first to last. It is the only
  *   check a portfolio's combined flows get, and it still applies to a position that
  *   passed the first.
@@ -71,13 +73,23 @@ class PositionIrr(
         asAtDate: LocalDate,
         roi: BigDecimal
     ): BigDecimal {
-        val opened = position.dateValues.opened
-        val holdingDays = if (opened == null) 0L else ChronoUnit.DAYS.between(opened, asAtDate)
+        val heldFrom = heldFrom(position)
+        val holdingDays = if (heldFrom == null) 0L else ChronoUnit.DAYS.between(heldFrom, asAtDate)
         return if (holdingDays < irrCalculator.minHoldingDays || position.periodicCashFlows.cashFlows.isEmpty()) {
             roi
         } else {
             of(position.periodicCashFlows)
         }
+    }
+
+    /**
+     * The earlier of `opened` and the first cash flow. A holding recorded today at a cost
+     * paid years ago (a transaction's `costDate`) opened today, but has been held since then.
+     */
+    private fun heldFrom(position: Position): LocalDate? {
+        val firstFlow = position.periodicCashFlows.cashFlows.minOfOrNull { it.date }
+        val opened = position.dateValues.opened
+        return listOfNotNull(opened, firstFlow).minOrNull()
     }
 
     /**

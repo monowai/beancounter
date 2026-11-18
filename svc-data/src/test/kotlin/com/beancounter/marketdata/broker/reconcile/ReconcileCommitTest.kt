@@ -653,7 +653,7 @@ class ReconcileCommitTest {
     }
 
     @Test
-    fun `should record an added row on the record date, with its held-since date in the comment`() {
+    fun `should record an added row on the record date, with its held-since date as the cost date`() {
         val user = login("row-date")
         val portfolio = portfolio("RCC-ROWDATE")
         val held = asset("RCCD1")
@@ -670,8 +670,10 @@ class ReconcileCommitTest {
         assertThat(trns.getValue(held.id).tradeDate).isEqualTo(LocalDate.of(2026, 1, 2))
         assertThat(trns.getValue(held.id).quantity).isEqualByComparingTo("5")
         assertThat(trns.getValue(held.id).comments).isEqualTo("Held since 2019-03-04")
+        assertThat(trns.getValue(held.id).costDate).isEqualTo(LocalDate.of(2019, 3, 4))
         assertThat(trns.getValue(other.id).tradeDate).isEqualTo(LocalDate.of(2026, 1, 2))
         assertThat(trns.getValue(other.id).comments).isNull()
+        assertThat(trns.getValue(other.id).costDate).isNull()
     }
 
     @Test

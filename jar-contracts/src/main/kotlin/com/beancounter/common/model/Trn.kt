@@ -89,6 +89,16 @@ data class Trn(
         pattern = "yyyy-MM-dd"
     )
     var settleDate: LocalDate? = null,
+    /**
+     * When the cost was paid, for performance only; quantity, splits and dividends follow
+     * tradeDate. Null means tradeDate.
+     */
+    @JsonFormat(
+        shape = JsonFormat.Shape.STRING,
+        pattern = "yyyy-MM-dd"
+    )
+    @Column(name = "cost_date")
+    var costDate: LocalDate? = null,
     // In trade Currency
     var fees: BigDecimal = BigDecimal.ZERO,
     // In trade Currency

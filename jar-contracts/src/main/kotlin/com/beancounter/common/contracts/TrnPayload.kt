@@ -62,6 +62,7 @@ data class TrnPayload(
                 cashAmount = dto.cashAmount,
                 portfolio = portfolios.getValue(dto.portfolioId),
                 settleDate = dto.settleDate,
+                costDate = dto.costDate,
                 fees = dto.fees,
                 tax = dto.tax,
                 comments = dto.comments,

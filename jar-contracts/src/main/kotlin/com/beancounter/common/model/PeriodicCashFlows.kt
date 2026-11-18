@@ -22,10 +22,11 @@ class PeriodicCashFlows {
                     BigDecimal.ZERO.minus(it.tradeAmount).toDouble()
                 }
             if (amount != 0.0) {
+                // Dated when the cost was paid, which can precede the trade that holds it.
                 cashFlows.add(
                     CashFlow(
                         amount,
-                        it.tradeDate
+                        it.costDate ?: it.tradeDate
                     )
                 )
             }

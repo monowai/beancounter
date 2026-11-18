@@ -3,6 +3,8 @@ package com.beancounter.event.corporate
 import com.beancounter.auth.AutoConfigureMockAuth
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.client.services.PortfolioServiceClient
+import com.beancounter.common.exception.NotFoundException
+import com.beancounter.common.model.Portfolio
 import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.event.backfill.BackFillService
@@ -11,7 +13,13 @@ import com.beancounter.event.distribution.EventDistribution
 import com.beancounter.event.utils.TestHelpers
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.mockito.kotlin.any
+import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.inOrder
+import org.mockito.kotlin.never
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.verifyNoInteractions
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc
@@ -25,6 +33,8 @@ import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath
 import org.springframework.test.web.servlet.result.MockMvcResultMatchers.status
 import java.time.LocalDate
+import java.util.concurrent.CountDownLatch
+import java.util.concurrent.TimeUnit
 
 /**
  * HTTP contract of the corporate event endpoints: request validation and status codes.
@@ -211,5 +221,71 @@ class CorporateEventEndpointTest {
             ).andExpect(status().isBadRequest)
 
         verifyNoInteractions(eventLoader)
+    }
+
+    @Test
+    fun `should answer 202 STARTED before a background load finishes, then refuse a second start`() {
+        val portfolio = TestHelpers.createTestPortfolio(id = "background-portfolio")
+        whenever(portfolioService.getPortfolioById(portfolio.id)).thenReturn(portfolio)
+        val release = CountDownLatch(1)
+        val finished = CountDownLatch(1)
+        doAnswer {
+            release.await(WAIT_SECONDS, TimeUnit.SECONDS)
+            finished.countDown()
+        }.whenever(eventLoader).loadEvents(any<Portfolio>(), any())
+
+        try {
+            backgroundLoad(portfolio.id, "2024-01-15")
+                .andExpect(status().isAccepted)
+                .andExpect(jsonPath("$.status").value("STARTED"))
+                .andExpect(jsonPath("$.portfolioId").value(portfolio.id))
+                .andExpect(jsonPath("$.asAt").value("2024-01-15"))
+            assertThat(finished.count).isEqualTo(1)
+
+            backgroundLoad(portfolio.id, "2024-01-15")
+                .andExpect(status().isAccepted)
+                .andExpect(jsonPath("$.status").value("ALREADY_RUNNING"))
+                .andExpect(jsonPath("$.portfolioId").value(portfolio.id))
+        } finally {
+            release.countDown()
+        }
+        assertThat(finished.await(WAIT_SECONDS, TimeUnit.SECONDS)).isTrue()
+        inOrder(portfolioService, eventLoader) {
+            verify(portfolioService).getPortfolioById(portfolio.id)
+            verify(eventLoader).loadEvents(portfolio, "2024-01-15")
+        }
+        verify(eventLoader, never()).loadEvents(portfolio.id, "2024-01-15")
+    }
+
+    @Test
+    fun `should return 404 without a background load when the portfolio is not found`() {
+        whenever(portfolioService.getPortfolioById("missing-portfolio"))
+            .thenThrow(NotFoundException("Portfolio missing-portfolio not found"))
+
+        backgroundLoad("missing-portfolio", "2024-01-15").andExpect(status().isNotFound)
+
+        verifyNoInteractions(eventLoader)
+    }
+
+    @Test
+    fun `should return 400 without a background load when asAt is after today`() {
+        backgroundLoad("future-background", dateUtils.date.plusDays(1).toString())
+            .andExpect(status().isBadRequest)
+
+        verifyNoInteractions(eventLoader)
+        verify(portfolioService, never()).getPortfolioById(any())
+    }
+
+    private fun backgroundLoad(
+        portfolioId: String,
+        asAt: String
+    ) = mockMvc.perform(
+        post("/load/{portfolioId}/background", portfolioId)
+            .param("asAt", asAt)
+            .with(jwt().jwt(mockAuthConfig.getUserToken()))
+    )
+
+    private companion object {
+        const val WAIT_SECONDS = 5L
     }
 }

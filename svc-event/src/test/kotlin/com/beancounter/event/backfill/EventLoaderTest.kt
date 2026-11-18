@@ -73,6 +73,19 @@ class EventLoaderTest {
     }
 
     @Test
+    fun `should load a resolved portfolio without looking it up again`() {
+        holding("AAA")
+        whenever(priceService.getEvents(any())).thenReturn(
+            PriceResponse(listOf(TestHelpers.createTestMarketData(priceDate = date)))
+        )
+
+        eventLoader.loadEvents(portfolio, TestHelpers.TEST_DATE)
+
+        assertThat(invocations(eventStore, "save")).isEqualTo(1)
+        assertThat(invocations(portfolioService, "getPortfolioById")).isZero()
+    }
+
+    @Test
     fun `should not backfill when no asset loads an event`() {
         holding("AAA", "BBB")
         whenever(priceService.getEvents(any())).thenReturn(PriceResponse(emptyList()))

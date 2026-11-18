@@ -38,21 +38,27 @@ class EventLoader(
         }
     }
 
+    /** Resolves the portfolio with the caller's token, then loads it. */
     fun loadEvents(
         portfolioId: String,
         date: String
+    ) = loadEvents(portfolioService.getPortfolioById(portfolioId), date)
+
+    /** Loads an already-resolved portfolio; everything here runs under M2M auth. */
+    fun loadEvents(
+        portfolio: Portfolio,
+        date: String
     ) {
-        val portfolio = portfolioService.getPortfolioById(portfolioId)
         val authContext = loginService.loginM2m()
         loginService.setAuthContext(authContext)
         runBlockingTraced {
             val dates = dateSplitter.dateRange(date, DateUtils.TODAY)
-            log.info("Loading missing events from date: $dates, portfolio: ${portfolio.code}/$portfolioId")
+            log.info("Loading missing events from date: $dates, portfolio: ${portfolio.code}/${portfolio.id}")
             for (processDate in dates) {
                 launch {
                     val events = loadEvents(portfolio, processDate, authContext)
                     if (events > 0) {
-                        log.trace("Loaded $events events for portfolio: ${portfolio.code}/$portfolioId")
+                        log.trace("Loaded $events events for portfolio: ${portfolio.code}/${portfolio.id}")
                     }
                 }
             }

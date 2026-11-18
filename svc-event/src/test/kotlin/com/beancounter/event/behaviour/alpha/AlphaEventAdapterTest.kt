@@ -10,6 +10,7 @@ import com.beancounter.common.model.QuantityValues
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.event.behaviour.TaxService
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.BeforeEach
@@ -479,10 +480,8 @@ class AlphaEventAdapterTest {
     }
 
     @Test
-    fun `past dated DIVIDEND should also be PROPOSED`() {
-        // Given: A DIVIDEND event with a past record date
+    fun `past dated DIVIDEND should be SETTLED, as it has already been paid`() {
         val pastRecordDate = LocalDate.of(2024, 1, 15)
-        val expectedPayDate = pastRecordDate.plusDays(AlphaEventAdapter.DEFAULT_DAYS_TO_ADD)
         val dividendEvent =
             CorporateEvent(
                 id = "past-divi",
@@ -493,20 +492,49 @@ class AlphaEventAdapterTest {
                 source = "ALPHA"
             )
 
-        // When: Processing the past DIVIDEND event
         val result = alphaEventAdapter.calculate(testPortfolio, testPosition, dividendEvent)
 
-        // Then: Past dividends should still be PROPOSED (user can manually settle)
-        assertThat(result.trnInput.trnType)
-            .describedAs("Past dividends should be created as DIVI")
-            .isEqualTo(TrnType.DIVI)
-
-        assertThat(result.trnInput.status)
-            .describedAs("Past dividends should have PROPOSED status")
-            .isEqualTo(TrnStatus.PROPOSED)
-
+        assertThat(result.trnInput.status).isEqualTo(TrnStatus.SETTLED)
         assertThat(result.trnInput.tradeDate)
-            .describedAs("Past dividends should have the calculated pay date")
-            .isEqualTo(expectedPayDate)
+            .isEqualTo(pastRecordDate.plusDays(AlphaEventAdapter.DEFAULT_DAYS_TO_ADD))
+    }
+
+    @Test
+    fun `DIVIDEND paid today should be SETTLED`() {
+        val today = LocalDate.now(DateUtils().zoneId)
+        val dividendEvent =
+            CorporateEvent(
+                id = "today-divi",
+                assetId = testAsset.id,
+                trnType = TrnType.DIVI,
+                recordDate = today.minusDays(AlphaEventAdapter.DEFAULT_DAYS_TO_ADD),
+                rate = BigDecimal("0.50"),
+                source = "ALPHA"
+            )
+
+        val result = alphaEventAdapter.calculate(testPortfolio, testPosition, dividendEvent)
+
+        assertThat(result.trnInput.tradeDate).isEqualTo(today)
+        assertThat(result.trnInput.status).isEqualTo(TrnStatus.SETTLED)
+    }
+
+    @Test
+    fun `past SPLIT should be SETTLED and a future one PROPOSED`() {
+        fun split(recordDate: LocalDate) =
+            CorporateEvent(
+                id = "split-$recordDate",
+                assetId = testAsset.id,
+                trnType = TrnType.SPLIT,
+                recordDate = recordDate,
+                split = BigDecimal("2"),
+                source = "ALPHA"
+            )
+        val today = LocalDate.now(DateUtils().zoneId)
+
+        assertThat(
+            alphaEventAdapter.calculate(testPortfolio, testPosition, split(LocalDate.of(2022, 7, 15))).trnInput.status
+        ).isEqualTo(TrnStatus.SETTLED)
+        assertThat(alphaEventAdapter.calculate(testPortfolio, testPosition, split(today.plusDays(5))).trnInput.status)
+            .isEqualTo(TrnStatus.PROPOSED)
     }
 }

@@ -112,6 +112,13 @@ class AlphaEventAdapter(
         )
     }
 
+    /**
+     * SETTLED for an event dated today or earlier: it has happened, so a backfill records it
+     * as fact. PROPOSED for a future one, which the user may still cancel.
+     */
+    private fun statusOn(tradeDate: LocalDate): TrnStatus =
+        if (tradeDate.isAfter(dateUtils.date)) TrnStatus.PROPOSED else TrnStatus.SETTLED
+
     private fun toSplit(
         currentPosition: Position,
         corporateEvent: CorporateEvent
@@ -128,7 +135,7 @@ class AlphaEventAdapter(
             quantity = corporateEvent.split,
             tradeDate = corporateEvent.recordDate,
             price = corporateEvent.split,
-            status = TrnStatus.PROPOSED,
+            status = statusOn(corporateEvent.recordDate),
             cashCurrency = currentPosition.asset.market.currency.code
         )
     }
@@ -138,8 +145,8 @@ class AlphaEventAdapter(
         corporateEvent: CorporateEvent,
         payDate: LocalDate
     ): TrnInput {
-        // All dividends are created as PROPOSED transactions regardless of pay date.
-        // A daily scheduler will auto-settle them when the tradeDate arrives.
+        // A dividend already paid is settled; one still to be paid is PROPOSED, so the
+        // user can cancel it, and svc-data's daily job settles it when the date arrives.
         val gross =
             calculateGross(
                 currentPosition,
@@ -163,7 +170,7 @@ class AlphaEventAdapter(
             tradeDate = payDate,
             tradeAmount = gross.subtract(tax),
             price = corporateEvent.rate,
-            status = TrnStatus.PROPOSED,
+            status = statusOn(payDate),
             cashCurrency = currentPosition.asset.market.currency.code,
             tradeCurrency = currentPosition.asset.market.currency.code,
             tax = tax

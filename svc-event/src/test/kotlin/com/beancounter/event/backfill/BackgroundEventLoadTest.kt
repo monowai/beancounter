@@ -16,6 +16,7 @@ import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.slf4j.LoggerFactory
+import java.time.LocalDate
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -26,7 +27,7 @@ import java.util.concurrent.TimeUnit
  * is logged and frees the portfolio for the next start.
  */
 class BackgroundEventLoadTest {
-    private val eventLoader = mock<EventLoader>()
+    private val eventLoader = mock<RangeEventLoader>()
     private val executor = EventLoadExecutor(Executors.newSingleThreadExecutor())
     private val backgroundLoad = BackgroundEventLoad(eventLoader, executor)
     private val portfolio = TestHelpers.createTestPortfolio()
@@ -52,7 +53,7 @@ class BackgroundEventLoadTest {
         assertThat(finished.count).isEqualTo(1)
         release.countDown()
         assertThat(finished.await(WAIT_SECONDS, TimeUnit.SECONDS)).isTrue()
-        verify(eventLoader).loadEvents(portfolio, AS_AT)
+        verify(eventLoader).load(portfolio, LocalDate.parse(AS_AT))
     }
 
     @Test
@@ -65,7 +66,7 @@ class BackgroundEventLoadTest {
         assertThat(second).isEqualTo(BackgroundLoadStatus.ALREADY_RUNNING)
         release.countDown()
         assertThat(finished.await(WAIT_SECONDS, TimeUnit.SECONDS)).isTrue()
-        verify(eventLoader, times(1)).loadEvents(portfolio, AS_AT)
+        verify(eventLoader, times(1)).load(portfolio, LocalDate.parse(AS_AT))
     }
 
     @Test
@@ -85,7 +86,7 @@ class BackgroundEventLoadTest {
         doAnswer {
             failed.countDown()
             error("provider down")
-        }.whenever(eventLoader).loadEvents(any<Portfolio>(), any())
+        }.whenever(eventLoader).load(any<Portfolio>(), any())
         logger.addAppender(logged)
 
         backgroundLoad.start(portfolio, AS_AT)
@@ -101,7 +102,7 @@ class BackgroundEventLoadTest {
         doAnswer {
             release.await(WAIT_SECONDS, TimeUnit.SECONDS)
             finished.countDown()
-        }.whenever(eventLoader).loadEvents(any<Portfolio>(), any())
+        }.whenever(eventLoader).load(any<Portfolio>(), any())
     }
 
     /** The slot is freed after the load returns, so wait for the executor's task to end. */

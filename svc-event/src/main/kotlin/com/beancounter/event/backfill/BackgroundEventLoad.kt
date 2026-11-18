@@ -4,6 +4,7 @@ import com.beancounter.common.model.Portfolio
 import org.slf4j.LoggerFactory
 import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Service
+import java.time.LocalDate
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.RejectedExecutionException
 
@@ -11,7 +12,8 @@ import java.util.concurrent.RejectedExecutionException
 enum class BackgroundLoadStatus { STARTED, ALREADY_RUNNING }
 
 /**
- * Runs a portfolio's event load (load, then backfill, from a date to today) on the
+ * Runs a portfolio's event load (each held asset's events fetched once, then those from a
+ * date to today processed: see [RangeEventLoader]) on the
  * dedicated [EventLoadExecutor], so the caller is answered before the work is done.
  *
  * One load per portfolio at a time: a start while that portfolio's load is queued or
@@ -20,7 +22,7 @@ enum class BackgroundLoadStatus { STARTED, ALREADY_RUNNING }
  */
 @Service
 class BackgroundEventLoad(
-    private val eventLoader: EventLoader,
+    private val rangeEventLoader: RangeEventLoader,
     private val executor: EventLoadExecutor
 ) {
     private val running: MutableSet<String> = ConcurrentHashMap.newKeySet()
@@ -56,7 +58,7 @@ class BackgroundEventLoad(
         asAt: String
     ) {
         log.info("Background event load started, portfolio: ${describe(portfolio)}, asAt: $asAt")
-        runCatching { eventLoader.loadEvents(portfolio, asAt) }
+        runCatching { rangeEventLoader.load(portfolio, LocalDate.parse(asAt)) }
             .onSuccess { log.info("Background event load finished, portfolio: ${describe(portfolio)}, asAt: $asAt") }
             .onFailure { log.error("Background event load failed, portfolio: ${describe(portfolio)}, asAt: $asAt", it) }
         running.remove(portfolio.id)

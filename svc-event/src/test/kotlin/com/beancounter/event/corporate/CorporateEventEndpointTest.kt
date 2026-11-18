@@ -9,6 +9,7 @@ import com.beancounter.common.utils.BcJson.Companion.objectMapper
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.event.backfill.BackFillService
 import com.beancounter.event.backfill.EventLoader
+import com.beancounter.event.backfill.RangeEventLoader
 import com.beancounter.event.distribution.EventDistribution
 import com.beancounter.event.utils.TestHelpers
 import org.assertj.core.api.Assertions.assertThat
@@ -55,6 +56,9 @@ class CorporateEventEndpointTest {
 
     @MockitoBean
     private lateinit var eventLoader: EventLoader
+
+    @MockitoBean
+    private lateinit var rangeEventLoader: RangeEventLoader
 
     @MockitoBean
     private lateinit var portfolioService: PortfolioServiceClient
@@ -232,7 +236,8 @@ class CorporateEventEndpointTest {
         doAnswer {
             release.await(WAIT_SECONDS, TimeUnit.SECONDS)
             finished.countDown()
-        }.whenever(eventLoader).loadEvents(any<Portfolio>(), any())
+            0
+        }.whenever(rangeEventLoader).load(any<Portfolio>(), any())
 
         try {
             backgroundLoad(portfolio.id, "2024-01-15")
@@ -250,11 +255,11 @@ class CorporateEventEndpointTest {
             release.countDown()
         }
         assertThat(finished.await(WAIT_SECONDS, TimeUnit.SECONDS)).isTrue()
-        inOrder(portfolioService, eventLoader) {
+        inOrder(portfolioService, rangeEventLoader) {
             verify(portfolioService).getPortfolioById(portfolio.id)
-            verify(eventLoader).loadEvents(portfolio, "2024-01-15")
+            verify(rangeEventLoader).load(portfolio, LocalDate.parse("2024-01-15"))
         }
-        verify(eventLoader, never()).loadEvents(portfolio.id, "2024-01-15")
+        verifyNoInteractions(eventLoader)
     }
 
     @Test

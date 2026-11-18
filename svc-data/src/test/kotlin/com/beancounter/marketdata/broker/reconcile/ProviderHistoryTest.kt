@@ -40,7 +40,7 @@ class ProviderHistoryTest {
 
     private fun providing(vararg rows: Pair<LocalDate, String>) {
         val inputs = listOf(PriceAsset(asset))
-        whenever(assetFinder.find(asset.id)).thenReturn(asset)
+        whenever(assetFinder.findOrNull(asset.id)).thenReturn(asset)
         whenever(providerUtils.getInputs(listOf(asset))).thenReturn(inputs)
         whenever(providerUtils.splitProviders(inputs)).thenReturn(mapOf(provider to mutableListOf(asset)))
         whenever(provider.backFill(any(), any())).thenReturn(
@@ -71,5 +71,11 @@ class ProviderHistoryTest {
 
         assertThat(history.closesBefore(asset.id, before)).isEmpty()
         verify(provider, never()).backFill(any(), any())
+    }
+
+    @Test
+    fun `should return no closes for an unknown asset`() {
+        assertThat(history.closesBefore("missing", before)).isEmpty()
+        verify(providerUtils, never()).getInputs(any())
     }
 }

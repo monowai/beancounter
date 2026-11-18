@@ -19,12 +19,15 @@ class ProviderHistory(
     private val assetFinder: AssetFinder,
     private val dateUtils: DateUtils
 ) {
-    /** The adjusted closes dated before [before], as far back as the provider goes. */
+    /**
+     * The adjusted closes dated before [before], as far back as the provider goes; none for
+     * an unknown asset.
+     */
     fun closesBefore(
         assetId: String,
         before: LocalDate
     ): List<Pair<LocalDate, BigDecimal>> {
-        val asset = assetFinder.find(assetId)
+        val asset = assetFinder.findOrNull(assetId) ?: return emptyList()
         val from = dateUtils.date.minusYears(MAX_HISTORY_YEARS)
         return providerUtils
             .splitProviders(providerUtils.getInputs(listOf(asset)))

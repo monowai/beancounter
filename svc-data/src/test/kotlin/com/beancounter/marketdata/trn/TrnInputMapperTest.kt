@@ -586,19 +586,45 @@ internal class TrnInputMapperTest {
         assertThat(trn.costDate).isEqualTo(costDate)
     }
 
-    private fun costDateInput(costDate: LocalDate?) =
-        TrnInput(
-            CallerRef(portfolioId.uppercase(Locale.getDefault()), one, one),
-            assetId = asset.id,
-            trnType = TrnType.ADD,
-            quantity = TEN,
-            price = price,
-            tradeDate = theDate,
-            costDate = costDate,
-            tradeBaseRate = ONE,
-            tradeCashRate = ONE,
-            tradePortfolioRate = ONE
-        )
+    @Test
+    fun `should store no cost date on anything but an add`() {
+        val costDate = LocalDate.of(2016, 11, 18)
+
+        val trn = trnInputMapper.map(getPortfolio(portfolioId), costDateInput(costDate, TrnType.BUY))
+
+        assertThat(trn.costDate).isNull()
+    }
+
+    @Test
+    fun `should drop the stored cost date when a patch makes the add another type`() {
+        val existing =
+            Trn(
+                trnType = TrnType.ADD,
+                asset = asset,
+                costDate = LocalDate.of(2016, 11, 18),
+                portfolio = getPortfolio(portfolioId)
+            )
+
+        val trn = trnInputMapper.map(getPortfolio(portfolioId), costDateInput(null, TrnType.BUY), existing)
+
+        assertThat(trn.costDate).isNull()
+    }
+
+    private fun costDateInput(
+        costDate: LocalDate?,
+        trnType: TrnType = TrnType.ADD
+    ) = TrnInput(
+        CallerRef(portfolioId.uppercase(Locale.getDefault()), one, one),
+        assetId = asset.id,
+        trnType = trnType,
+        quantity = TEN,
+        price = price,
+        tradeDate = theDate,
+        costDate = costDate,
+        tradeBaseRate = ONE,
+        tradeCashRate = ONE,
+        tradePortfolioRate = ONE
+    )
 
     @Test
     fun `explicit cashCurrency differing from trade currency wins`() {

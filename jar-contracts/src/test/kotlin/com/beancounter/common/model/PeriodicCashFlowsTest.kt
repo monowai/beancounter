@@ -40,6 +40,14 @@ class PeriodicCashFlowsTest {
     }
 
     @Test
+    fun `should ignore a cost date on anything but an add`() {
+        val buy = add(heldSince).copy(trnType = TrnType.BUY)
+        val flows = PeriodicCashFlows().apply { add(buy) }
+
+        assertThat(flows.cashFlows).containsExactly(CashFlow(-1157.10, recordDate))
+    }
+
+    @Test
     fun `should carry the cost date through the transaction json`() {
         val json = objectMapper.writeValueAsString(add(heldSince))
 

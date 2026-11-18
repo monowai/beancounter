@@ -133,3 +133,11 @@ data class Trn(
         const val VERSION: String = "4"
     }
 }
+
+/**
+ * When this transaction's cost was paid: an ADD's [Trn.costDate] when it has one, otherwise
+ * the trade date. Only an ADD records a holding bought before it, so any other type's cost
+ * date is ignored.
+ */
+val Trn.costPaidOn: LocalDate
+    get() = costDate?.takeIf { trnType == TrnType.ADD } ?: tradeDate

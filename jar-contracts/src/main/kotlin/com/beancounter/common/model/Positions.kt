@@ -157,9 +157,11 @@ class Positions(
         val isPositionBuildingTrn = TrnType.isPositionBuilding(trn.trnType)
         val isReopening = !firstTrade && hasZeroQuantity && hadActualTransactions && isPositionBuildingTrn
 
-        // Set opened date if first trade OR if re-entering after selling out completely
+        // Set opened date if first trade OR if re-entering after selling out completely.
+        // An ADD with a cost date opens when its cost was paid; firstTransaction, quantity,
+        // splits and dividends stay on the trade date.
         if (firstTrade || isReopening) {
-            position.dateValues.opened = trn.tradeDate
+            position.dateValues.opened = trn.costPaidOn
         }
 
         // When reopening after a complete sell-out, clear historical cash flows

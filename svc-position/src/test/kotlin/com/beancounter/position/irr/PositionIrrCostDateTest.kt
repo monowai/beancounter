@@ -19,8 +19,8 @@ import java.math.RoundingMode
 import java.time.LocalDate
 
 /**
- * A holding recorded today at a cost paid years ago: IRR runs from the cost date, while
- * quantity, splits and the opened date stay on the trade date.
+ * A holding recorded today at a cost paid years ago opens, and its IRR runs, from the cost
+ * date, while quantity, splits and firstTransaction stay on the trade date.
  */
 class PositionIrrCostDateTest {
     private val positionIrr = PositionIrr(IrrCalculator(minHoldingDays = 365, dateUtils = DateUtils()))
@@ -34,18 +34,23 @@ class PositionIrrCostDateTest {
     // 5,867.60 on 1,157.10 is a 407% simple return.
     private val roi = marketValue.subtract(cost).divide(cost, 4, RoundingMode.HALF_UP)
 
-    private fun add(costDate: LocalDate?) =
-        Trn(
-            trnType = TrnType.ADD,
-            asset = asset,
-            quantity = BigDecimal.TEN,
-            tradeDate = today,
-            tradeAmount = cost,
-            costDate = costDate
-        )
+    private fun add(
+        costDate: LocalDate?,
+        trnType: TrnType = TrnType.ADD
+    ) = Trn(
+        trnType = trnType,
+        asset = asset,
+        quantity = BigDecimal.TEN,
+        tradeDate = today,
+        tradeAmount = cost,
+        costDate = costDate
+    )
 
-    private fun valued(costDate: LocalDate?): Position {
-        val position = accumulator.accumulate(add(costDate), Positions())
+    private fun valued(
+        costDate: LocalDate?,
+        trnType: TrnType = TrnType.ADD
+    ): Position {
+        val position = accumulator.accumulate(add(costDate, trnType), Positions())
         position.getMoneyValues(Position.In.TRADE).marketValue = marketValue
         position.periodicCashFlows.add(position, today)
         return position
@@ -75,7 +80,14 @@ class PositionIrrCostDateTest {
     }
 
     @Test
-    fun `should keep opened and splits on the trade date`() {
+    fun `should report the simple return of a buy recorded today, whatever cost date it carries`() {
+        val irr = positionIrr.ofPosition(valued(heldSince, TrnType.BUY), today, roi)
+
+        assertThat(irr).isEqualByComparingTo(roi)
+    }
+
+    @Test
+    fun `should open on the cost date and keep firstTransaction and splits on the trade date`() {
         val withCostDate = Positions()
         val without = Positions()
         val dated = accumulator.accumulate(add(heldSince), withCostDate)
@@ -84,10 +96,11 @@ class PositionIrrCostDateTest {
         accumulator.accumulate(split, withCostDate)
         accumulator.accumulate(split.copy(), without)
 
-        assertThat(dated.dateValues.opened).isEqualTo(today)
+        assertThat(dated.dateValues.opened).isEqualTo(heldSince)
+        assertThat(undated.dateValues.opened).isEqualTo(today)
         assertThat(dated.dateValues.firstTransaction).isEqualTo(today)
+        assertThat(undated.dateValues.firstTransaction).isEqualTo(today)
         assertThat(dated.quantityValues.getTotal()).isEqualByComparingTo("20")
         assertThat(dated.quantityValues.getTotal()).isEqualByComparingTo(undated.quantityValues.getTotal())
-        assertThat(dated.dateValues.opened).isEqualTo(undated.dateValues.opened)
     }
 }

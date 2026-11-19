@@ -443,7 +443,6 @@ interface TrnRepository :
      * Used by auto-settle to find the WITHDRAWAL + DEPOSIT pair it emitted for a
      * given parent trade (parent.callerId stamped as the batch on the children).
      */
-
     @Query(
         "select t from Trn t " +
             "join fetch t.asset " +

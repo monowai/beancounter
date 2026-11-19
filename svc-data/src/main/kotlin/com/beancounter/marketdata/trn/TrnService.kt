@@ -142,8 +142,11 @@ class TrnService(
         trnInput: TrnInput
     ): TrnResponse = patch(portfolio, trnFinder.getPortfolioTrn(trnId).iterator().next(), trnInput)
 
-    /** Update [existing] from [trnInput]; for callers that have already found and checked it. */
-    fun patch(
+    /**
+     * Update [existing] from [trnInput]. It runs no access check: the caller must have found
+     * [existing] within [portfolio], so it stays internal to this module.
+     */
+    internal fun patch(
         portfolio: Portfolio,
         existing: Trn,
         trnInput: TrnInput

@@ -140,13 +140,19 @@ class TrnService(
         portfolio: Portfolio,
         trnId: String,
         trnInput: TrnInput
+    ): TrnResponse = patch(portfolio, trnFinder.getPortfolioTrn(trnId).iterator().next(), trnInput)
+
+    /** Update [existing] from [trnInput]; for callers that have already found and checked it. */
+    fun patch(
+        portfolio: Portfolio,
+        existing: Trn,
+        trnInput: TrnInput
     ): TrnResponse {
-        val existing = trnFinder.getPortfolioTrn(trnId)
         val trn =
             trnInputMapper.map(
                 portfolio,
                 trnInput,
-                existing.iterator().next()
+                existing
             )
         trnRepository.save(trn)
         // Re-sync the compensating cash transfer to the edited values — reconcile

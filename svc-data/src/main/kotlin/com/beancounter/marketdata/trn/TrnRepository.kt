@@ -430,6 +430,14 @@ interface TrnRepository :
     )
     fun findDistinctAssetIdsByPortfolioIds(portfolioIds: Collection<String>): Collection<String>
 
+    /** The portfolio's transaction with this caller reference, if one is recorded. */
+    fun findByPortfolioIdAndCallerRefProviderAndCallerRefBatchAndCallerRefCallerId(
+        portfolioId: String,
+        provider: String,
+        batch: String,
+        callerId: String
+    ): Optional<Trn>
+
     /**
      * Find sibling transactions grouped under the same caller_ref provider + batch.
      * Used by auto-settle to find the WITHDRAWAL + DEPOSIT pair it emitted for a

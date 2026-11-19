@@ -5,6 +5,7 @@ import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.input.TrustedTrnImportRequest
+import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
 import com.beancounter.marketdata.metrics.TrnMetrics
@@ -52,10 +53,23 @@ class TrnImportService(
             return emptySet()
         }
         val trnInput = adapterFactory.get(trustedRequest.importFormat).transform(trustedRequest)
-        return writeTrn(
-            trustedRequest.portfolio,
-            trnInput
-        )
+        return upsert(trustedRequest.portfolio, trnInput)
+    }
+
+    /**
+     * Updates the row recorded under the same caller reference, else adds it, so a
+     * corrected file can be imported again without adding the rows twice.
+     */
+    private fun upsert(
+        portfolio: Portfolio,
+        trnInput: TrnInput
+    ): Collection<Trn> {
+        val recorded = recorded(portfolio, trnInput.callerRef)
+        return if (recorded == null) {
+            writeTrn(portfolio, trnInput)
+        } else {
+            trnService.patch(portfolio, recorded, trnInput).data.toTrns()
+        }
     }
 
     /**
@@ -151,6 +165,21 @@ class TrnImportService(
             portfolio,
             trnRequest
         )
+    }
+
+    /** The portfolio's transaction under [callerRef]; null when there is none or the reference is incomplete. */
+    private fun recorded(
+        portfolio: Portfolio,
+        callerRef: CallerRef
+    ): Trn? {
+        if (callerRef.batch.isBlank() || callerRef.callerId.isBlank()) return null
+        return trnRepository
+            .findByPortfolioIdAndCallerRefProviderAndCallerRefBatchAndCallerRefCallerId(
+                portfolio.id,
+                callerRef.provider,
+                callerRef.batch,
+                callerRef.callerId
+            ).orElse(null)
     }
 
     private fun verifyPortfolio(portfolioId: String): Boolean {

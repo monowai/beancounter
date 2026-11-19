@@ -126,8 +126,9 @@ class RangeEventLoaderTest {
         val processed = loader.load(portfolio, from)
 
         assertThat(processed).isEqualTo(2)
-        verify(eventDistribution).processEvent(aaa)
-        verify(eventDistribution).processEvent(ccc)
+        // Only the portfolio being loaded gets transactions, not every holder of the asset.
+        verify(eventDistribution).processEvent(aaa, null, portfolio.id)
+        verify(eventDistribution).processEvent(ccc, null, portfolio.id)
     }
 
     @Test

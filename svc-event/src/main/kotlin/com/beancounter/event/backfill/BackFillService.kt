@@ -10,7 +10,7 @@ import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
 
 /**
- * Find events that exist locally and resubmit the transactions.
+ * Find events that exist locally and resubmit the transactions, for one portfolio only.
  */
 @Service
 class BackFillService(
@@ -56,7 +56,7 @@ class BackFillService(
                 )
             log.trace("Publish events: ${events.size}, asAt: $asAtDate")
             for (event in events) {
-                eventDistribution.processEvent(event)
+                eventDistribution.processEvent(event, portfolioId = portfolio.id)
             }
             eventCount += events.size
         }

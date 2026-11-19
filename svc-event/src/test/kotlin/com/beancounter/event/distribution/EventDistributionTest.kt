@@ -205,4 +205,41 @@ class EventDistributionTest {
 
         verify(eventPublisher, times(1)).send(testTrustedTrnEvent)
     }
+
+    @Test
+    fun `should distribute only to the named portfolio when one is given`() {
+        val savedEvent = testCorporateEvent.copy(id = "own-portfolio-event")
+        val otherHolder = testPortfolio.copy(id = "other-holder", code = "OTHER")
+        val otherImporter = testPortfolio.copy(id = "other-importer", code = "IMPORT")
+        whenever(positionService.findWhereHeld(any(), any()))
+            .thenReturn(PortfoliosResponse(listOf(testPortfolio, otherHolder)))
+        whenever(costDatedHoldings.owed(savedEvent)).thenReturn(
+            mapOf(
+                otherImporter.id to
+                    ImportedShares(otherImporter, TestHelpers.createTestAsset(), java.math.BigDecimal.TEN)
+            )
+        )
+        whenever(positionService.process(testPortfolio, savedEvent, null)).thenReturn(testTrustedTrnEvent)
+
+        val result = eventDistribution.processEvent(savedEvent, portfolioId = testPortfolio.id)
+
+        assertThat(result.map { it.portfolio.id }).containsExactly(testPortfolio.id)
+        verify(eventPublisher, times(1)).send(any())
+    }
+
+    @Test
+    fun `should distribute to an importer named as the portfolio`() {
+        val savedEvent = testCorporateEvent.copy(id = "own-importer-event")
+        val importer = testPortfolio.copy(id = "importer", code = "IMPORT")
+        val importedShares = ImportedShares(importer, TestHelpers.createTestAsset(), java.math.BigDecimal.TEN)
+        val importerTrn = testTrustedTrnEvent.copy(portfolio = importer)
+        whenever(positionService.findWhereHeld(any(), any()))
+            .thenReturn(PortfoliosResponse(listOf(testPortfolio)))
+        whenever(costDatedHoldings.owed(savedEvent)).thenReturn(mapOf(importer.id to importedShares))
+        whenever(positionService.process(importer, savedEvent, null, importedShares)).thenReturn(importerTrn)
+
+        val result = eventDistribution.processEvent(savedEvent, portfolioId = importer.id)
+
+        assertThat(result.map { it.portfolio.id }).containsExactly(importer.id)
+    }
 }

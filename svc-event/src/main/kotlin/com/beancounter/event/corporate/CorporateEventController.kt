@@ -1,6 +1,7 @@
 package com.beancounter.event.corporate
 
 import com.beancounter.auth.model.AuthConstants
+import com.beancounter.client.services.PortfolioServiceClient
 import com.beancounter.common.event.CorporateEvent
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.utils.DateUtils
@@ -43,7 +44,8 @@ import org.springframework.web.bind.annotation.RestController
 class CorporateEventController(
     private val eventStore: CorporateEventStore,
     private val eventDistribution: EventDistribution,
-    private val dateUtils: DateUtils
+    private val dateUtils: DateUtils,
+    private val portfolioService: PortfolioServiceClient
 ) {
     @GetMapping(
         value = ["/{eventId}"],
@@ -92,7 +94,8 @@ class CorporateEventController(
 
             * Finds the event by its unique identifier
             * Generates a proposed dividend or split transaction for each portfolio that
-              held the asset on the record date, sent once the work commits
+              held the asset on the record date, or for the given portfolio only, sent once
+              the work commits
             * Runs synchronously and returns the event once distribution has finished
 
             Use this to reprocess events that may have failed or need to be regenerated.
@@ -126,11 +129,20 @@ class CorporateEventController(
                     "If provided, bypasses the default recordDate + 18 days calculation",
             example = "2024-12-10"
         )
-        @RequestParam(required = false) payDate: String? = null
+        @RequestParam(required = false) payDate: String? = null,
+        @Parameter(
+            description =
+                "Optional portfolio to create the transaction in. When given, only that portfolio " +
+                    "is distributed to, and it must be one the caller can access",
+            example = "portfolio-123"
+        )
+        @RequestParam(required = false) portfolioId: String? = null
     ): CorporateEventResponse {
         val event = eventStore[eventId]
         val overridePayDate = payDate?.let { dateUtils.getDate(it).toString() }
-        eventDistribution.processEvent(event.data, overridePayDate)
+        // Resolved with the caller's token, so a portfolio they cannot see is refused.
+        val portfolio = portfolioId?.let { portfolioService.getPortfolioById(it) }
+        eventDistribution.processEvent(event.data, overridePayDate, portfolio?.id)
         return event
     }
 

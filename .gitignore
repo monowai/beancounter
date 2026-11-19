@@ -125,5 +125,5 @@ SENTRY.md
 FX.md
 TRN.md
 
-# Local-only agent guidance — kept on disk, not shared via the repo.
+# Agent guidance is AGENTS.md (committed); a local CLAUDE.md is not shared.
 CLAUDE.md

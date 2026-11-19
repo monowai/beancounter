@@ -31,6 +31,9 @@ data class MoneyValues(
     var earmarked: BigDecimal = BigDecimal.ZERO
     var weight: BigDecimal = BigDecimal.ZERO
     var irr: BigDecimal = BigDecimal.ZERO
+
+    /** IRR over every cycle the asset has been held; [irr] covers only the current holding. */
+    var lifetimeIrr: BigDecimal = BigDecimal.ZERO
     var roi: BigDecimal = BigDecimal.ZERO
     var priceData: PriceData = PriceData()
     var averageCost: BigDecimal = BigDecimal.ZERO

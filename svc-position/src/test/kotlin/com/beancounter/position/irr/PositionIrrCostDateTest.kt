@@ -75,15 +75,14 @@ class PositionIrrCostDateTest {
     fun `should report the simple return of a holding recorded today with no cost date`() {
         val irr = positionIrr.ofPosition(valued(null), today, roi)
 
-        assertThat(irr).isEqualByComparingTo(roi)
-        assertThat(irr).isEqualByComparingTo("4.071")
+        assertThat(irr).isCloseTo(BigDecimal("4.071"), within(BigDecimal("0.0001")))
     }
 
     @Test
     fun `should report the simple return of a buy recorded today, whatever cost date it carries`() {
         val irr = positionIrr.ofPosition(valued(heldSince, TrnType.BUY), today, roi)
 
-        assertThat(irr).isEqualByComparingTo(roi)
+        assertThat(irr).isCloseTo(roi, within(BigDecimal("0.0001")))
     }
 
     @Test

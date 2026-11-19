@@ -164,12 +164,11 @@ class Positions(
             position.dateValues.opened = trn.costPaidOn
         }
 
-        // When reopening after a complete sell-out, clear historical cash flows
-        // This starts a new investment cycle - historical returns are realized and not relevant
-        // for the new position's ROI/XIRR calculation
+        // Re-entry after a complete sell-out starts a new investment cycle. The position's
+        // IRR covers only the new cycle; the closed cycles are kept for the lifetime IRR.
         // Note: firstTransaction is NOT reset - it tracks the very first transaction ever for this asset
         if (isReopening) {
-            position.periodicCashFlows.clear()
+            position.periodicCashFlows.startNewCycle()
         }
 
         return position

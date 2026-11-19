@@ -10,7 +10,9 @@ import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.contracts.FxResponse
 import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.model.AssetCategory
+import com.beancounter.common.model.CashFlow
 import com.beancounter.common.model.MoneyValues
+import com.beancounter.common.model.PeriodicCashFlows
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
@@ -30,6 +32,7 @@ import org.mockito.Mock
 import org.mockito.Mockito
 import org.mockito.junit.jupiter.MockitoExtension
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argumentCaptor
 import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import org.springframework.security.authentication.TestingAuthenticationToken
@@ -297,7 +300,7 @@ class PositionValuationServiceTest {
     }
 
     @Test
-    fun `should use ROI for positions held less than minHoldingDays`() {
+    fun `should use the holding's simple return for positions held less than minHoldingDays`() {
         // Given - position opened 100 days ago (less than 365 day threshold)
         whenever(tokenService.bearerToken).thenReturn("Token Value")
         val asset = TestHelpers.createTestAsset("SHORT_HOLD", US.code)
@@ -321,16 +324,62 @@ class PositionValuationServiceTest {
         whenever(calculationSupport.calculatePortfolioMoneyValues(any(), any()))
             .thenReturn(mockMoneyValues)
         whenever(calculationSupport.calculateRoi(any())).thenReturn(expectedRoi)
-        // IRR calculator returns different value - but for short holding period, ROI should be used
+        // XIRR returns a different value - but for a short holding the simple return of its cash flows is used
         whenever(irrCalculator.calculate(any())).thenReturn(0.27)
+        whenever(irrCalculator.calculateSimpleRoi(any())).thenReturn(0.21)
 
         // When
         valuationService.value(positions, assetInputs)
 
-        // Then - verify updateTotals was called with ROI value for both roi AND irr parameters
-        // For short holding periods, the IRR should equal the ROI (called 3 times for trade/base/portfolio)
+        // Then - lifetime ROI is reported as ROI; the IRR is the holding's own simple return
+        // (called 3 times for trade/base/portfolio)
         verify(calculationSupport, org.mockito.kotlin.times(3))
-            .updateTotals(any(), any(), org.mockito.kotlin.eq(expectedRoi), org.mockito.kotlin.eq(expectedRoi))
+            .updateTotals(
+                any(),
+                any(),
+                org.mockito.kotlin.eq(expectedRoi),
+                org.mockito.kotlin.eq(BigDecimal.valueOf(0.21))
+            )
+    }
+
+    @Test
+    fun `should report the lifetime IRR of a re-bought position across its closed cycles`() {
+        // Given - a holding re-bought 30 days ago after an earlier round trip
+        whenever(tokenService.bearerToken).thenReturn("Token Value")
+        val asset = TestHelpers.createTestAsset("REBOUGHT", US.code)
+        val assetInputs = setOf(TestHelpers.createTestAssetInput(US.code, asset.code))
+        val position = TestHelpers.createTestPosition(asset, portfolio)
+        position.dateValues.opened = LocalDate.now().minusDays(30)
+        position.quantityValues.purchased = BigDecimal.TEN
+        position.periodicCashFlows.closedCycles.add(CashFlow(-1000.0, LocalDate.now().minusYears(2)))
+        position.periodicCashFlows.closedCycles.add(CashFlow(1500.0, LocalDate.now().minusYears(1)))
+        val positions = TestHelpers.createTestPositions(portfolio, listOf(position))
+
+        whenever(fxUtils.buildRequest(any(), any())).thenReturn(FxRequest())
+        whenever(priceService.getPrices(any(), any())).thenReturn(
+            PriceResponse(listOf(TestHelpers.createTestMarketData(asset)))
+        )
+        whenever(fxRateService.getRates(any(), any())).thenReturn(FxResponse())
+
+        val tradeValues = MoneyValues(portfolio.currency)
+        val baseValues = MoneyValues(portfolio.currency)
+        val portfolioValues = MoneyValues(portfolio.currency)
+        whenever(calculationSupport.calculateTradeMoneyValues(any())).thenReturn(tradeValues)
+        whenever(calculationSupport.calculateBaseMoneyValues(any(), any())).thenReturn(baseValues)
+        whenever(calculationSupport.calculatePortfolioMoneyValues(any(), any())).thenReturn(portfolioValues)
+        whenever(calculationSupport.calculateRoi(any())).thenReturn(BigDecimal("0.16"))
+        whenever(irrCalculator.calculateSimpleRoi(any())).thenReturn(-0.02)
+        whenever(irrCalculator.calculate(any())).thenReturn(0.25)
+
+        // When
+        valuationService.value(positions, assetInputs)
+
+        // Then - every view carries the lifetime IRR over the closed cycles and the current one
+        val lifetimeFlows = argumentCaptor<PeriodicCashFlows>()
+        verify(irrCalculator, org.mockito.kotlin.atLeastOnce()).calculate(lifetimeFlows.capture())
+        assertThat(lifetimeFlows.allValues.map { it.cashFlows.size }).contains(3)
+        assertThat(listOf(tradeValues, baseValues, portfolioValues).map { it.lifetimeIrr })
+            .allSatisfy { assertThat(it).isEqualByComparingTo("0.25") }
     }
 
     @Test

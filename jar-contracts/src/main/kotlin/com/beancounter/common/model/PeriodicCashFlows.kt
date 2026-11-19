@@ -7,7 +7,11 @@ import java.time.LocalDate
  * Manage cash flows from transactions and positions.
  */
 class PeriodicCashFlows {
+    /** The current holding cycle: from the position's open, or its re-entry after a sell-out. */
     var cashFlows: MutableList<CashFlow> = mutableListOf()
+
+    /** Cash flows of the cycles that ended in a sell-out, kept for the lifetime IRR. */
+    val closedCycles: MutableList<CashFlow> = mutableListOf()
     private var firstTransactionDate: LocalDate? = null
 
     fun add(trn: Trn) {
@@ -68,6 +72,15 @@ class PeriodicCashFlows {
                 )
             }
         )
+    }
+
+    /** Every cash flow the asset has had: closed cycles, then the current one. */
+    fun lifetime(): PeriodicCashFlows = PeriodicCashFlows().also { it.cashFlows.addAll(closedCycles + cashFlows) }
+
+    /** Close the current cycle after a sell-out; the re-entry starts a new one. */
+    fun startNewCycle() {
+        closedCycles.addAll(cashFlows)
+        cashFlows.clear()
     }
 
     fun clear() {

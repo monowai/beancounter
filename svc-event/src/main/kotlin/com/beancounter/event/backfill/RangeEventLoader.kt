@@ -17,7 +17,8 @@ import java.time.LocalDate
  * [EventLoader] fetches each asset's events and the positions again for every date, which
  * over years is tens of thousands of calls; this is one call per asset.
  *
- * Positions are read as of today, so an asset sold before today is not loaded.
+ * Positions are read as of today, so an asset sold before today is not loaded. Only
+ * [portfolio] is given transactions: other portfolios that hold the asset are untouched.
  */
 @Service
 class RangeEventLoader(
@@ -56,8 +57,14 @@ class RangeEventLoader(
         }
         val events = assetIds.flatMap { eventStore.findInRange(it, from, today) }
         events.forEach { event ->
-            runCatching { loginService.retryOnJwtExpiry { eventDistribution.processEvent(event) } }
-                .onFailure { log.warn("Event processing failed, event: {}", event.id, it) }
+            runCatching {
+                loginService.retryOnJwtExpiry {
+                    eventDistribution.processEvent(
+                        event,
+                        portfolioId = portfolio.id
+                    )
+                }
+            }.onFailure { log.warn("Event processing failed, event: {}", event.id, it) }
         }
         log.info("Processed {} events from {}, portfolio: {}", events.size, from, portfolio.code)
         return events.size

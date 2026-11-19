@@ -43,9 +43,15 @@ class EventDistribution(
         }
     }
 
+    /**
+     * One proposed transaction per holder of [event]'s asset on its record date. Given
+     * [portfolioId], only that portfolio is distributed to: a backfill for one portfolio
+     * must not create transactions in the others that hold the asset.
+     */
     fun processEvent(
         event: CorporateEvent,
-        overridePayDate: String? = null
+        overridePayDate: String? = null,
+        portfolioId: String? = null
     ): Collection<TrustedTrnEvent> {
         val response =
             positionService.findWhereHeld(
@@ -54,7 +60,10 @@ class EventDistribution(
             )
         // Imported holdings owed a dividend before their trade date, which svc-position cannot see.
         val imported = costDatedHoldings.owed(event)
-        val holders = (response.data + imported.values.map { it.portfolio }).distinctBy { it.id }
+        val holders =
+            (response.data + imported.values.map { it.portfolio })
+                .distinctBy { it.id }
+                .filter { portfolioId == null || it.id == portfolioId }
 
         val portfolioCount = holders.size
         var ignoredCount = 0

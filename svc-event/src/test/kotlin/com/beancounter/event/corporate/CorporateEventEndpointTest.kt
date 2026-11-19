@@ -15,7 +15,10 @@ import com.beancounter.event.utils.TestHelpers
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
+import org.mockito.kotlin.argThat
 import org.mockito.kotlin.doAnswer
+import org.mockito.kotlin.eq
+import org.mockito.kotlin.isNull
 import org.mockito.kotlin.never
 import org.mockito.kotlin.times
 import org.mockito.kotlin.verify
@@ -91,6 +94,36 @@ class CorporateEventEndpointTest {
 
         assertThat(response.contentAsString).contains("not-a-date")
         verifyNoInteractions(eventDistribution)
+    }
+
+    @Test
+    fun `should reprocess for the named portfolio only, resolved with the caller's token`() {
+        val event = eventStore.save(TestHelpers.createTestCorporateEvent(assetCode = "reprocess-one-portfolio"))
+        val portfolio = TestHelpers.createTestPortfolio(id = "own-portfolio")
+        whenever(portfolioService.getPortfolioById(portfolio.id)).thenReturn(portfolio)
+
+        mockMvc
+            .perform(
+                post("/{eventId}", event.id)
+                    .param("portfolioId", portfolio.id)
+                    .with(jwt().jwt(mockAuthConfig.getUserToken()))
+            ).andExpect(status().isOk)
+
+        verify(eventDistribution).processEvent(argThat { id == event.id }, isNull(), eq(portfolio.id))
+    }
+
+    @Test
+    fun `should reprocess for every holder when no portfolio is named`() {
+        val event = eventStore.save(TestHelpers.createTestCorporateEvent(assetCode = "reprocess-all-holders"))
+
+        mockMvc
+            .perform(
+                post("/{eventId}", event.id)
+                    .with(jwt().jwt(mockAuthConfig.getUserToken()))
+            ).andExpect(status().isOk)
+
+        verify(eventDistribution).processEvent(argThat { id == event.id }, isNull(), isNull())
+        verifyNoInteractions(portfolioService)
     }
 
     @Test

@@ -13,6 +13,7 @@ import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.mock
+import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.time.LocalDate
 
@@ -52,6 +53,24 @@ class BackFillServiceTest {
 
         assertThat(meterRegistry.counter("beancounter.event.backfill.events.loaded").count())
             .isEqualTo(EVENTS.toDouble())
+    }
+
+    @Test
+    fun `should distribute backfilled events to the backfilled portfolio only`() {
+        val portfolio = TestHelpers.createTestPortfolio()
+        val date = LocalDate.parse(TestHelpers.TEST_DATE)
+        val positions = Positions(portfolio)
+        positions.add(TestHelpers.createTestPosition(portfolio = portfolio))
+        val event = TestHelpers.createTestCorporateEvent()
+        whenever(portfolioService.getPortfolioById(portfolio.id)).thenReturn(portfolio)
+        whenever(dateSplitter.dateRange(TestHelpers.TEST_DATE, TestHelpers.TEST_DATE)).thenReturn(listOf(date))
+        whenever(positionService.getPositions(portfolio, TestHelpers.TEST_DATE)).thenReturn(PositionResponse(positions))
+        whenever(positionService.includePosition(any())).thenReturn(true)
+        whenever(eventStore.find(any(), any())).thenReturn(listOf(event))
+
+        backFillService.backFillEvents(portfolio.id, TestHelpers.TEST_DATE)
+
+        verify(eventDistribution).processEvent(event, null, portfolio.id)
     }
 
     private companion object {

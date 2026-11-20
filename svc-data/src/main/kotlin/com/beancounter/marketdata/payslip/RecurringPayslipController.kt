@@ -46,10 +46,11 @@ class RecurringPayslipController(
     @Operation(
         summary = "Schedule the caller's recurring payslip",
         description = """
-            payDate is the payslip just recorded. The next one falls a month later on the same
-            day, or the month's last day when the month is shorter. Replaces the caller's
-            existing schedule. 400 when grossSalary <= 0, tax < 0, the portfolio is not the
-            caller's or the cash asset does not exist.
+            nextPayDate is the next payslip to post, stored as given; it must fall on dayOfMonth,
+            or on the month's last day when the month is shorter. Replaces the caller's existing
+            schedule. 400 when grossSalary <= 0, tax < 0, dayOfMonth is outside 1-31, nextPayDate
+            is not on dayOfMonth, the portfolio is not the caller's or the cash asset does not
+            exist.
         """
     )
     fun put(

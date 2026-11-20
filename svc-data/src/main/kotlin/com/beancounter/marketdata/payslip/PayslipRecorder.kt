@@ -2,6 +2,7 @@ package com.beancounter.marketdata.payslip
 
 import com.beancounter.common.contracts.TrnRequest
 import com.beancounter.common.input.TrnInput
+import com.beancounter.common.model.CallerRef
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
 import com.beancounter.marketdata.portfolio.PortfolioRepository
@@ -14,9 +15,9 @@ import org.springframework.stereotype.Service
 /**
  * Records the transactions svc-retire calculated for a due payslip, then moves the recurring
  * payslip on to its next pay date, in one transaction. A message for a stopped payslip, for a
- * pay date other than the next one or for another portfolio is dropped. When the legs are
- * already recorded (callerRef of the first leg) they are not saved again, but the row still
- * advances.
+ * pay date other than the next one, for another portfolio or whose first leg has no complete
+ * callerRef is dropped. When the legs are already recorded (callerRef of the first leg) they
+ * are not saved again, but the row still advances.
  */
 @Service
 @Transactional
@@ -44,6 +45,9 @@ class PayslipRecorder(
                 payslipTrns.trns.isEmpty() -> {
                     "no transactions for ${payslipTrns.payDate}"
                 }
+                !complete(payslipTrns.trns.first().callerRef) -> {
+                    "first leg has no complete caller reference, so a redelivery could not be detected"
+                }
                 else -> {
                     return saveAndAdvance(payslip, portfolio, payslipTrns.trns)
                 }
@@ -69,6 +73,10 @@ class PayslipRecorder(
         )
         return saved
     }
+
+    /** The duplicate check needs a batch and a callerId; a blank one would be filled with a random id. */
+    private fun complete(callerRef: CallerRef): Boolean =
+        callerRef.batch.isNotBlank() && callerRef.callerId.isNotBlank()
 
     companion object {
         private val log = LoggerFactory.getLogger(PayslipRecorder::class.java)

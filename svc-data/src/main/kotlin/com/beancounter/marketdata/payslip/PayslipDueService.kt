@@ -6,12 +6,14 @@ import com.beancounter.marketdata.assets.privateasset.PolicyType
 import com.beancounter.marketdata.assets.privateasset.PrivateAssetConfigRepository
 import com.beancounter.marketdata.registration.UserPreferencesRepository
 import org.slf4j.LoggerFactory
+import org.springframework.messaging.MessagingException
 import org.springframework.stereotype.Service
 
 /**
  * Finds the recurring payslips whose next pay date has arrived and publishes one [PayslipDue]
  * for each, for that pay date only: a row several months behind catches up a month per run.
  * Does not advance the row; [PayslipRecorder] does that once the transactions are recorded.
+ * A row whose message cannot be sent is skipped and sent again on the next run.
  */
 @Service
 class PayslipDueService(
@@ -28,8 +30,12 @@ class PayslipDueService(
         var published = 0
         for (payslip in due) {
             val message = toDue(payslip) ?: continue
-            payslipDueProducer.send(message)
-            published++
+            try {
+                payslipDueProducer.send(message)
+                published++
+            } catch (e: MessagingException) {
+                log.warn("Recurring payslip {}: due message not sent, retried next run", payslip.id, e)
+            }
         }
         return published
     }

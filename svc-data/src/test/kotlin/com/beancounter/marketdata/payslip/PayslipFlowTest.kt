@@ -27,15 +27,19 @@ import com.beancounter.marketdata.registration.UserPreferencesService
 import com.beancounter.marketdata.trn.TrnRepository
 import com.beancounter.marketdata.utils.BcMvcHelper
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatCode
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.mockito.ArgumentCaptor
 import org.mockito.Mockito.atLeast
 import org.mockito.Mockito.clearInvocations
 import org.mockito.Mockito.verify
+import org.mockito.kotlin.any
 import org.mockito.kotlin.eq
+import org.mockito.kotlin.whenever
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.cloud.stream.function.StreamBridge
+import org.springframework.messaging.MessagingException
 import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import org.springframework.test.web.servlet.MockMvc
@@ -180,7 +184,8 @@ class PayslipFlowTest {
         row: RecurringPayslip,
         payee: Payee,
         payDate: LocalDate = row.nextPayDate,
-        portfolioId: String = row.portfolioId
+        portfolioId: String = row.portfolioId,
+        batch: String = row.id
     ): PayslipTrns {
         fun leg(
             number: Int,
@@ -188,7 +193,7 @@ class PayslipFlowTest {
             amount: String,
             cashAmount: String
         ) = TrnInput(
-            callerRef = CallerRef("PAYSLIP", row.id, "$payDate-$number"),
+            callerRef = CallerRef("PAYSLIP", batch, "$payDate-$number"),
             assetId = payee.cash.id,
             cashAssetId = payee.cash.id,
             trnType = trnType,
@@ -277,6 +282,30 @@ class PayslipFlowTest {
         val row = payee.schedule(today.plusDays(1))
 
         assertThat(publishedFor(row)).isEmpty()
+    }
+
+    @Test
+    fun `should publish the remaining payslips when one send fails`() {
+        val first = Payee("pf-due-fail-1").schedule(today)
+        val second = Payee("pf-due-fail-2").schedule(today)
+        whenever(streamBridge.send(eq(PayslipDueProducer.BINDING), any()))
+            .thenThrow(MessagingException("broker down"))
+            .thenReturn(true)
+
+        assertThatCode { payslipDueService.publishDue() }.doesNotThrowAnyException()
+
+        assertThat(published().map { it.recurringPayslipId }).contains(first.id, second.id)
+    }
+
+    @Test
+    fun `should drop transactions whose first leg has no caller reference`() {
+        val payee = Payee("pf-no-ref")
+        val row = payee.schedule(LocalDate.of(2026, 10, 12))
+
+        payslipRecorder.record(legs(row, payee, batch = ""))
+
+        assertThat(payee.trns()).isEmpty()
+        assertThat(nextPayDate(row)).isEqualTo(LocalDate.of(2026, 10, 12))
     }
 
     @Test

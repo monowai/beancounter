@@ -258,6 +258,10 @@ class PositionValuationService(
         positionContext.positions.periodicCashFlows.addAll(positionContext.position.periodicCashFlows.cashFlows)
 
         val irr = positionIrr.ofPosition(positionContext.position, positionContext.asAtDate, roi)
+        val lifetimeIrr = positionIrr.lifetime(positionContext.position, positionContext.asAtDate, roi)
+        moneyValuesGroup.tradeMoneyValues.lifetimeIrr = lifetimeIrr
+        moneyValuesGroup.baseMoneyValues.lifetimeIrr = lifetimeIrr
+        moneyValuesGroup.portfolioMoneyValues.lifetimeIrr = lifetimeIrr
 
         calculationSupport.updateTotals(totalsGroup.tradeTotals, moneyValuesGroup.tradeMoneyValues, roi, irr)
         calculationSupport.updateTotals(totalsGroup.baseTotals, moneyValuesGroup.baseMoneyValues, roi, irr)

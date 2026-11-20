@@ -87,6 +87,7 @@ class PortfolioConsolidation(
                         .addConverted(sourceMv, conversionRate(sourceMv.currency, targetCurrency, rates))
                 }
                 target.periodicCashFlows.addAll(source.periodicCashFlows.cashFlows)
+                target.periodicCashFlows.closedCycles.addAll(source.periodicCashFlows.closedCycles)
                 // Per-broker holdings survive aggregation so the UI can cap
                 // a sell at what the chosen broker actually holds.
                 source.held.forEach { (broker, qty) ->

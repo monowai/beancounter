@@ -65,22 +65,42 @@ class PositionIrr(
     }
 
     /**
-     * IRR for [position] as at [asAtDate]: [roi] while the current holding is younger
-     * than the threshold or has no cash flows, XIRR over its cash flows otherwise.
+     * IRR of the current holding of [position] as at [asAtDate]. While the holding is
+     * younger than the threshold it is the simple return of the holding's own cash flows,
+     * which a re-entry after a sell-out has reset; XIRR over those cash flows otherwise.
+     * [roi] answers only when the holding has no cash flows.
      */
     fun ofPosition(
         position: Position,
         asAtDate: LocalDate,
         roi: BigDecimal
     ): BigDecimal {
+        val cashFlows = position.periodicCashFlows
+        if (cashFlows.cashFlows.isEmpty()) return roi
         val opened = position.dateValues.opened
         val holdingDays = if (opened == null) 0L else ChronoUnit.DAYS.between(opened, asAtDate)
-        return if (holdingDays < irrCalculator.minHoldingDays || position.periodicCashFlows.cashFlows.isEmpty()) {
-            roi
+        return if (holdingDays < irrCalculator.minHoldingDays) {
+            BigDecimal.valueOf(irrCalculator.calculateSimpleRoi(cashFlows))
         } else {
-            of(position.periodicCashFlows)
+            of(cashFlows)
         }
     }
+
+    /**
+     * IRR over every cycle [position] has been held, closed round trips included. Equals
+     * the position IRR until the first re-entry after a sell-out. Call it after the
+     * terminal market value is added to the current cycle.
+     */
+    fun lifetime(
+        position: Position,
+        asAtDate: LocalDate,
+        roi: BigDecimal
+    ): BigDecimal =
+        if (position.periodicCashFlows.closedCycles.isEmpty()) {
+            ofPosition(position, asAtDate, roi)
+        } else {
+            of(position.periodicCashFlows.lifetime())
+        }
 
     /**
      * IRR of [periodicCashFlows]. Zero is a real answer: a 0% return, or a series with no

@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.payslip
 
+import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.KeyGenUtils
 import com.fasterxml.jackson.annotation.JsonFormat
 import com.fasterxml.jackson.annotation.JsonIgnore
@@ -48,7 +49,7 @@ data class RecurringPayslip(
     val tax: BigDecimal = BigDecimal.ZERO,
     @Column(nullable = false)
     val dayOfMonth: Int,
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateUtils.FORMAT)
     @Column(nullable = false)
     val nextPayDate: LocalDate
 )

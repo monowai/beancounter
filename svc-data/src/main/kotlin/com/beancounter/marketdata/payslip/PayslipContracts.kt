@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.payslip
 
 import com.beancounter.common.input.TrnInput
+import com.beancounter.common.utils.DateUtils
 import com.fasterxml.jackson.annotation.JsonFormat
 import java.math.BigDecimal
 import java.time.LocalDate
@@ -14,7 +15,7 @@ data class RecurringPayslipRequest(
     val cashAssetId: String,
     val grossSalary: BigDecimal,
     val tax: BigDecimal = BigDecimal.ZERO,
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateUtils.FORMAT)
     val payDate: LocalDate
 )
 
@@ -35,7 +36,7 @@ data class PayslipDue(
     // SystemUser.id
     val ownerId: String,
     val portfolioId: String,
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateUtils.FORMAT)
     val payDate: LocalDate,
     val grossSalary: BigDecimal,
     val tax: BigDecimal,
@@ -51,7 +52,7 @@ data class PayslipDue(
 data class PayslipTrns(
     val recurringPayslipId: String,
     val portfolioId: String,
-    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd")
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateUtils.FORMAT)
     val payDate: LocalDate,
     val trns: List<TrnInput> = emptyList()
 )

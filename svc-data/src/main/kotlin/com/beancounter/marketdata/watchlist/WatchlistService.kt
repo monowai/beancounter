@@ -150,7 +150,8 @@ class WatchlistService(
 
     /**
      * The asset [request] names: by id, or by market and code, created as a public asset
-     * the way `POST /assets` creates one when BC does not know it yet.
+     * the way `POST /assets` creates one when BC does not know it yet. Either way another
+     * user's private asset is not found.
      */
     private fun requestedAsset(
         owner: SystemUser,
@@ -160,13 +161,16 @@ class WatchlistService(
         val input = request.asset
         return when {
             !assetId.isNullOrBlank() -> {
-                visibleAsset(owner, assetId)
+                visible(owner, assetFinder.find(assetId))
             }
             input != null -> {
-                assetService
-                    .handle(AssetRequest(input.copy(owner = "")))
-                    .data.values
-                    .single()
+                visible(
+                    owner,
+                    assetService
+                        .handle(AssetRequest(input.copy(owner = "")))
+                        .data.values
+                        .single()
+                )
             }
             else -> {
                 throw BusinessException("Send assetId or asset")
@@ -178,14 +182,13 @@ class WatchlistService(
      * Public assets are visible to everyone; a private asset only to its owner. Anything else
      * is reported as not found.
      */
-    private fun visibleAsset(
+    private fun visible(
         owner: SystemUser,
-        assetId: String
+        asset: Asset
     ): Asset {
-        val asset = assetFinder.find(assetId)
         val assetOwner = asset.systemUser
         if (assetOwner != null && assetOwner.id != owner.id) {
-            throw NotFoundException("Asset not found: $assetId")
+            throw NotFoundException("Asset not found: ${asset.id}")
         }
         return asset
     }

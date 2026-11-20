@@ -565,6 +565,32 @@ class WatchlistControllerTest {
     }
 
     @Test
+    fun `should return 404 when naming another users private asset by market and code`() {
+        assetRepository.save(
+            Asset(
+                code = "WLFOREIGNCODE",
+                id = KeyGenUtils().id,
+                market = NASDAQ,
+                marketCode = NASDAQ.code,
+                systemUser = systemUserRepository.findByEmail("wl-user-b").orElseThrow()
+            )
+        )
+
+        addItem(
+            mapOf("asset" to mapOf("market" to NASDAQ.code, "code" to "WLFOREIGNCODE"), "addedPrice" to 1),
+            expect = status().isNotFound
+        )
+    }
+
+    @Test
+    fun `should return 400 when naming a private market asset by market and code`() {
+        addItem(
+            mapOf("asset" to mapOf("market" to "PRIVATE", "code" to "HOUSE"), "addedPrice" to 1),
+            expect = status().isBadRequest
+        )
+    }
+
+    @Test
     fun `should drop watchlist items when the asset is deleted`() {
         val stock = asset("WLASSETGONE")
         val itemId = addedId(mapOf("assetId" to stock.id, "addedPrice" to 10))

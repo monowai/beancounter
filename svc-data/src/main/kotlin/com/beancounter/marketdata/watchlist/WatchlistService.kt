@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.watchlist
 
+import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.model.Asset
@@ -9,6 +10,7 @@ import com.beancounter.common.model.TargetDirection
 import com.beancounter.common.model.WatchlistItem
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.assets.AssetFinder
+import com.beancounter.marketdata.assets.AssetService
 import jakarta.transaction.Transactional
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
@@ -27,6 +29,7 @@ class WatchlistService(
     private val itemRepository: WatchlistItemRepository,
     private val alertRepository: WatchlistAlertRepository,
     private val assetFinder: AssetFinder,
+    private val assetService: AssetService,
     private val quotes: WatchlistQuotes,
     private val dateUtils: DateUtils
 ) {
@@ -41,7 +44,7 @@ class WatchlistService(
         owner: SystemUser,
         request: AddWatchlistItemRequest
     ): WatchlistItemView {
-        val asset = visibleAsset(owner, request.assetId)
+        val asset = requestedAsset(owner, request)
         if (itemRepository.existsByOwnerIdAndAssetId(owner.id, asset.id)) {
             throw DataIntegrityViolationException("Asset ${asset.id} is already on the watchlist")
         }
@@ -144,6 +147,32 @@ class WatchlistService(
         itemRepository
             .findByIdAndOwnerId(itemId, owner.id)
             .orElseThrow { NotFoundException("Watchlist item not found: $itemId") }
+
+    /**
+     * The asset [request] names: by id, or by market and code, created as a public asset
+     * the way `POST /assets` creates one when BC does not know it yet.
+     */
+    private fun requestedAsset(
+        owner: SystemUser,
+        request: AddWatchlistItemRequest
+    ): Asset {
+        val assetId = request.assetId
+        val input = request.asset
+        return when {
+            !assetId.isNullOrBlank() -> {
+                visibleAsset(owner, assetId)
+            }
+            input != null -> {
+                assetService
+                    .handle(AssetRequest(input.copy(owner = "")))
+                    .data.values
+                    .single()
+            }
+            else -> {
+                throw BusinessException("Send assetId or asset")
+            }
+        }
+    }
 
     /**
      * Public assets are visible to everyone; a private asset only to its owner. Anything else

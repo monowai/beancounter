@@ -1,6 +1,7 @@
 package com.beancounter.marketdata.watchlist
 
 import com.beancounter.common.contracts.Payload
+import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Currency
 import com.beancounter.common.model.TargetDirection
@@ -10,10 +11,13 @@ import java.time.Instant
 import java.time.LocalDate
 
 /**
- * Add an asset. When [addedPrice] is absent the current close is stamped.
+ * Add an asset: by [assetId], or by [asset] (market and code, as a search hit carries
+ * them) for one BC may not know yet, which is created first. When [addedPrice] is
+ * absent the current close is stamped.
  */
 data class AddWatchlistItemRequest(
-    val assetId: String,
+    val assetId: String? = null,
+    val asset: AssetInput? = null,
     val addedPrice: BigDecimal? = null,
     val targetPrice: BigDecimal? = null
 )

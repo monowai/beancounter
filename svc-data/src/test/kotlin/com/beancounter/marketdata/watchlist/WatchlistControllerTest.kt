@@ -294,6 +294,50 @@ class WatchlistControllerTest {
     }
 
     @Test
+    fun `should create an asset new to BC and watch it in one call`() {
+        val added =
+            addItem(
+                mapOf(
+                    "asset" to mapOf("market" to NASDAQ.code, "code" to "WLNEWCO", "name" to "New Co"),
+                    "addedPrice" to 12
+                )
+            ).path("data")
+
+        val assetId = added.path("asset").path("id").asString()
+        assertThat(assetId).isNotBlank()
+        assertThat(added.path("asset").path("code").asString()).isEqualTo("WLNEWCO")
+        assertThat(assetRepository.findById(assetId)).isPresent
+        assertThat(itemIds()).contains(added.path("id").asString())
+    }
+
+    @Test
+    fun `should watch the existing asset when one is named by market and code`() {
+        val stock = asset("WLKNOWN")
+
+        val added =
+            addItem(
+                mapOf("asset" to mapOf("market" to NASDAQ.code, "code" to stock.code), "addedPrice" to 3)
+            ).path("data")
+
+        assertThat(added.path("asset").path("id").asString()).isEqualTo(stock.id)
+    }
+
+    @Test
+    fun `should create the asset under its upper-case code whatever case it is sent in`() {
+        val added =
+            addItem(
+                mapOf("asset" to mapOf("market" to NASDAQ.code, "code" to "wlcase"), "addedPrice" to 4)
+            ).path("data")
+
+        assertThat(added.path("asset").path("code").asString()).isEqualTo("WLCASE")
+    }
+
+    @Test
+    fun `should return 400 when neither an asset id nor an asset is given`() {
+        addItem(mapOf("addedPrice" to 1), expect = status().isBadRequest)
+    }
+
+    @Test
     fun `should return 409 when asset already watched`() {
         val stock = asset("WLITEMDUP")
         addItem(mapOf("assetId" to stock.id, "addedPrice" to 1))

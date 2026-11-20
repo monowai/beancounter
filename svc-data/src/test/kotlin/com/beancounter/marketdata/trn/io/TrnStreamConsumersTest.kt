@@ -7,6 +7,8 @@ import com.beancounter.auth.model.AuthConstants
 import com.beancounter.auth.model.OpenIdResponse
 import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.input.TrustedTrnImportRequest
+import com.beancounter.marketdata.payslip.PayslipRecorder
+import com.beancounter.marketdata.payslip.PayslipTrns
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.AfterEach
 import org.junit.jupiter.api.Test
@@ -79,7 +81,7 @@ class TrnStreamConsumersTest {
             emptySet<Any>()
         }
 
-        val consumers = TrnStreamConsumers(importService, providerFor(loginService))
+        val consumers = TrnStreamConsumers(importService, providerFor(loginService), mock())
         consumers.csvImportConsumer().accept(mock<TrustedTrnImportRequest>())
 
         // getOrThrow() -> isServiceAccount() -> isServiceToken would have resolved during processing.
@@ -99,7 +101,7 @@ class TrnStreamConsumersTest {
             emptySet<Any>()
         }
 
-        val consumers = TrnStreamConsumers(importService, providerFor(null))
+        val consumers = TrnStreamConsumers(importService, providerFor(null), mock())
         consumers.csvImportConsumer().accept(mock<TrustedTrnImportRequest>())
 
         assertThat(processed).isTrue()
@@ -135,7 +137,7 @@ class TrnStreamConsumersTest {
             emptySet<Any>()
         }
 
-        val consumers = TrnStreamConsumers(importService, providerFor(loginService))
+        val consumers = TrnStreamConsumers(importService, providerFor(loginService), mock())
         consumers.csvImportConsumer().accept(mock<TrustedTrnImportRequest>())
 
         assertThat(setAuthContextCalls).isEqualTo(2)
@@ -171,10 +173,38 @@ class TrnStreamConsumersTest {
             emptySet<Any>()
         }
 
-        val consumers = TrnStreamConsumers(importService, providerFor(loginService))
+        val consumers = TrnStreamConsumers(importService, providerFor(loginService), mock())
         consumers.trnEventConsumer().accept(mock<TrustedTrnEvent>())
 
         assertThat(setAuthContextCalls).isEqualTo(2)
+        assertThat(serviceTokenDuringProcessing).isTrue()
+        assertThat(SecurityContextHolder.getContext().authentication).isNull()
+    }
+
+    @Test
+    fun `payslip trn consumer records inside an M2M service context and clears it afterwards`() {
+        val authConfig = mock<AuthConfig>()
+        whenever(authConfig.clientSecret).thenReturn("secret")
+        val loginService = mock<LoginService>()
+        whenever(loginService.authConfig).thenReturn(authConfig)
+        whenever(loginService.loginM2m(any())).thenReturn(mock<OpenIdResponse>())
+        whenever(loginService.setAuthContext(any())).thenAnswer {
+            SecurityContextHolder.getContext().authentication = serviceToken()
+            it.arguments[0]
+        }
+        stubRetryOnJwtExpiry(loginService)
+
+        val tokenService = TokenService(mock<AuthConfig>())
+        var serviceTokenDuringProcessing: Boolean? = null
+        val recorder = mock<PayslipRecorder>()
+        whenever(recorder.record(any())).thenAnswer {
+            serviceTokenDuringProcessing = tokenService.isServiceToken
+            emptyList<Any>()
+        }
+
+        val consumers = TrnStreamConsumers(mock(), providerFor(loginService), recorder)
+        consumers.payslipTrnConsumer().accept(mock<PayslipTrns>())
+
         assertThat(serviceTokenDuringProcessing).isTrue()
         assertThat(SecurityContextHolder.getContext().authentication).isNull()
     }

@@ -168,7 +168,7 @@ class TrnImportService(
     }
 
     /** The portfolio's transaction under [callerRef]; null when there is none or the reference is incomplete. */
-    private fun recorded(
+    fun recorded(
         portfolio: Portfolio,
         callerRef: CallerRef
     ): Trn? {

@@ -5,6 +5,7 @@ import com.beancounter.common.exception.ForbiddenException
 import com.beancounter.common.exception.NotFoundException
 import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.model.Portfolio
+import com.beancounter.marketdata.payslip.RecurringPayslipRepository
 import com.beancounter.marketdata.registration.SystemUserService
 import com.beancounter.marketdata.trn.TrnRepository
 import jakarta.transaction.Transactional
@@ -23,7 +24,8 @@ class PortfolioService(
     private val portfolioRepository: PortfolioRepository,
     private val trnRepository: TrnRepository,
     private val systemUserService: SystemUserService,
-    private val accessControl: PortfolioAccessControl
+    private val accessControl: PortfolioAccessControl,
+    private val recurringPayslipRepository: RecurringPayslipRepository
 ) {
     fun save(portfolios: Collection<PortfolioInput>): Collection<Portfolio> {
         val owner = systemUserService.getOrThrow()
@@ -152,6 +154,7 @@ class PortfolioService(
 
     fun delete(id: String) {
         val portfolio = find(id)
+        recurringPayslipRepository.deleteByPortfolioId(portfolio.id)
         trnRepository.deleteByPortfolioId(portfolio.id)
         portfolioRepository.delete(portfolio)
     }

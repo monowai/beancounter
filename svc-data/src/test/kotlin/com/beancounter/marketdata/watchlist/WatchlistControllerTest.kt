@@ -566,10 +566,11 @@ class WatchlistControllerTest {
 
     @Test
     fun `should return 404 when naming another users private asset by market and code`() {
+        val foreignId = KeyGenUtils().id
         assetRepository.save(
             Asset(
                 code = "WLFOREIGNCODE",
-                id = KeyGenUtils().id,
+                id = foreignId,
                 market = NASDAQ,
                 marketCode = NASDAQ.code,
                 systemUser = systemUserRepository.findByEmail("wl-user-b").orElseThrow()
@@ -579,13 +580,18 @@ class WatchlistControllerTest {
         addItem(
             mapOf("asset" to mapOf("market" to NASDAQ.code, "code" to "WLFOREIGNCODE"), "addedPrice" to 1),
             expect = status().isNotFound
-        )
+        ).also { body ->
+            assertThat(body.toString()).doesNotContain(foreignId)
+        }
     }
 
     @Test
     fun `should return 400 when naming a private market asset by market and code`() {
         addItem(
-            mapOf("asset" to mapOf("market" to "PRIVATE", "code" to "HOUSE"), "addedPrice" to 1),
+            mapOf(
+                "asset" to mapOf("market" to "PRIVATE", "code" to "HOUSE", "currency" to "NZD"),
+                "addedPrice" to 1
+            ),
             expect = status().isBadRequest
         )
     }

@@ -11,6 +11,7 @@ import com.beancounter.common.model.WatchlistItem
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.assets.AssetFinder
 import com.beancounter.marketdata.assets.AssetService
+import com.beancounter.marketdata.assets.enrichment.PrivateMarketEnricher
 import jakarta.transaction.Transactional
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
@@ -150,7 +151,8 @@ class WatchlistService(
 
     /**
      * The asset [request] names: by id, or by market and code, created as a public asset
-     * the way `POST /assets` creates one when BC does not know it yet. Either way another
+     * the way `POST /assets` creates one when BC does not know it yet. The caller's
+     * `owner` is never trusted; a private asset is named by id only. Either way another
      * user's private asset is not found.
      */
     private fun requestedAsset(
@@ -161,15 +163,19 @@ class WatchlistService(
         val input = request.asset
         return when {
             !assetId.isNullOrBlank() -> {
-                visible(owner, assetFinder.find(assetId))
+                visible(owner, assetFinder.find(assetId), assetId)
             }
             input != null -> {
+                if (input.market.equals(PrivateMarketEnricher.ID, ignoreCase = true)) {
+                    throw BusinessException("Add a private asset by assetId")
+                }
                 visible(
                     owner,
                     assetService
                         .handle(AssetRequest(input.copy(owner = "")))
                         .data.values
-                        .single()
+                        .single(),
+                    "${input.market}:${input.code}"
                 )
             }
             else -> {
@@ -180,15 +186,16 @@ class WatchlistService(
 
     /**
      * Public assets are visible to everyone; a private asset only to its owner. Anything else
-     * is reported as not found.
+     * is reported as not found, under the name the caller sent ([requested]).
      */
     private fun visible(
         owner: SystemUser,
-        asset: Asset
+        asset: Asset,
+        requested: String
     ): Asset {
         val assetOwner = asset.systemUser
         if (assetOwner != null && assetOwner.id != owner.id) {
-            throw NotFoundException("Asset not found: ${asset.id}")
+            throw NotFoundException("Asset not found: $requested")
         }
         return asset
     }

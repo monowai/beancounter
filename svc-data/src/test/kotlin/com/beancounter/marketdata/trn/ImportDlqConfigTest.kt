@@ -20,7 +20,8 @@ class ImportDlqConfigTest {
     private val consumers =
         listOf(
             "csvImportConsumer-in-0",
-            "trnEventConsumer-in-0"
+            "trnEventConsumer-in-0",
+            "payslipTrnConsumer-in-0"
         )
 
     @Test

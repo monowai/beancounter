@@ -3,6 +3,8 @@ package com.beancounter.marketdata.trn.io
 import com.beancounter.auth.client.LoginService
 import com.beancounter.common.input.TrustedTrnEvent
 import com.beancounter.common.input.TrustedTrnImportRequest
+import com.beancounter.marketdata.payslip.PayslipRecorder
+import com.beancounter.marketdata.payslip.PayslipTrns
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.ObjectProvider
 import org.springframework.context.annotation.Bean
@@ -20,7 +22,8 @@ class TrnStreamConsumers(
     // ObjectProvider: LoginService is gated on auth.enabled=true, so it is absent from
     // no-auth test contexts (contracts profile). Resolve it lazily and only establish the
     // M2M context when present — auth-disabled contexts need no service token.
-    private val loginService: ObjectProvider<LoginService>
+    private val loginService: ObjectProvider<LoginService>,
+    private val payslipRecorder: PayslipRecorder
 ) {
     private val log = LoggerFactory.getLogger(TrnStreamConsumers::class.java)
 
@@ -39,6 +42,16 @@ class TrnStreamConsumers(
             withServiceContext {
                 log.trace("Processing transaction event: {}", event)
                 trnImportService.fromTrnRequest(event)
+            }
+        }
+
+    /** Transactions svc-retire calculated for a due recurring payslip. */
+    @Bean
+    fun payslipTrnConsumer(): Consumer<PayslipTrns> =
+        Consumer { payslipTrns ->
+            withServiceContext {
+                log.trace("Processing payslip transactions: {}", payslipTrns)
+                payslipRecorder.record(payslipTrns)
             }
         }
 

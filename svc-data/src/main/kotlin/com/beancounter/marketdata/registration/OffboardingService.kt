@@ -12,7 +12,7 @@ import org.springframework.stereotype.Service
  * Service for user offboarding - allows users to remove their data from Beancounter.
  *
  * Deletion order respects FK constraints:
- * 1. Portfolios and their transactions ([PortfolioErasure])
+ * 1. Portfolios with their transactions and recurring payslip ([PortfolioErasure])
  * 2. Settlement accounts, assets with their dependents, then brokers ([OwnedAssetErasure])
  * 3. TaxRates
  * 4. Watchlist items, UserPreferences

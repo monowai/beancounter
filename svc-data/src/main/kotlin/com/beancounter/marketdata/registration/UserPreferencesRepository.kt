@@ -10,4 +10,6 @@ import java.util.Optional
  */
 interface UserPreferencesRepository : CrudRepository<UserPreferences, String> {
     fun findByOwner(owner: SystemUser): Optional<UserPreferences>
+
+    fun findByOwnerId(ownerId: String): Optional<UserPreferences>
 }

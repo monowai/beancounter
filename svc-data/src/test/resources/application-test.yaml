@@ -22,6 +22,14 @@ spring:
         corporateEvent-out-0:
           destination: test-ca-event
           content-type: application/json
+        # Recurring payslip due, to svc-retire (StreamBridge)
+        payslipDue-out-0:
+          destination: test-payslip-due
+          content-type: application/json
+        # Payslip transactions from svc-retire (bound only when added to the definition)
+        payslipTrnConsumer-in-0:
+          destination: test-payslip-trn
+          content-type: application/json
   datasource:
     username: sa
     password:

@@ -31,6 +31,7 @@ import org.springframework.security.config.annotation.web.configuration.EnableWe
     "com.beancounter.marketdata.news",
     "com.beancounter.marketdata.macro",
     "com.beancounter.marketdata.watchlist",
+    "com.beancounter.marketdata.payslip",
     "com.beancounter.marketdata.registration"
 )
 @EnableRetry

@@ -155,7 +155,7 @@ spring:
               service: bc-data
   cloud:
     function:
-      definition: csvImportConsumer;trnEventConsumer;priceConsumer;portfolioConsumer
+      definition: csvImportConsumer;trnEventConsumer;priceConsumer;portfolioConsumer;payslipTrnConsumer
     stream:
       # Switch between kafka and rabbit using environment variable:
       # SPRING_CLOUD_STREAM_DEFAULT_BINDER=kafka (or rabbit)
@@ -181,9 +181,18 @@ spring:
           destination: bc-pos-mv-dev
           group: bc-data
           content-type: application/json
+        # Payslip transactions calculated by svc-retire for a due recurring payslip
+        payslipTrnConsumer-in-0:
+          destination: bc-payslip-trn-dev
+          group: bc-data
+          content-type: application/json
         # Corporate Event Producer (StreamBridge)
         corporateEvent-out-0:
           destination: bc-ca-event-dev
+          content-type: application/json
+        # Recurring payslip due, to svc-retire (StreamBridge)
+        payslipDue-out-0:
+          destination: bc-payslip-due-dev
           content-type: application/json
         # Performance Cache Invalidation Producer (StreamBridge)
         cacheInvalidation-out-0:
@@ -204,6 +213,10 @@ spring:
               auto-bind-dlq: true
               republish-to-dlq: true
           trnEventConsumer-in-0:
+            consumer:
+              auto-bind-dlq: true
+              republish-to-dlq: true
+          payslipTrnConsumer-in-0:
             consumer:
               auto-bind-dlq: true
               republish-to-dlq: true

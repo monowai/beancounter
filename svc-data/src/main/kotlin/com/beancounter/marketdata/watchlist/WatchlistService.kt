@@ -1,7 +1,9 @@
 package com.beancounter.marketdata.watchlist
 
+import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.NotFoundException
+import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.SystemUser
@@ -9,6 +11,8 @@ import com.beancounter.common.model.TargetDirection
 import com.beancounter.common.model.WatchlistItem
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.assets.AssetFinder
+import com.beancounter.marketdata.assets.AssetService
+import com.beancounter.marketdata.assets.enrichment.PrivateMarketEnricher
 import jakarta.transaction.Transactional
 import org.springframework.dao.DataIntegrityViolationException
 import org.springframework.stereotype.Service
@@ -27,6 +31,7 @@ class WatchlistService(
     private val itemRepository: WatchlistItemRepository,
     private val alertRepository: WatchlistAlertRepository,
     private val assetFinder: AssetFinder,
+    private val assetService: AssetService,
     private val quotes: WatchlistQuotes,
     private val dateUtils: DateUtils
 ) {
@@ -41,7 +46,7 @@ class WatchlistService(
         owner: SystemUser,
         request: AddWatchlistItemRequest
     ): WatchlistItemView {
-        val asset = visibleAsset(owner, request.assetId)
+        val asset = requestedAsset(owner, request)
         if (itemRepository.existsByOwnerIdAndAssetId(owner.id, asset.id)) {
             throw DataIntegrityViolationException("Asset ${asset.id} is already on the watchlist")
         }
@@ -146,19 +151,50 @@ class WatchlistService(
             .orElseThrow { NotFoundException("Watchlist item not found: $itemId") }
 
     /**
-     * Public assets are visible to everyone; a private asset only to its owner. Anything else
-     * is reported as not found.
+     * The asset [request] names: by id, or by market and code, created as a public asset
+     * the way `POST /assets` creates one when BC does not know it yet. Only a public asset
+     * can be watched.
      */
-    private fun visibleAsset(
+    private fun requestedAsset(
         owner: SystemUser,
-        assetId: String
+        request: AddWatchlistItemRequest
     ): Asset {
-        val asset = assetFinder.find(assetId)
-        val assetOwner = asset.systemUser
-        if (assetOwner != null && assetOwner.id != owner.id) {
-            throw NotFoundException("Asset not found: $assetId")
+        val assetId = request.assetId
+        val input = request.asset
+        return when {
+            !assetId.isNullOrBlank() -> {
+                watchable(owner, assetFinder.find(assetId), assetId)
+            }
+            input != null -> {
+                watchable(
+                    owner,
+                    assetService
+                        .handle(AssetRequest(publicInput(input)))
+                        .data.values
+                        .single(),
+                    "${input.market}:${input.code}"
+                )
+            }
+            else -> {
+                throw BusinessException("Send assetId or asset")
+            }
         }
-        return asset
+    }
+
+    /**
+     * Only a public asset goes on a watchlist. Another user's private asset is reported as not
+     * found, under the name the caller sent ([requested]); the caller's own is refused.
+     */
+    private fun watchable(
+        owner: SystemUser,
+        asset: Asset,
+        requested: String
+    ): Asset {
+        val assetOwner = asset.systemUser ?: return asset
+        if (assetOwner.id != owner.id) {
+            throw NotFoundException("Asset not found: $requested")
+        }
+        throw BusinessException(PRIVATE_NOT_WATCHABLE)
     }
 
     private fun requirePositive(
@@ -170,4 +206,21 @@ class WatchlistService(
         }
         return value
     }
+}
+
+private const val PRIVATE_NOT_WATCHABLE = "A private asset cannot be watched"
+
+/**
+ * The public asset [input] names, as `POST /assets` would create it. Only market, code and
+ * name are taken from the caller: owner, priceSymbol, category and the rest are left to the
+ * enricher.
+ */
+private fun publicInput(input: AssetInput): AssetInput {
+    if (input.market.isBlank() || input.code.isBlank()) {
+        throw BusinessException("Send the asset's market and code")
+    }
+    if (input.market.equals(PrivateMarketEnricher.ID, ignoreCase = true)) {
+        throw BusinessException(PRIVATE_NOT_WATCHABLE)
+    }
+    return AssetInput(market = input.market, code = input.code, name = input.name)
 }

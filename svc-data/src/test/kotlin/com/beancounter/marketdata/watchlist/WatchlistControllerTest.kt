@@ -294,6 +294,79 @@ class WatchlistControllerTest {
     }
 
     @Test
+    fun `should create an asset new to BC and watch it in one call`() {
+        val added =
+            addItem(
+                mapOf(
+                    "asset" to mapOf("market" to NASDAQ.code, "code" to "WLNEWCO", "name" to "New Co"),
+                    "addedPrice" to 12
+                )
+            ).path("data")
+
+        val assetId = added.path("asset").path("id").asString()
+        assertThat(assetId).isNotBlank()
+        assertThat(added.path("asset").path("code").asString()).isEqualTo("WLNEWCO")
+        assertThat(assetRepository.findById(assetId)).isPresent
+        assertThat(itemIds()).contains(added.path("id").asString())
+    }
+
+    @Test
+    fun `should watch the existing asset when one is named by market and code`() {
+        val stock = asset("WLKNOWN")
+
+        val added =
+            addItem(
+                mapOf("asset" to mapOf("market" to NASDAQ.code, "code" to stock.code), "addedPrice" to 3)
+            ).path("data")
+
+        assertThat(added.path("asset").path("id").asString()).isEqualTo(stock.id)
+    }
+
+    @Test
+    fun `should create the asset under its upper-case code whatever case it is sent in`() {
+        val added =
+            addItem(
+                mapOf("asset" to mapOf("market" to NASDAQ.code, "code" to "wlcase"), "addedPrice" to 4)
+            ).path("data")
+
+        assertThat(added.path("asset").path("code").asString()).isEqualTo("WLCASE")
+    }
+
+    @Test
+    fun `should ignore a price symbol and category the caller sends with a new asset`() {
+        val added =
+            addItem(
+                mapOf(
+                    "asset" to
+                        mapOf(
+                            "market" to NASDAQ.code,
+                            "code" to "WLSPOOF",
+                            "priceSymbol" to "OTHER.US",
+                            "category" to "Cash"
+                        ),
+                    "addedPrice" to 5
+                )
+            ).path("data")
+
+        val saved = assetRepository.findById(added.path("asset").path("id").asString()).orElseThrow()
+        assertThat(saved.priceSymbol).isNotEqualTo("OTHER.US")
+        assertThat(saved.category).isNotEqualToIgnoringCase("Cash")
+    }
+
+    @Test
+    fun `should return 400 when a new asset has no code`() {
+        addItem(
+            mapOf("asset" to mapOf("market" to NASDAQ.code, "code" to " "), "addedPrice" to 1),
+            expect = status().isBadRequest
+        )
+    }
+
+    @Test
+    fun `should return 400 when neither an asset id nor an asset is given`() {
+        addItem(mapOf("addedPrice" to 1), expect = status().isBadRequest)
+    }
+
+    @Test
     fun `should return 409 when asset already watched`() {
         val stock = asset("WLITEMDUP")
         addItem(mapOf("assetId" to stock.id, "addedPrice" to 1))
@@ -518,6 +591,58 @@ class WatchlistControllerTest {
             )
 
         addItem(mapOf("assetId" to foreign.id, "addedPrice" to 1), expect = status().isNotFound)
+    }
+
+    @Test
+    fun `should refuse to watch the callers own private asset`() {
+        val userA = systemUserRepository.findByEmail("wl-user-a").orElseThrow()
+        val own =
+            assetRepository.save(
+                Asset(
+                    code = "WLOWNPRIVATE",
+                    id = KeyGenUtils().id,
+                    market = NASDAQ,
+                    marketCode = NASDAQ.code,
+                    systemUser = userA
+                )
+            )
+
+        val problem = addItem(mapOf("assetId" to own.id, "addedPrice" to 1), expect = status().isBadRequest)
+
+        assertThat(problem.path("detail").asString()).contains("private asset cannot be watched")
+        assertThat(watchlistItemRepository.existsByOwnerIdAndAssetId(userA.id, own.id)).isFalse()
+    }
+
+    @Test
+    fun `should return 404 when naming another users private asset by market and code`() {
+        val foreignId = KeyGenUtils().id
+        assetRepository.save(
+            Asset(
+                code = "WLFOREIGNCODE",
+                id = foreignId,
+                market = NASDAQ,
+                marketCode = NASDAQ.code,
+                systemUser = systemUserRepository.findByEmail("wl-user-b").orElseThrow()
+            )
+        )
+
+        addItem(
+            mapOf("asset" to mapOf("market" to NASDAQ.code, "code" to "WLFOREIGNCODE"), "addedPrice" to 1),
+            expect = status().isNotFound
+        ).also { body ->
+            assertThat(body.toString()).doesNotContain(foreignId)
+        }
+    }
+
+    @Test
+    fun `should return 400 when naming a private market asset by market and code`() {
+        addItem(
+            mapOf(
+                "asset" to mapOf("market" to "PRIVATE", "code" to "HOUSE", "currency" to "NZD"),
+                "addedPrice" to 1
+            ),
+            expect = status().isBadRequest
+        )
     }
 
     @Test

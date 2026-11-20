@@ -594,6 +594,26 @@ class WatchlistControllerTest {
     }
 
     @Test
+    fun `should refuse to watch the callers own private asset`() {
+        val userA = systemUserRepository.findByEmail("wl-user-a").orElseThrow()
+        val own =
+            assetRepository.save(
+                Asset(
+                    code = "WLOWNPRIVATE",
+                    id = KeyGenUtils().id,
+                    market = NASDAQ,
+                    marketCode = NASDAQ.code,
+                    systemUser = userA
+                )
+            )
+
+        val problem = addItem(mapOf("assetId" to own.id, "addedPrice" to 1), expect = status().isBadRequest)
+
+        assertThat(problem.path("detail").asString()).contains("private asset cannot be watched")
+        assertThat(watchlistItemRepository.existsByOwnerIdAndAssetId(userA.id, own.id)).isFalse()
+    }
+
+    @Test
     fun `should return 404 when naming another users private asset by market and code`() {
         val foreignId = KeyGenUtils().id
         assetRepository.save(

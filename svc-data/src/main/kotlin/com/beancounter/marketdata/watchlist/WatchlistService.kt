@@ -152,8 +152,8 @@ class WatchlistService(
 
     /**
      * The asset [request] names: by id, or by market and code, created as a public asset
-     * the way `POST /assets` creates one when BC does not know it yet. A private asset is
-     * named by id only. Either way another user's private asset is not found.
+     * the way `POST /assets` creates one when BC does not know it yet. Only a public asset
+     * can be watched.
      */
     private fun requestedAsset(
         owner: SystemUser,
@@ -163,10 +163,10 @@ class WatchlistService(
         val input = request.asset
         return when {
             !assetId.isNullOrBlank() -> {
-                visible(owner, assetFinder.find(assetId), assetId)
+                watchable(owner, assetFinder.find(assetId), assetId)
             }
             input != null -> {
-                visible(
+                watchable(
                     owner,
                     assetService
                         .handle(AssetRequest(publicInput(input)))
@@ -182,19 +182,19 @@ class WatchlistService(
     }
 
     /**
-     * Public assets are visible to everyone; a private asset only to its owner. Anything else
-     * is reported as not found, under the name the caller sent ([requested]).
+     * Only a public asset goes on a watchlist. Another user's private asset is reported as not
+     * found, under the name the caller sent ([requested]); the caller's own is refused.
      */
-    private fun visible(
+    private fun watchable(
         owner: SystemUser,
         asset: Asset,
         requested: String
     ): Asset {
-        val assetOwner = asset.systemUser
-        if (assetOwner != null && assetOwner.id != owner.id) {
+        val assetOwner = asset.systemUser ?: return asset
+        if (assetOwner.id != owner.id) {
             throw NotFoundException("Asset not found: $requested")
         }
-        return asset
+        throw BusinessException(PRIVATE_NOT_WATCHABLE)
     }
 
     private fun requirePositive(
@@ -208,6 +208,8 @@ class WatchlistService(
     }
 }
 
+private const val PRIVATE_NOT_WATCHABLE = "A private asset cannot be watched"
+
 /**
  * The public asset [input] names, as `POST /assets` would create it. Only market, code and
  * name are taken from the caller: owner, priceSymbol, category and the rest are left to the
@@ -218,7 +220,7 @@ private fun publicInput(input: AssetInput): AssetInput {
         throw BusinessException("Send the asset's market and code")
     }
     if (input.market.equals(PrivateMarketEnricher.ID, ignoreCase = true)) {
-        throw BusinessException("Add a private asset by assetId")
+        throw BusinessException(PRIVATE_NOT_WATCHABLE)
     }
     return AssetInput(market = input.market, code = input.code, name = input.name)
 }

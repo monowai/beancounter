@@ -3,6 +3,7 @@ package com.beancounter.marketdata.watchlist
 import com.beancounter.common.contracts.AssetRequest
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.exception.NotFoundException
+import com.beancounter.common.input.AssetInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.SystemUser
@@ -151,9 +152,8 @@ class WatchlistService(
 
     /**
      * The asset [request] names: by id, or by market and code, created as a public asset
-     * the way `POST /assets` creates one when BC does not know it yet. The caller's
-     * `owner` is never trusted; a private asset is named by id only. Either way another
-     * user's private asset is not found.
+     * the way `POST /assets` creates one when BC does not know it yet. A private asset is
+     * named by id only. Either way another user's private asset is not found.
      */
     private fun requestedAsset(
         owner: SystemUser,
@@ -166,13 +166,10 @@ class WatchlistService(
                 visible(owner, assetFinder.find(assetId), assetId)
             }
             input != null -> {
-                if (input.market.equals(PrivateMarketEnricher.ID, ignoreCase = true)) {
-                    throw BusinessException("Add a private asset by assetId")
-                }
                 visible(
                     owner,
                     assetService
-                        .handle(AssetRequest(input.copy(owner = "")))
+                        .handle(AssetRequest(publicInput(input)))
                         .data.values
                         .single(),
                     "${input.market}:${input.code}"
@@ -209,4 +206,19 @@ class WatchlistService(
         }
         return value
     }
+}
+
+/**
+ * The public asset [input] names, as `POST /assets` would create it. Only market, code and
+ * name are taken from the caller: owner, priceSymbol, category and the rest are left to the
+ * enricher.
+ */
+private fun publicInput(input: AssetInput): AssetInput {
+    if (input.market.isBlank() || input.code.isBlank()) {
+        throw BusinessException("Send the asset's market and code")
+    }
+    if (input.market.equals(PrivateMarketEnricher.ID, ignoreCase = true)) {
+        throw BusinessException("Add a private asset by assetId")
+    }
+    return AssetInput(market = input.market, code = input.code, name = input.name)
 }

@@ -333,6 +333,35 @@ class WatchlistControllerTest {
     }
 
     @Test
+    fun `should ignore a price symbol and category the caller sends with a new asset`() {
+        val added =
+            addItem(
+                mapOf(
+                    "asset" to
+                        mapOf(
+                            "market" to NASDAQ.code,
+                            "code" to "WLSPOOF",
+                            "priceSymbol" to "OTHER.US",
+                            "category" to "Cash"
+                        ),
+                    "addedPrice" to 5
+                )
+            ).path("data")
+
+        val saved = assetRepository.findById(added.path("asset").path("id").asString()).orElseThrow()
+        assertThat(saved.priceSymbol).isNotEqualTo("OTHER.US")
+        assertThat(saved.category).isNotEqualToIgnoringCase("Cash")
+    }
+
+    @Test
+    fun `should return 400 when a new asset has no code`() {
+        addItem(
+            mapOf("asset" to mapOf("market" to NASDAQ.code, "code" to " "), "addedPrice" to 1),
+            expect = status().isBadRequest
+        )
+    }
+
+    @Test
     fun `should return 400 when neither an asset id nor an asset is given`() {
         addItem(mapOf("addedPrice" to 1), expect = status().isBadRequest)
     }

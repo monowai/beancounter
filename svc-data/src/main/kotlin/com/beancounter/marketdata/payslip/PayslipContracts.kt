@@ -7,16 +7,17 @@ import java.math.BigDecimal
 import java.time.LocalDate
 
 /**
- * PUT /payslips/recurring body. [payDate] is the payslip the browser has just recorded; the
- * next one is scheduled a month later.
+ * PUT /payslips/recurring body. [nextPayDate] is the next payslip to post; it falls on
+ * [dayOfMonth], or on the month's last day when the month is shorter.
  */
 data class RecurringPayslipRequest(
     val portfolioId: String,
     val cashAssetId: String,
     val grossSalary: BigDecimal,
     val tax: BigDecimal = BigDecimal.ZERO,
+    val dayOfMonth: Int,
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = DateUtils.FORMAT)
-    val payDate: LocalDate
+    val nextPayDate: LocalDate
 )
 
 /** The caller's recurring payslip; [data] is null when there is none. */

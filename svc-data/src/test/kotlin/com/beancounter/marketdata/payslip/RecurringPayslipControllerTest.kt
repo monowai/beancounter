@@ -82,7 +82,8 @@ class RecurringPayslipControllerTest {
             helper.asset(AssetRequest(AssetInput.toAccount(SGD, "$name-BANK", "$name bank", owner = "")))
 
         fun body(
-            payDate: String = "2026-11-25",
+            dayOfMonth: Int = 25,
+            nextPayDate: String = "2026-12-25",
             gross: String = "10000",
             tax: String = "500",
             portfolioId: String = portfolio.id,
@@ -92,7 +93,8 @@ class RecurringPayslipControllerTest {
             "cashAssetId" to cashAssetId,
             "grossSalary" to gross.toBigDecimal(),
             "tax" to tax.toBigDecimal(),
-            "payDate" to payDate
+            "dayOfMonth" to dayOfMonth,
+            "nextPayDate" to nextPayDate
         )
     }
 
@@ -134,7 +136,7 @@ class RecurringPayslipControllerTest {
     }
 
     @Test
-    fun `should schedule the next payslip a month after the pay date and read it back`() {
+    fun `should schedule the next payslip on the given date and day and read it back`() {
         val payee = Payee("rp-roundtrip")
 
         val saved = put(payee).path("data")
@@ -164,7 +166,11 @@ class RecurringPayslipControllerTest {
         val payee = Payee("rp-replace")
         val first = put(payee).path("data")
 
-        val second = put(payee, payee.body(payDate = "2026-11-10", gross = "12000", tax = "0")).path("data")
+        val second =
+            put(
+                payee,
+                payee.body(dayOfMonth = 10, nextPayDate = "2026-12-10", gross = "12000", tax = "0")
+            ).path("data")
 
         assertThat(second.path("id").asString()).isEqualTo(first.path("id").asString())
         assertThat(second.path("grossSalary").decimalValue()).isEqualByComparingTo("12000")
@@ -177,14 +183,14 @@ class RecurringPayslipControllerTest {
     }
 
     @Test
-    fun `should clamp the next pay date to the month's last day and keep day of month 31`() {
+    fun `should keep day of month 31 when the next pay date is a shorter month's last day`() {
         val payee = Payee("rp-clamp")
 
-        val nonLeap = put(payee, payee.body(payDate = "2027-01-31")).path("data")
+        val nonLeap = put(payee, payee.body(dayOfMonth = 31, nextPayDate = "2027-02-28")).path("data")
         assertThat(nonLeap.path("nextPayDate").asString()).isEqualTo("2027-02-28")
         assertThat(nonLeap.path("dayOfMonth").asInt()).isEqualTo(31)
 
-        val leap = put(payee, payee.body(payDate = "2028-01-31")).path("data")
+        val leap = put(payee, payee.body(dayOfMonth = 31, nextPayDate = "2028-02-29")).path("data")
         assertThat(leap.path("nextPayDate").asString()).isEqualTo("2028-02-29")
         assertThat(leap.path("dayOfMonth").asInt()).isEqualTo(31)
     }
@@ -224,6 +230,10 @@ class RecurringPayslipControllerTest {
         put(payee, payee.body(portfolioId = "no-such-portfolio"), status().isBadRequest)
         put(payee, payee.body(cashAssetId = "no-such-asset"), status().isBadRequest)
         put(payee, payee.body(cashAssetId = other.cash.id), status().isBadRequest)
+        put(payee, payee.body(dayOfMonth = 0, nextPayDate = "2026-12-01"), status().isBadRequest)
+        put(payee, payee.body(dayOfMonth = 32, nextPayDate = "2026-12-31"), status().isBadRequest)
+        put(payee, payee.body(dayOfMonth = 31, nextPayDate = "2027-03-30"), status().isBadRequest)
+        put(payee, payee.body(dayOfMonth = 25, nextPayDate = "2026-12-24"), status().isBadRequest)
 
         assertThat(get(payee).path("data").isNull).isTrue()
     }

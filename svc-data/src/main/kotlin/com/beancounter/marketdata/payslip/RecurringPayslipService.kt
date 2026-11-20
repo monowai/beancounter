@@ -22,17 +22,17 @@ class RecurringPayslipService(
     fun get(owner: SystemUser): RecurringPayslip? = recurringPayslipRepository.findByOwnerId(owner.id).orElse(null)
 
     /**
-     * Schedules the payslip after [RecurringPayslipRequest.payDate], replacing the owner's row
-     * when there is one. Throws [BusinessException] (400) for a non-positive gross, a negative
-     * tax, a portfolio the owner does not own or a cash asset that does not exist or is
-     * another user's.
+     * Schedules the next payslip on [RecurringPayslipRequest.nextPayDate], replacing the owner's
+     * row when there is one. Throws [BusinessException] (400) for a non-positive gross, a
+     * negative tax, a day of month outside 1-31, a next pay date not on that day (or the
+     * shorter month's last day), a portfolio the owner does not own or a cash asset that does
+     * not exist or is another user's.
      */
     fun schedule(
         owner: SystemUser,
         request: RecurringPayslipRequest
     ): RecurringPayslip {
         validate(owner, request)
-        val dayOfMonth = request.payDate.dayOfMonth
         val scheduled =
             RecurringPayslip(
                 ownerId = owner.id,
@@ -40,8 +40,8 @@ class RecurringPayslipService(
                 cashAssetId = request.cashAssetId,
                 grossSalary = request.grossSalary,
                 tax = request.tax,
-                dayOfMonth = dayOfMonth,
-                nextPayDate = PayDates.next(request.payDate, dayOfMonth)
+                dayOfMonth = request.dayOfMonth,
+                nextPayDate = request.nextPayDate
             )
         val existing = get(owner)
         return recurringPayslipRepository.save(
@@ -59,11 +59,27 @@ class RecurringPayslipService(
     ) {
         val problem =
             when {
-                request.grossSalary <= BigDecimal.ZERO -> "Gross salary must be greater than zero"
-                request.tax < BigDecimal.ZERO -> "Tax cannot be negative"
-                !ownsPortfolio(owner, request.portfolioId) -> "Portfolio ${request.portfolioId} is not one of yours"
-                !canUseCash(owner, request.cashAssetId) -> "Cash asset ${request.cashAssetId} does not exist"
-                else -> null
+                request.grossSalary <= BigDecimal.ZERO -> {
+                    "Gross salary must be greater than zero"
+                }
+                request.tax < BigDecimal.ZERO -> {
+                    "Tax cannot be negative"
+                }
+                request.dayOfMonth !in PayDates.DAYS -> {
+                    "Day of month must be between 1 and 31"
+                }
+                !PayDates.fallsOn(request.nextPayDate, request.dayOfMonth) -> {
+                    "Next pay date ${request.nextPayDate} is not on day ${request.dayOfMonth}"
+                }
+                !ownsPortfolio(owner, request.portfolioId) -> {
+                    "Portfolio ${request.portfolioId} is not one of yours"
+                }
+                !canUseCash(owner, request.cashAssetId) -> {
+                    "Cash asset ${request.cashAssetId} does not exist"
+                }
+                else -> {
+                    null
+                }
             }
         if (problem != null) {
             throw BusinessException(problem)

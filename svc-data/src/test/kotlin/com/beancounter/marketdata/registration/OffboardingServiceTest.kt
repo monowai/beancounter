@@ -11,6 +11,7 @@ import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.TargetDirection
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
+import com.beancounter.common.model.WatchlistItem
 import com.beancounter.common.utils.KeyGenUtils
 import com.beancounter.marketdata.Constants.Companion.NASDAQ
 import com.beancounter.marketdata.Constants.Companion.NZD
@@ -39,6 +40,7 @@ import org.springframework.security.oauth2.jwt.JwtDecoder
 import org.springframework.test.context.bean.override.mockito.MockitoBean
 import java.math.BigDecimal
 import java.time.Instant
+import java.time.LocalDate
 
 /**
  * Tests for user offboarding functionality.
@@ -629,6 +631,8 @@ class OffboardingServiceTest {
     /**
      * A user-owned asset sitting on the user's own watchlist. watchlist_item has a NO-ACTION
      * FK to asset, so every offboarding path that deletes assets must clear the items first.
+     * The watchlist now refuses a private asset, so the row is saved as one written before
+     * that rule would be.
      */
     private fun watchedOwnAsset(
         user: SystemUser,
@@ -650,9 +654,8 @@ class OffboardingServiceTest {
                     )
                 ).data["test"]!!
         val owner = systemUserRepository.findById(user.id).orElseThrow()
-        watchlistService.addItem(
-            owner,
-            AddWatchlistItemRequest(assetId = asset.id, addedPrice = BigDecimal.TEN)
+        watchlistItemRepository.save(
+            WatchlistItem(owner = owner, asset = asset, addedPrice = BigDecimal.TEN, addedOn = LocalDate.now())
         )
     }
 

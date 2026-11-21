@@ -11,6 +11,7 @@ import com.beancounter.common.model.TrnType.DEPOSIT
 import com.beancounter.common.model.TrnType.DIVI
 import com.beancounter.common.model.TrnType.FX_BUY
 import com.beancounter.common.model.TrnType.WITHDRAWAL
+import com.beancounter.common.utils.AssetKeyUtils.Companion.toKey
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.irr.IrrCalculator
 import org.springframework.context.annotation.Import
@@ -77,8 +78,8 @@ class Accumulator(
         position.dateValues.last = latest(position.dateValues.last, trn.tradeDate)
 
         // Is cash impacted by this transaction opposed to being a "cash" transaction
-        val cashAsset = trn.cashAsset
-        if (cashAsset != null && impactCash(trn.trnType)) {
+        val cashAsset = cashLeg(trn)
+        if (cashAsset != null) {
             accumulateCash(
                 trn,
                 cashAsset,
@@ -136,6 +137,17 @@ class Accumulator(
      * @return True if cash should be accumulated, false otherwise.
      */
     private fun impactCash(trnType: TrnType): Boolean = TrnType.isCashImpacted(trnType) && trnType !in cashSet
+
+    /**
+     * The cash asset this trn still has to move, or null when it moves none. A cash-type
+     * behaviour (e.g. DEDUCTION) has already moved the trn's own position, so when the cash
+     * asset is that same asset a cash leg would move the balance a second time.
+     */
+    private fun cashLeg(trn: Trn): Asset? {
+        val cashAsset = trn.cashAsset ?: return null
+        val settledByBehaviour = TrnType.isCash(trn.trnType) && toKey(cashAsset) == toKey(trn.asset)
+        return if (impactCash(trn.trnType) && !settledByBehaviour) cashAsset else null
+    }
 
     /**
      * Determines if a transaction type should contribute to periodic cash flows for IRR calculation.

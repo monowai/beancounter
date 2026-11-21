@@ -166,13 +166,17 @@ internal class ApiKeyControllerTest {
         val created = createKey(token)
         val kept = createKey(token, ApiKeyRequest(name = "kept"))
 
-        mockMvc
-            .perform(
-                delete("$API_KEYS_ROOT/${created.data.id}")
-                    .with(jwt().jwt(token))
-                    .with(csrf())
-            ).andExpect(status().isOk)
+        val result =
+            mockMvc
+                .perform(
+                    delete("$API_KEYS_ROOT/${created.data.id}")
+                        .with(jwt().jwt(token))
+                        .with(csrf())
+                ).andExpect(status().isOk)
+                .andReturn()
 
+        val deleted = objectMapper.readValue(result.response.contentAsString, ApiKeyResponse::class.java)
+        assertThat(deleted.data.revokedAt).isNotNull()
         assertThat(apiKeyRepository.findById(created.data.id)).isEmpty()
         assertThat(apiKeyRepository.findById(kept.data.id)).isPresent()
         mockMvc

@@ -85,14 +85,21 @@ class ApiKeyService(
         return ApiKeyResponse(existing.toView())
     }
 
-    /** Deletes the key outright, with any widget key registered under it. */
+    /**
+     * Deletes the key outright, with any widget key registered under it. The response
+     * carries the key's last state with [ApiKeyView.revokedAt] stamped, so it never
+     * reads as a key that still works.
+     */
     fun delete(id: String): ApiKeyResponse {
         val owner = systemUserService.getOrThrow()
         val existing = findOwnedOrThrow(id, owner.id)
         deleteWithChildren(listOf(existing))
-        return ApiKeyResponse(existing.toView())
+        return ApiKeyResponse(existing.toView().copy(revokedAt = existing.revokedAt ?: auditInstant()))
     }
 
+    // Children go explicitly, not through V48's ON DELETE CASCADE: the test schema is
+    // built from the entities, without that foreign key. One level is enough because
+    // createWidget only accepts a parent that has no parent of its own.
     private fun deleteWithChildren(keys: List<ApiKey>) {
         keys.forEach { apiKeyRepository.deleteAll(apiKeyRepository.findByParentId(it.id)) }
         apiKeyRepository.deleteAll(keys)

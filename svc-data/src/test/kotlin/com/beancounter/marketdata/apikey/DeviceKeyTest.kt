@@ -76,22 +76,24 @@ internal class DeviceKeyTest {
 
     private fun register(
         token: Jwt,
-        publicKey: String
+        publicKey: String,
+        name: String = "Beancounter mobile"
     ): ResultActions =
         mockMvc.perform(
             post(DEVICE_KEYS)
                 .with(jwt().jwt(token))
                 .with(csrf())
                 .content(
-                    objectMapper.writeValueAsBytes(DeviceKeyRequest(name = "Beancounter mobile", publicKey = publicKey))
+                    objectMapper.writeValueAsBytes(DeviceKeyRequest(name = name, publicKey = publicKey))
                 ).contentType(MediaType.APPLICATION_JSON)
         )
 
     private fun registered(
         token: Jwt,
-        key: ECKey
+        key: ECKey,
+        name: String = "Beancounter mobile"
     ): String {
-        val result = register(token, spki(key)).andExpect(status().isOk).andReturn()
+        val result = register(token, spki(key), name).andExpect(status().isOk).andReturn()
         return objectMapper.readValue(result.response.contentAsString, ApiKeyResponse::class.java).data.id
     }
 
@@ -145,6 +147,32 @@ internal class DeviceKeyTest {
         assertThat(stored.publicKey).isEqualTo(spki(key))
         assertThat(stored.prefix).startsWith("bcd_")
         assertThat(stored.owner.email).isEqualTo("device-register@testing.com")
+    }
+
+    @Test
+    fun `registering a device again replaces its earlier key`() {
+        val token = registeredToken("device-replace")
+        val earlier = registered(token, newKey())
+        val otherDevice = registered(token, newKey(), "Beancounter mobile (iPad)")
+        val otherUser = registered(registeredToken("device-replace-other"), newKey())
+
+        val replacement = registered(token, newKey())
+
+        assertThat(apiKeyRepository.findById(earlier)).isEmpty()
+        assertThat(apiKeyRepository.findById(replacement)).isPresent()
+        assertThat(apiKeyRepository.findById(otherDevice)).isPresent()
+        assertThat(apiKeyRepository.findById(otherUser)).isPresent()
+    }
+
+    @Test
+    fun `registering a key twice keeps the registered one`() {
+        val token = registeredToken("device-twice")
+        val key = newKey()
+        val id = registered(token, key)
+
+        register(token, spki(key)).andExpect(status().isBadRequest)
+
+        assertThat(apiKeyRepository.findById(id)).isPresent()
     }
 
     @Test
@@ -255,7 +283,7 @@ internal class DeviceKeyTest {
     }
 
     @Test
-    fun `a revoked device key buys nothing`() {
+    fun `a deleted device key buys nothing`() {
         val token = registeredToken("device-revoked")
         val key = newKey()
         val id = registered(token, key)

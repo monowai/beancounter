@@ -31,7 +31,7 @@ import org.springframework.web.bind.annotation.RestController
  * token-exchange endpoint here - that's phase 2 (and it can't live under
  * /me, since exchange authenticates by the key itself, not a user JWT).
  *
- * Creating and revoking keys needs an account sign-in (an Auth0 token). A
+ * Creating and deleting keys needs an account sign-in (an Auth0 token). A
  * token exchanged from an API key may list keys but not change them, so a
  * leaked key cannot mint replacements that outlive its own revocation. The
  * one exception is `DELETE /current`: a key may always retire itself (a
@@ -90,13 +90,13 @@ class ApiKeyController internal constructor(
     ): ApiKeyResponse = apiKeyService.revoke(currentKeyId(jwt))
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Revoke an API key")
-    fun revoke(
+    @Operation(summary = "Delete an API key, and the widget key registered under it")
+    fun delete(
         @AuthenticationPrincipal jwt: Jwt,
         @PathVariable id: String
     ): ApiKeyResponse {
         requireAccountSignIn(jwt)
-        return apiKeyService.revoke(id)
+        return apiKeyService.delete(id)
     }
 
     // The decoder only trusts Auth0 and svc-data's own issuer, so "not ours"

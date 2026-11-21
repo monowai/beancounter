@@ -10,6 +10,7 @@ import com.beancounter.common.model.Trn
 import com.beancounter.common.telemetry.runBlockingTraced
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.holdings.PositionService
+import com.beancounter.position.networth.FlowsOnDay
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import org.slf4j.LoggerFactory
@@ -25,7 +26,8 @@ class PortfolioPositions(
     private val trnService: TrnService,
     private val positionService: PositionService,
     private val earmarkService: EarmarkService,
-    private val tokenService: TokenService
+    private val tokenService: TokenService,
+    private val flowsOnDay: FlowsOnDay
 ) {
     /** Positions from an ad hoc trn query, dated at the query's trade date. */
     fun of(trnQuery: TrustedTrnQuery): Positions {
@@ -34,7 +36,8 @@ class PortfolioPositions(
             accumulate(
                 trnQuery.portfolio,
                 trnService.query(trnQuery).data.toTrns(),
-                proposedLegs(trnQuery.portfolio, valuationDate)
+                proposedLegs(trnQuery.portfolio, valuationDate),
+                valuationDate
             )
         return dated(positions, valuationDate)
     }
@@ -44,7 +47,7 @@ class PortfolioPositions(
         valuationDate: String
     ): Positions {
         val reads = read(listOf(portfolio), valuationDate).single()
-        return dated(accumulate(portfolio, reads.trns, reads.proposedLegs), valuationDate)
+        return dated(accumulate(portfolio, reads.trns, reads.proposedLegs, valuationDate), valuationDate)
     }
 
     /**
@@ -57,7 +60,7 @@ class PortfolioPositions(
     ): List<Pair<Portfolio, Positions>> =
         read(portfolios, valuationDate)
             .filter { it.trns.isNotEmpty() }
-            .map { it.portfolio to accumulate(it.portfolio, it.trns, it.proposedLegs) }
+            .map { it.portfolio to accumulate(it.portfolio, it.trns, it.proposedLegs, valuationDate) }
 
     /**
      * Reads each portfolio's trns and proposed cash legs from bc-data, [READ_CONCURRENCY]
@@ -95,14 +98,18 @@ class PortfolioPositions(
     /**
      * [trns] accumulated into positions, with [legs]' earmarked cash-ccy quantity stamped
      * BEFORE market value runs so MarketValue can mint MoneyValues.earmarked per bucket.
+     * The external cash flows among [trns] dated [valuationDate] ride along on the positions,
+     * read from the same trns rather than another bc-data call.
      */
     private fun accumulate(
         portfolio: Portfolio,
         trns: List<Trn>,
-        legs: List<Trn>
+        legs: List<Trn>,
+        valuationDate: String
     ): Positions {
         val positions = positionService.build(portfolio, PositionRequest(portfolio.id, trns)).data
         earmarkService.stamp(positions, legs)
+        positions.flowsOnDay = flowsOnDay.of(portfolio, trns, valuationDate)
         return positions
     }
 

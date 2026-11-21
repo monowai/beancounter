@@ -13,6 +13,7 @@ import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Positions
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.holdings.PositionService
+import com.beancounter.position.networth.FlowsOnDay
 import com.beancounter.position.utils.TestHelpers
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.catchThrowable
@@ -30,7 +31,7 @@ class PortfolioPositionsTest {
     private val positionService: PositionService = mock()
     private val earmarkService: EarmarkService = mock()
     private val portfolioPositions =
-        PortfolioPositions(trnService, positionService, earmarkService, mock<TokenService>())
+        PortfolioPositions(trnService, positionService, earmarkService, mock<TokenService>(), FlowsOnDay(DateUtils()))
     private val portfolios: List<Portfolio> = (1..PORTFOLIOS).map { TestHelpers.createTestPortfolio("pf-$it") }
 
     init {

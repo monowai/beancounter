@@ -29,6 +29,7 @@ import com.beancounter.position.accumulation.SplitBehaviour
 import com.beancounter.position.accumulation.TrnBehaviourFactory
 import com.beancounter.position.holdings.PositionService
 import com.beancounter.position.marketvalue.PositionValuationService
+import com.beancounter.position.networth.FlowsOnDay
 import com.beancounter.position.utils.ConcurrencyProbe
 import com.beancounter.position.utils.TestHelpers
 import org.assertj.core.api.Assertions.assertThat
@@ -896,6 +897,88 @@ class ValuationServiceTest {
     }
 
     @Test
+    fun `getAggregatedPositions carries today's external cash flows in the target currency`() {
+        // A USD portfolio paid an expense today and an NZD portfolio took a deposit today;
+        // a deposit yesterday and a buy today are not today's external flows.
+        val usdPortfolio = TestHelpers.createTestPortfolio("usd-pf", currencyCode = "USD", baseCurrency = "USD")
+        val nzdPortfolio = TestHelpers.createTestPortfolio("nzd-pf", currencyCode = "NZD", baseCurrency = "NZD")
+        val today = dateUtils.getFormattedDate(DateUtils.TODAY)
+        val usdTrns =
+            listOf(
+                cashTrn(usdPortfolio, TrnType.EXPENSE, "20", today),
+                cashTrn(usdPortfolio, TrnType.DEPOSIT, "999", today.minusDays(1)),
+                cashTrn(usdPortfolio, TrnType.BUY, "500", today)
+            )
+        val nzdTrns = listOf(cashTrn(nzdPortfolio, TrnType.DEPOSIT, "100", today))
+        whenever(trnService.query(argThat<Portfolio> { id == usdPortfolio.id }, any<String>()))
+            .thenReturn(TrnResponse(usdTrns))
+        whenever(trnService.query(argThat<Portfolio> { id == nzdPortfolio.id }, any<String>()))
+            .thenReturn(TrnResponse(nzdTrns))
+        whenever(positionService.build(any(), any())).thenAnswer { PositionResponse(Positions(it.getArgument(0))) }
+        whenever(fxRateService.getRates(any(), any())).thenReturn(
+            FxResponse(
+                FxPairResults(
+                    mapOf(
+                        IsoCurrencyPair("NZD", "USD") to FxRate(Currency("NZD"), Currency("USD"), BigDecimal("0.567"))
+                    )
+                )
+            )
+        )
+
+        val result =
+            valuationService.getAggregatedPositions(
+                AggregateValuationRequest(
+                    listOf(usdPortfolio, nzdPortfolio),
+                    DateUtils.TODAY,
+                    value = false,
+                    targetCurrencyCode = "USD"
+                )
+            )
+
+        assertThat(result.data.flowsOnDay.inflow).isEqualByComparingTo("56.70")
+        assertThat(result.data.flowsOnDay.outflow).isEqualByComparingTo("-20")
+    }
+
+    @Test
+    fun `getAggregatedPositions fails naming the pair when a cash flow conversion rate is missing`() {
+        val nzdPortfolio = TestHelpers.createTestPortfolio("nzd-pf", currencyCode = "NZD", baseCurrency = "NZD")
+        val today = dateUtils.getFormattedDate(DateUtils.TODAY)
+        whenever(trnService.query(any<Portfolio>(), any<String>()))
+            .thenReturn(TrnResponse(listOf(cashTrn(nzdPortfolio, TrnType.DEPOSIT, "100", today))))
+        whenever(positionService.build(any(), any())).thenAnswer { PositionResponse(Positions(it.getArgument(0))) }
+        whenever(fxRateService.getRates(any(), any())).thenReturn(FxResponse())
+
+        val thrown =
+            catchThrowable {
+                valuationService.getAggregatedPositions(
+                    AggregateValuationRequest(
+                        listOf(nzdPortfolio),
+                        DateUtils.TODAY,
+                        value = false,
+                        targetCurrencyCode = "USD"
+                    )
+                )
+            }
+
+        assertThat(thrown).isInstanceOf(BusinessException::class.java).hasMessageContaining("NZD:USD")
+    }
+
+    private fun cashTrn(
+        owner: Portfolio,
+        type: TrnType,
+        amount: String,
+        tradeDate: LocalDate
+    ): Trn =
+        Trn(
+            trnType = type,
+            tradeDate = tradeDate,
+            asset = TestHelpers.createTestAsset(owner.currency.code, "CASH"),
+            portfolio = owner,
+            quantity = BigDecimal(amount),
+            tradeCurrency = owner.currency
+        )
+
+    @Test
     fun `getAggregatedPositions fails naming the pair when a cost conversion rate is missing`() {
         val nzdPortfolio = TestHelpers.createTestPortfolio("nzd-pf", currencyCode = "NZD", baseCurrency = "NZD")
         val asset = TestHelpers.createTestAsset("HOUSE", "PRIVATE")
@@ -1474,7 +1557,14 @@ class ValuationServiceTest {
     ): ValuationService =
         ValuationService(
             positionValuationService = positionValuationService,
-            portfolioPositions = PortfolioPositions(trnService, positionService, earmarkService, tokenService),
+            portfolioPositions =
+                PortfolioPositions(
+                    trnService,
+                    positionService,
+                    earmarkService,
+                    tokenService,
+                    FlowsOnDay(DateUtils())
+                ),
             portfolioConsolidation = PortfolioConsolidation(fxRateService, tokenService, staticService),
             marketValueUpdateProducer = marketValueUpdateProducer,
             tokenService = tokenService,

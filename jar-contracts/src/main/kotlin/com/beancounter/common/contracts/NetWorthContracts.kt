@@ -25,6 +25,18 @@ data class NetWorth(
     /** [gainOnDay] against the previous day's net worth, in percentage points. */
     val gainOnDayPercent: BigDecimal = BigDecimal.ZERO,
     /**
+     * Money into the selected portfolios today from outside (DEPOSIT, INCOME), in [currency].
+     * Zero or more. Not part of [gainOnDay], which is the market move only.
+     */
+    val flowsInOnDay: BigDecimal = BigDecimal.ZERO,
+    /**
+     * Money out of the selected portfolios today (WITHDRAWAL, DEDUCTION, EXPENSE), in
+     * [currency], signed negative. Zero or less.
+     */
+    val flowsOutOnDay: BigDecimal = BigDecimal.ZERO,
+    /** [flowsInOnDay] + [flowsOutOnDay]: the day's net external cash flow. */
+    val flowsOnDay: BigDecimal = BigDecimal.ZERO,
+    /**
      * Rolling 7-day move of the current holdings: each priced holding's value now against its
      * close 7 days before (the trading day on or before), at today's FX, as [gainOnDay] is.
      * Null when unknown: the week-ago prices could not be read, or none came back.

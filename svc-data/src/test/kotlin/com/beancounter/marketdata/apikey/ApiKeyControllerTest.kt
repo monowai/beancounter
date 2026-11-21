@@ -161,39 +161,26 @@ internal class ApiKeyControllerTest {
     }
 
     @Test
-    fun `revoke sets revokedAt and is idempotent`() {
-        val token = registeredToken("apikey-revoke")
+    fun `delete removes the key`() {
+        val token = registeredToken("apikey-delete")
         val created = createKey(token)
+        val kept = createKey(token, ApiKeyRequest(name = "kept"))
 
-        val first =
-            mockMvc
-                .perform(
-                    delete("$API_KEYS_ROOT/${created.data.id}")
-                        .with(jwt().jwt(token))
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                ).andExpect(status().isOk)
-                .andReturn()
-        val firstView =
-            objectMapper
-                .readValue(first.response.contentAsString, ApiKeyResponse::class.java)
-                .data
-        assertThat(firstView.revokedAt).isNotNull()
+        mockMvc
+            .perform(
+                delete("$API_KEYS_ROOT/${created.data.id}")
+                    .with(jwt().jwt(token))
+                    .with(csrf())
+            ).andExpect(status().isOk)
 
-        val second =
-            mockMvc
-                .perform(
-                    delete("$API_KEYS_ROOT/${created.data.id}")
-                        .with(jwt().jwt(token))
-                        .with(csrf())
-                        .contentType(MediaType.APPLICATION_JSON)
-                ).andExpect(status().isOk)
-                .andReturn()
-        val secondView =
-            objectMapper
-                .readValue(second.response.contentAsString, ApiKeyResponse::class.java)
-                .data
-        assertThat(secondView.revokedAt).isEqualTo(firstView.revokedAt)
+        assertThat(apiKeyRepository.findById(created.data.id)).isEmpty()
+        assertThat(apiKeyRepository.findById(kept.data.id)).isPresent()
+        mockMvc
+            .perform(
+                delete("$API_KEYS_ROOT/${created.data.id}")
+                    .with(jwt().jwt(token))
+                    .with(csrf())
+            ).andExpect(status().isNotFound)
     }
 
     @Test
@@ -219,7 +206,7 @@ internal class ApiKeyControllerTest {
     }
 
     @Test
-    fun `revoke refused for a token exchanged from an api key`() {
+    fun `delete refused for a token exchanged from an api key`() {
         val token = registeredToken("apikey-derived-revoke")
         val created = createKey(token)
 
@@ -231,11 +218,7 @@ internal class ApiKeyControllerTest {
                     .contentType(MediaType.APPLICATION_JSON)
             ).andExpect(status().isForbidden)
 
-        val stored =
-            apiKeyRepository.findById(created.data.id).orElseThrow {
-                IllegalStateException("API key not persisted")
-            }
-        assertThat(stored.revokedAt).isNull()
+        assertThat(apiKeyRepository.findById(created.data.id)).isPresent()
     }
 
     @Test
@@ -308,7 +291,7 @@ internal class ApiKeyControllerTest {
     }
 
     @Test
-    fun `cannot revoke another users key`() {
+    fun `cannot delete another users key`() {
         val ownerToken = registeredToken("apikey-owner")
         val otherToken = registeredToken("apikey-other")
         val created = createKey(ownerToken)
@@ -319,7 +302,9 @@ internal class ApiKeyControllerTest {
                     .with(jwt().jwt(otherToken))
                     .with(csrf())
                     .contentType(MediaType.APPLICATION_JSON)
-            ).andExpect(status().is4xxClientError)
+            ).andExpect(status().isNotFound)
+
+        assertThat(apiKeyRepository.findById(created.data.id)).isPresent()
     }
 
     @Test

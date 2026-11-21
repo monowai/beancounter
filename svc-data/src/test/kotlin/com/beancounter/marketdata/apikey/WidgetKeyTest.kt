@@ -235,7 +235,9 @@ internal class WidgetKeyTest {
     fun `should refuse a revoked device key as the parent`() {
         val token = registeredToken("widget-revoked-parent")
         val parent = deviceKey(token)
-        mockMvc.perform(delete("$API_KEYS/$parent").with(jwt().jwt(token)).with(csrf())).andExpect(status().isOk)
+        val device = apiKeyRepository.findById(parent).orElseThrow()
+        device.revokedAt = Instant.now()
+        apiKeyRepository.save(device)
 
         registerWidget(token, parent).andExpect(status().isBadRequest)
     }
@@ -261,26 +263,39 @@ internal class WidgetKeyTest {
     }
 
     @Test
-    fun `should revoke the previous widget key when a device registers another`() {
+    fun `should delete the previous widget key when a device registers another`() {
         val token = registeredToken("widget-replace")
         val parent = deviceKey(token)
         val first = widgetKey(token, parent)
 
         val second = widgetKey(token, parent)
 
-        assertThat(revokedAt(first)).isNotNull()
+        assertThat(apiKeyRepository.findById(first)).isEmpty()
         assertThat(revokedAt(second)).isNull()
     }
 
     @Test
-    fun `should revoke the widget key when its device key is revoked by id`() {
+    fun `should delete the widget key when its device key is deleted`() {
         val token = registeredToken("widget-cascade-id")
         val parent = deviceKey(token)
         val widget = widgetKey(token, parent)
 
         mockMvc.perform(delete("$API_KEYS/$parent").with(jwt().jwt(token)).with(csrf())).andExpect(status().isOk)
 
-        assertThat(revokedAt(widget)).isNotNull()
+        assertThat(apiKeyRepository.findById(parent)).isEmpty()
+        assertThat(apiKeyRepository.findById(widget)).isEmpty()
+    }
+
+    @Test
+    fun `should delete the widget key when its device signs in again`() {
+        val token = registeredToken("widget-cascade-replace")
+        val parent = deviceKey(token)
+        val widget = widgetKey(token, parent)
+
+        deviceKey(token)
+
+        assertThat(apiKeyRepository.findById(parent)).isEmpty()
+        assertThat(apiKeyRepository.findById(widget)).isEmpty()
     }
 
     @Test

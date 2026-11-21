@@ -78,24 +78,31 @@ class ApiKeyService(
             existing.revokedAt = revokedAt
             apiKeyRepository.save(existing)
         }
-        revokeChildren(existing.id, revokedAt)
-        return ApiKeyResponse(existing.toView())
-    }
-
-    private fun revokeChildren(
-        parentId: String,
-        revokedAt: Instant
-    ) {
-        apiKeyRepository.findByParentIdAndRevokedAtIsNull(parentId).forEach { child ->
+        apiKeyRepository.findByParentIdAndRevokedAtIsNull(existing.id).forEach { child ->
             child.revokedAt = revokedAt
             apiKeyRepository.save(child)
         }
+        return ApiKeyResponse(existing.toView())
+    }
+
+    /** Deletes the key outright, with any widget key registered under it. */
+    fun delete(id: String): ApiKeyResponse {
+        val owner = systemUserService.getOrThrow()
+        val existing = findOwnedOrThrow(id, owner.id)
+        deleteWithChildren(listOf(existing))
+        return ApiKeyResponse(existing.toView())
+    }
+
+    private fun deleteWithChildren(keys: List<ApiKey>) {
+        keys.forEach { apiKeyRepository.deleteAll(apiKeyRepository.findByParentId(it.id)) }
+        apiKeyRepository.deleteAll(keys)
     }
 
     /**
      * Registers a device-bound key for the caller: only its public half is
      * stored, and [ApiKey.keyHash] is a hash of that public key, so no raw
-     * secret can ever match it.
+     * secret can ever match it. A device that signs in again replaces its
+     * earlier key: the caller's other device keys of the same name are deleted.
      */
     fun createDevice(request: DeviceKeyRequest): ApiKeyResponse {
         val owner = systemUserService.getOrThrow()
@@ -111,7 +118,7 @@ class ApiKeyService(
      * Registers a home-screen widget's key under one of the caller's active device keys.
      * The widget's key works without biometrics, so it carries only
      * [AuthConstants.WIDGET], never a scope from the caller's token. A device holds one
-     * widget key: registering another revokes the previous one.
+     * widget key: registering another deletes the previous one.
      */
     fun createWidget(request: WidgetKeyRequest): ApiKeyResponse {
         val owner = systemUserService.getOrThrow()
@@ -122,26 +129,34 @@ class ApiKeyService(
         if (parent.publicKey == null || parent.parentId != null || parent.revokedAt != null) {
             throw BusinessException("A widget key must be registered under an active device key")
         }
-        revokeChildren(parent.id, auditInstant())
         return ApiKeyResponse(
-            saveDeviceBound(owner, request.name, request.publicKey, listOf(AuthConstants.WIDGET), parent.id).toView()
+            saveDeviceBound(owner, request.name, request.publicKey, listOf(AuthConstants.WIDGET), parent).toView()
         )
     }
 
     // Stores only the public half; the hash and prefix scheme let the assertion
-    // exchange treat device and widget keys alike.
+    // exchange treat device and widget keys alike. The new key replaces the parent's
+    // earlier widget key, or without a parent the caller's device key of the same name;
+    // those go only once the new key is known to be valid and unseen.
     private fun saveDeviceBound(
         owner: SystemUser,
         name: String,
         encodedPublicKey: String,
         scopes: Collection<String>,
-        parentId: String? = null
+        parent: ApiKey? = null
     ): ApiKey {
         val publicKey = Base64.getEncoder().encodeToString(DeviceAssertions.p256(encodedPublicKey).encoded)
         val keyHash = ApiKeyGenerator.hash("$DEVICE_HASH_DOMAIN$publicKey")
         if (apiKeyRepository.findByKeyHash(keyHash) != null) {
             throw BusinessException("This key is already registered")
         }
+        deleteWithChildren(
+            if (parent == null) {
+                apiKeyRepository.findByOwnerIdAndNameAndParentIdIsNullAndPublicKeyIsNotNull(owner.id, name)
+            } else {
+                apiKeyRepository.findByParentId(parent.id)
+            }
+        )
         return apiKeyRepository.save(
             ApiKey(
                 owner = owner,
@@ -150,7 +165,7 @@ class ApiKeyService(
                 keyHash = keyHash,
                 scopes = scopes.joinToString(" "),
                 publicKey = publicKey,
-                parentId = parentId
+                parentId = parent?.id
             )
         )
     }

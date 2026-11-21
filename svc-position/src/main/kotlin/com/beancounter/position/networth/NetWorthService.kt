@@ -8,6 +8,7 @@ import com.beancounter.common.contracts.NetWorthClassification
 import com.beancounter.common.contracts.NetWorthPortfolio
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.AssetCategory
+import com.beancounter.common.model.DayFlows
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
@@ -37,6 +38,8 @@ import java.math.RoundingMode
  * - FX: one request per call carrying every distinct (source → target) pair;
  *   a missing rate fails fast rather than silently applying 1.0.
  * - weekChange: see [WeekChange].
+ * - flowsInOnDay / flowsOutOnDay / flowsOnDay: today's external cash flows, read by
+ *   [FlowsOnDay] from the trns the valuation loads and carried on the aggregate.
  */
 @Service
 class NetWorthService(
@@ -53,21 +56,7 @@ class NetWorthService(
         live: Boolean = false
     ): NetWorth {
         val target = currency.trim().uppercase()
-        val positions =
-            if (portfolios.isEmpty()) {
-                Positions()
-            } else {
-                valuationService
-                    .getAggregatedPositions(
-                        AggregateValuationRequest(
-                            portfolios,
-                            asAt,
-                            value = true,
-                            targetCurrencyCode = target,
-                            live = live
-                        )
-                    ).data
-            }
+        val positions = aggregated(portfolios, asAt, target, live)
         val heldAssetIds =
             positions.positions.values
                 .map { it.asset.id }
@@ -78,6 +67,7 @@ class NetWorthService(
             buildSet {
                 positions.totals[Position.In.PORTFOLIO]?.let { add(it.currency.code) }
                 portfolios.forEach { add(it.base.code) }
+                if (!positions.flowsOnDay.isZero()) add(positions.portfolio.currency.code)
                 addAll(composite.standalone.keys)
                 addAll(composite.reserve.keys)
             }
@@ -96,6 +86,7 @@ class NetWorthService(
         val totalValue = money(holdingsValue).add(standaloneCompositeValue)
         val gainOnDay = money(positions.gainOnDay(Position.In.PORTFOLIO))
         val weekChangeAmount = weekChange.of(positions, asAt)?.let(::money)
+        val flows = flowsOnDay(positions, rates)
 
         return NetWorth(
             asAt = asAt,
@@ -106,6 +97,9 @@ class NetWorthService(
             healthcareReserve = healthcareReserve,
             gainOnDay = gainOnDay,
             gainOnDayPercent = changePercent(gainOnDay, totalValue),
+            flowsInOnDay = flows.inflow,
+            flowsOutOnDay = flows.outflow,
+            flowsOnDay = flows.inflow.add(flows.outflow),
             weekChange = weekChangeAmount,
             weekChangePercent = weekChangeAmount?.let { changePercent(it, totalValue) },
             portfolioCount = portfolios.size,
@@ -113,6 +107,28 @@ class NetWorthService(
             portfolios = portfolioRows(portfolios, rates, totalValue)
         )
     }
+
+    /** The selected portfolios' live aggregated positions in [target]; none without portfolios. */
+    private fun aggregated(
+        portfolios: Collection<Portfolio>,
+        asAt: String,
+        target: String,
+        live: Boolean
+    ): Positions =
+        if (portfolios.isEmpty()) {
+            Positions()
+        } else {
+            valuationService
+                .getAggregatedPositions(
+                    AggregateValuationRequest(
+                        portfolios,
+                        asAt,
+                        value = true,
+                        targetCurrencyCode = target,
+                        live = live
+                    )
+                ).data
+        }
 
     /**
      * Composite (CPF / pension) sub-account balances by currency: the healthcare
@@ -179,6 +195,21 @@ class NetWorthService(
                 fxRates[pair]?.rate ?: throw BusinessException("No FX rate for $pair as at $asAt")
             }
         }
+    }
+
+    /**
+     * The day's external cash flows the aggregate carries (see [FlowsOnDay]), in the
+     * target currency and rounded to money. The aggregate already reports in the target
+     * currency; the rate covers one that does not.
+     */
+    private fun flowsOnDay(
+        positions: Positions,
+        rates: Map<String, BigDecimal>
+    ): DayFlows {
+        val flows = positions.flowsOnDay
+        if (flows.isZero()) return DayFlows.NONE
+        val converted = flows.times(rates.getValue(positions.portfolio.currency.code))
+        return DayFlows(money(converted.inflow), money(converted.outflow))
     }
 
     private fun convert(

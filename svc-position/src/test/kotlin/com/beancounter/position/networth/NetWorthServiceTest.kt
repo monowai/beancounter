@@ -12,6 +12,7 @@ import com.beancounter.common.contracts.PriceResponse
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.Currency
+import com.beancounter.common.model.DayFlows
 import com.beancounter.common.model.FxRate
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.MarketData
@@ -102,6 +103,9 @@ class NetWorthServiceTest {
         assertThat(result.portfolioCount).isZero()
         assertThat(result.classificationBreakdown).isEmpty()
         assertThat(result.portfolios).isEmpty()
+        assertThat(result.flowsInOnDay).isEqualByComparingTo("0")
+        assertThat(result.flowsOutOnDay).isEqualByComparingTo("0")
+        assertThat(result.flowsOnDay).isEqualByComparingTo("0")
         verify(valuationService, never()).getAggregatedPositions(any())
         verify(fxService, never()).getRates(any(), any())
     }
@@ -123,6 +127,42 @@ class NetWorthServiceTest {
             valuationService
         ).getAggregatedPositions(eq(AggregateValuationRequest(listOf(portfolio), asAt, true, "SGD", false)))
         verify(fxService, never()).getRates(any(), any())
+    }
+
+    @Test
+    fun `should report today's external cash flows the aggregate carries, rounded to money`() {
+        val portfolio = portfolio("p1", "SGD", marketValue = "37000")
+        val positions =
+            positions(portfolio, "SGD", totalMarketValue = "37000").apply {
+                flowsOnDay = DayFlows(BigDecimal("100.004"), BigDecimal("-30.555"))
+            }
+        stubAggregated(listOf(portfolio), positions, "SGD")
+        whenever(assetConfigClient.findAll()).thenReturn(emptyList())
+
+        val result = netWorthService.calculate(listOf(portfolio), asAt, "SGD")
+
+        assertThat(result.flowsInOnDay).isEqualByComparingTo("100.00")
+        assertThat(result.flowsOutOnDay).isEqualByComparingTo("-30.56")
+        assertThat(result.flowsOnDay).isEqualByComparingTo("69.44")
+        verify(fxService, never()).getRates(any(), any())
+    }
+
+    @Test
+    fun `should convert today's cash flows when the aggregate reports in another currency`() {
+        val portfolio = portfolio("p1", "USD", marketValue = "0")
+        val positions =
+            positions(portfolio, "USD", totalMarketValue = "0").apply {
+                flowsOnDay = DayFlows(BigDecimal("100"), BigDecimal("-10"))
+            }
+        stubAggregated(listOf(portfolio), positions, "SGD")
+        whenever(assetConfigClient.findAll()).thenReturn(emptyList())
+        stubRates(mapOf(IsoCurrencyPair("USD", "SGD") to "1.28"))
+
+        val result = netWorthService.calculate(listOf(portfolio), asAt, "SGD")
+
+        assertThat(result.flowsInOnDay).isEqualByComparingTo("128.00")
+        assertThat(result.flowsOutOnDay).isEqualByComparingTo("-12.80")
+        assertThat(result.flowsOnDay).isEqualByComparingTo("115.20")
     }
 
     @Test

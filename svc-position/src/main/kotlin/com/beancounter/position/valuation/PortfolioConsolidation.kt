@@ -6,6 +6,7 @@ import com.beancounter.client.services.StaticService
 import com.beancounter.common.contracts.FxRequest
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Currency
+import com.beancounter.common.model.DayFlows
 import com.beancounter.common.model.FxRate
 import com.beancounter.common.model.IsoCurrencyPair
 import com.beancounter.common.model.MoneyValues
@@ -58,6 +59,7 @@ class PortfolioConsolidation(
         val sourcePositions = perPortfolio.map { it.second }
         val rates = aggregationRates(contextPortfolio, sourcePositions, request.valuationDate)
         val aggregated = mergePositions(contextPortfolio, sourcePositions, rates)
+        aggregated.flowsOnDay = mergeFlowsOnDay(contextPortfolio, sourcePositions, rates)
         applyPortfolioBreakdown(aggregated, perPortfolio)
         return aggregated
     }
@@ -110,6 +112,24 @@ class PortfolioConsolidation(
     }
 
     /**
+     * Each portfolio's external cash flows on the day, converted from its own currency into
+     * the context (reporting) currency at the same spot rates as the PORTFOLIO bucket.
+     */
+    private fun mergeFlowsOnDay(
+        contextPortfolio: Portfolio,
+        perPortfolio: List<Positions>,
+        rates: Map<IsoCurrencyPair, FxRate>
+    ): DayFlows =
+        perPortfolio
+            .filterNot { it.flowsOnDay.isZero() }
+            .fold(DayFlows.NONE) { acc, positions ->
+                acc +
+                    positions.flowsOnDay.times(
+                        conversionRate(positions.portfolio.currency, contextPortfolio.currency, rates)
+                    )
+            }
+
+    /**
      * The currency each aggregated bucket is denominated in. TRADE stays in
      * the asset's own trade currency (shared across a user's portfolios);
      * PORTFOLIO adopts the context (reporting) currency and BASE the context
@@ -149,7 +169,11 @@ class PortfolioConsolidation(
                     position.moneyValues.mapNotNull { (bucket, mv) ->
                         IsoCurrencyPair.toPair(mv.currency, targetBucketCurrency(bucket, mv.currency, contextPortfolio))
                     }
-                }.toSet()
+                }.plus(
+                    perPortfolio
+                        .filterNot { it.flowsOnDay.isZero() }
+                        .mapNotNull { IsoCurrencyPair.toPair(it.portfolio.currency, contextPortfolio.currency) }
+                ).toSet()
         if (pairs.isEmpty()) return emptyMap()
 
         val fxRequest = FxRequest(rateDate = valuationDate)
@@ -164,7 +188,7 @@ class PortfolioConsolidation(
     ): BigDecimal {
         if (from.code == to.code) return BigDecimal.ONE
         val pair = IsoCurrencyPair(from.code, to.code)
-        return rates[pair]?.rate ?: throw BusinessException("No FX rate for $pair while aggregating cost")
+        return rates[pair]?.rate ?: throw BusinessException("No FX rate for $pair while aggregating")
     }
 
     /**

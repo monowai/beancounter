@@ -44,6 +44,13 @@ class Positions(
     @JsonIgnore
     val periodicCashFlows = PeriodicCashFlows()
 
+    /**
+     * External cash flows dated the valuation date, in [portfolio]'s currency. Carried for
+     * the Net Worth headline and kept out of position responses.
+     */
+    @JsonIgnore
+    var flowsOnDay: DayFlows = DayFlows.NONE
+
     var isMixedCurrencies = false
 
     @JsonIgnore

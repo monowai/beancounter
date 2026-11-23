@@ -32,7 +32,11 @@ internal class BcTokenIssuerTest {
         bcIssuerUri: String = "http://localhost:9510/api/"
     ): BcTokenIssuer =
         BcTokenIssuer(
-            authConfig = AuthConfig(claimEmail = "email").apply { this.bcIssuerUri = bcIssuerUri },
+            authConfig =
+                AuthConfig(claimEmail = "email").apply {
+                    this.bcIssuerUri = bcIssuerUri
+                    claimSystemUserId = SYSTEM_USER_ID_CLAIM
+                },
             signingKeyPem = signingKeyPem,
             ttl = Duration.ofMinutes(5)
         )
@@ -68,6 +72,13 @@ internal class BcTokenIssuerTest {
     }
 
     @Test
+    fun `should carry the owner's SystemUser id in the system user claim`() {
+        val jwt = issuer().mint(apiKeyFor("owner-1"))
+
+        assertThat(jwt.claims[SYSTEM_USER_ID_CLAIM]).isEqualTo("owner-1")
+    }
+
+    @Test
     fun `kid is stable across mints from the same signing key`() {
         val issuer = issuer(signingKeyPem = pemEncode(rsaKeyPair().private.encoded))
         val apiKey = apiKeyFor("owner-2")
@@ -95,5 +106,9 @@ internal class BcTokenIssuerTest {
 
         assertThat(jwt.tokenValue).isNotBlank()
         assertThat(issuer.publicJwks()["keys"]).isNotNull()
+    }
+
+    private companion object {
+        const val SYSTEM_USER_ID_CLAIM = "https://holdsworth.app/claims/system_user_id"
     }
 }

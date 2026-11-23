@@ -78,6 +78,7 @@ class BcTokenIssuer(
                 .issuedAt(now)
                 .expiresAt(now.plus(ttl))
                 .claim("email", apiKey.owner.email)
+                .claim(authConfig.claimSystemUserId, apiKey.owner.id)
                 .claim("scope", apiKey.scopes)
                 .claim(API_KEY_ID_CLAIM, apiKey.id)
                 .build()

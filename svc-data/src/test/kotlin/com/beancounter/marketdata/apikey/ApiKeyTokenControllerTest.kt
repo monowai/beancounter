@@ -1,5 +1,6 @@
 package com.beancounter.marketdata.apikey
 
+import com.beancounter.auth.AuthConfig
 import com.beancounter.auth.MockAuthConfig
 import com.beancounter.auth.model.OpenIdResponse
 import com.beancounter.common.contracts.ApiKeyCreatedResponse
@@ -55,6 +56,9 @@ internal class ApiKeyTokenControllerTest {
 
     @Autowired
     private lateinit var mockAuthConfig: MockAuthConfig
+
+    @Autowired
+    private lateinit var authConfig: AuthConfig
 
     @Autowired
     private lateinit var apiKeyRepository: ApiKeyRepository
@@ -159,6 +163,8 @@ internal class ApiKeyTokenControllerTest {
         assertThat(claims.getStringClaim("email")).isEqualTo(owner.email)
         assertThat(claims.getStringClaim("scope")).contains("beancounter:user")
         assertThat(claims.getStringClaim("bc:api_key_id")).isEqualTo(created.data.id)
+        assertThat(authConfig.claimSystemUserId).isNotBlank()
+        assertThat(claims.getStringClaim(authConfig.claimSystemUserId)).isEqualTo(owner.id)
         assertThat(claims.audience).isNotEmpty()
         assertThat(claims.expirationTime.toInstant())
             .isCloseTo(Instant.now().plus(Duration.ofHours(1)), within(30, ChronoUnit.SECONDS))

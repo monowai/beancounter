@@ -459,6 +459,26 @@ interface TrnRepository :
     ): List<Trn>
 
     /**
+     * The trade an auto-settle leg settles: the owner's trade whose callerId the
+     * leg carries as its batch. The reverse of [findByCallerRefProviderAndCallerRefBatch].
+     */
+    @Query(
+        "select t from Trn t " +
+            "join fetch t.asset " +
+            "join fetch t.tradeCurrency " +
+            "join fetch t.portfolio p " +
+            "left join fetch t.cashAsset " +
+            "left join fetch t.cashCurrency " +
+            "where t.callerRef.callerId = :callerId " +
+            "and t.callerRef.provider <> '" + AUTO_PROVIDER + "' " +
+            "and p.owner.id = :ownerId"
+    )
+    fun findSettledTrade(
+        @Param("callerId") callerId: String,
+        @Param("ownerId") ownerId: String
+    ): List<Trn>
+
+    /**
      * PROPOSED trigger-type trades that carry no auto-settle (BC-AUTO) cash legs.
      * Feeds the one-off backfill that emits the compensating pair for trades
      * created / unsettled before leg status mirrored the parent. Trades without a

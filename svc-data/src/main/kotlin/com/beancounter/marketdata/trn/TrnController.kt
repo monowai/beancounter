@@ -160,6 +160,27 @@ class TrnController(
             )
         )
 
+    @GetMapping(value = ["/{trnId}/settles"])
+    @Operation(
+        summary = "Get the trade an auto-settle cash leg settles",
+        description = """
+            An auto-settle WITHDRAWAL or DEPOSIT is edited through its trade.
+            Returns that trade; 404 when the trn is not an auto-settle leg.
+        """
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(responseCode = "200", description = "The settled trade"),
+            ApiResponse(responseCode = "404", description = "Not an auto-settle leg, or its trade is gone")
+        ]
+    )
+    fun findSettledTrade(
+        @PathVariable @Parameter(
+            description = "Auto-settle leg identifier",
+            example = "trn-123"
+        ) trnId: String
+    ): TrnResponse = TrnResponse(trnFinder.findSettledTrade(trnId))
+
     @PostMapping(
         produces = [MediaType.APPLICATION_JSON_VALUE],
         consumes = [MediaType.APPLICATION_JSON_VALUE]

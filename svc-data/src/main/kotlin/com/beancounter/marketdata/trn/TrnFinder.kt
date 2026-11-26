@@ -5,6 +5,7 @@ import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.utils.DateUtils
+import com.beancounter.marketdata.cash.CashAutoSettleService.Companion.AUTO_PROVIDER
 import com.beancounter.marketdata.portfolio.PortfolioService
 import com.beancounter.marketdata.trn.settlement.TrnSettlementService
 import jakarta.transaction.Transactional
@@ -35,6 +36,27 @@ class TrnFinder(
         }
         val result = trn.map { transaction: Trn -> trnPostProcessor.postProcess(setOf(transaction)) }
         return result.get()
+    }
+
+    /**
+     * The trade an auto-settle cash leg settles, so the leg is edited through it.
+     * Not found when [legId] is not a leg the caller can view.
+     */
+    fun findSettledTrade(legId: String): Collection<Trn> {
+        val leg =
+            trnRepository
+                .findById(legId)
+                .filter { portfolioService.canView(it.portfolio) }
+                .orElseThrow { NotFoundException("Auto-settle leg not found: $legId") }
+        val legRef =
+            leg.callerRef.takeIf { it?.provider == AUTO_PROVIDER }
+                ?: throw NotFoundException("Auto-settle leg not found: $legId")
+        val trade =
+            trnRepository
+                .findSettledTrade(legRef.batch)
+                .filter { portfolioService.canView(it.portfolio) }
+        if (trade.size != 1) throw NotFoundException("Settled trade not found for: $legId")
+        return trnPostProcessor.postProcess(trade)
     }
 
     fun findForPortfolio(

@@ -63,6 +63,7 @@ class TrnSettleTest {
         dateUtils = mock()
         fxTransactions = mock()
         whenever(dateUtils.date).thenReturn(today)
+        whenever(dateUtils.isFutureEverywhere(any())).thenCallRealMethod()
         whenever(portfolioService.find("pf-1")).thenReturn(portfolio)
         cashAutoSettleService = mock()
         whenever(cashAutoSettleService.emitCompensatingTransfer(any()))
@@ -87,7 +88,7 @@ class TrnSettleTest {
 
     @Test
     fun `refuses to settle a trn whose tradeDate is in the future`() {
-        val forwardTrn = proposed("trn-future", today.plusDays(5))
+        val forwardTrn = proposed("trn-future", LocalDate.now(DateUtils.EARLIEST_ZONE).plusDays(5))
         whenever(trnRepository.findByPortfolioIdAndId(portfolio.id, "trn-future"))
             .thenReturn(Optional.of(forwardTrn))
 
@@ -97,6 +98,22 @@ class TrnSettleTest {
         assertThat(forwardTrn.status).isEqualTo(TrnStatus.PROPOSED)
         verify(trnRepository, never()).save(forwardTrn)
         verify(fxTransactions, never()).setRates(any<Portfolio>(), any<Trn>())
+    }
+
+    // The service runs a day behind the client that entered the trade (UTC service,
+    // SGT browser): the client's today is due, not forward dated.
+    @Test
+    fun `settles a trn dated today in a zone ahead of the service`() {
+        val clientToday = LocalDate.now(DateUtils.EARLIEST_ZONE)
+        whenever(dateUtils.date).thenReturn(clientToday.minusDays(1))
+        val dueTrn = proposed("trn-ahead", clientToday)
+        whenever(trnRepository.findByPortfolioIdAndId(portfolio.id, "trn-ahead"))
+            .thenReturn(Optional.of(dueTrn))
+
+        val result = trnSettlementService.settleTransactions("pf-1", listOf("trn-ahead"))
+
+        assertThat(result).hasSize(1)
+        assertThat(dueTrn.status).isEqualTo(TrnStatus.SETTLED)
     }
 
     @Test

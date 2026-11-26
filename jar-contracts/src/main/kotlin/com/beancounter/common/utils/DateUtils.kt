@@ -9,6 +9,7 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.time.OffsetDateTime
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.ZoneOffset.UTC
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
@@ -47,6 +48,9 @@ class DateUtils(
     companion object {
         const val TODAY = "today"
         const val FORMAT = "yyyy-MM-dd"
+
+        /** The zone furthest ahead of UTC: the first to reach each date. */
+        val EARLIEST_ZONE: ZoneOffset = ZoneOffset.ofHours(14)
         private val log = LoggerFactory.getLogger(DateUtils::class.java)
     }
 
@@ -59,6 +63,13 @@ class DateUtils(
      * Returns the current date as a String formatted according to ISO local date (YYYY-MM-DD).
      */
     fun today(): String = LocalDate.now(zoneId).toString()
+
+    /**
+     * True when no zone has reached [date] yet. Clients send their own local date, so a
+     * service judging it by its own zone refuses a same-day entry from any client ahead
+     * of that zone (a UTC service and an SGT browser, for eight hours a day).
+     */
+    fun isFutureEverywhere(date: LocalDate): Boolean = date.isAfter(LocalDate.now(EARLIEST_ZONE))
 
     val date: LocalDate
         get() =

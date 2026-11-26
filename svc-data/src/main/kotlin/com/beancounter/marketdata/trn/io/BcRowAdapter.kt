@@ -45,14 +45,13 @@ class BcRowAdapter(
     }
 
     /**
-     * "Today" is the configured `beancounter.zone`, not the JVM default. Clients send
-     * their own local date; a service running behind that zone (UTC pod, SGT browser)
-     * would otherwise read a same-day trade as forward dated and reject an import
-     * that no user can see fail — the CSV consumer acks the message away.
+     * Clients send their own local date, so a trade is forward dated only once no zone
+     * has reached its date. A rejected import fails where no user sees it: the CSV
+     * consumer dead-letters the message.
      */
     private fun validateTradeDate(dateString: String) {
         val tradeDate = dateUtils.getDate(dateString)
-        if (tradeDate.isAfter(LocalDate.now(dateUtils.zoneId))) {
+        if (dateUtils.isFutureEverywhere(tradeDate)) {
             throw BusinessException("Rejecting the forward dated trade date of $tradeDate")
         }
     }

@@ -405,16 +405,34 @@ class BcRowAdapterTest {
         }
     }
 
+    /**
+     * The service zone itself lags the client: a UTC service and an SGT browser
+     * disagree on the date for eight hours a day. The client's today is accepted.
+     */
     @Test
-    fun `rejects a trade date beyond today in the configured zone`() {
-        val serviceZone = ZoneId.of("Pacific/Midway")
+    fun `accepts a client's today when the service zone lags the client`() {
         val adapter =
             BcRowAdapter(
                 ais,
                 cashTrnServices,
-                dateUtils = DateUtils(serviceZone.id)
+                dateUtils = DateUtils("Pacific/Midway")
             )
-        val tomorrow = LocalDate.now(serviceZone).plusDays(1)
+        val clientToday = LocalDate.now(DateUtils.EARLIEST_ZONE)
+
+        val result = adapter.transform(trustedTrnImportRequest(buyRow(clientToday.toString())))
+
+        assertThat(result.tradeDate).isEqualTo(clientToday)
+    }
+
+    @Test
+    fun `rejects a trade date no zone has reached`() {
+        val adapter =
+            BcRowAdapter(
+                ais,
+                cashTrnServices,
+                dateUtils = DateUtils("Pacific/Kiritimati")
+            )
+        val tomorrow = LocalDate.now(DateUtils.EARLIEST_ZONE).plusDays(1)
 
         assertThrows(BusinessException::class.java) {
             adapter.transform(trustedTrnImportRequest(buyRow(tomorrow.toString())))

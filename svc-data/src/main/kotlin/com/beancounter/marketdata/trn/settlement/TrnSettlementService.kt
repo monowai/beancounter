@@ -81,7 +81,7 @@ class TrnSettlementService(
                 log.warn("Cannot settle transaction {} - status is {} not PROPOSED", trnId, trn.status)
                 null
             }
-            trn.tradeDate.isAfter(dateUtils.date) -> {
+            dateUtils.isFutureEverywhere(trn.tradeDate) -> {
                 log.warn("Cannot settle transaction {} - tradeDate {} is in the future", trnId, trn.tradeDate)
                 null
             }

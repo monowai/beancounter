@@ -260,4 +260,22 @@ internal class DateUtilsTest {
                 .offset(0.01)
         )
     }
+
+    /**
+     * A client sends its own local date. A date is in the future only once no zone has
+     * reached it yet, so today at the earliest zone (UTC+14) is never refused.
+     */
+    @Test
+    fun `should not count today in the earliest zone as future`() {
+        val todayAhead = LocalDate.now(DateUtils.EARLIEST_ZONE)
+
+        assertThat(dateUtils.isFutureEverywhere(todayAhead)).isFalse()
+    }
+
+    @Test
+    fun `should count a date no zone has reached as future`() {
+        val tomorrowAhead = LocalDate.now(DateUtils.EARLIEST_ZONE).plusDays(1)
+
+        assertThat(dateUtils.isFutureEverywhere(tomorrowAhead)).isTrue()
+    }
 }

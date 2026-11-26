@@ -1,6 +1,9 @@
 package com.beancounter.marketdata.trn.settlement
 
 import com.beancounter.client.ingest.FxTransactions
+import com.beancounter.common.input.AssetInput
+import com.beancounter.common.model.Asset
+import com.beancounter.common.model.Market
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
@@ -26,6 +29,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.ZoneId
 import java.util.Optional
 
 /**
@@ -95,12 +99,11 @@ class TrnSettleTest {
         verify(fxTransactions, never()).setRates(any<Portfolio>(), any<Trn>())
     }
 
-    // A client ahead of the service's zone (SGT browser, UTC service) enters a trade
-    // for its own today: it is due, not forward dated.
+    // An exchange settles on its own clock, whatever the service's zone.
     @Test
-    fun `settles a trn dated today in a zone ahead of the service`() {
-        val clientToday = LocalDate.now(DateUtils.EARLIEST_ZONE)
-        val dueTrn = proposed("trn-ahead", clientToday)
+    fun `settles a trn dated today on its market`() {
+        val marketToday = LocalDate.now(ZoneId.of(MSFT.market.timezoneId))
+        val dueTrn = proposed("trn-ahead", marketToday)
         whenever(trnRepository.findByPortfolioIdAndId(portfolio.id, "trn-ahead"))
             .thenReturn(Optional.of(dueTrn))
 
@@ -108,6 +111,25 @@ class TrnSettleTest {
 
         assertThat(result).hasSize(1)
         assertThat(dueTrn.status).isEqualTo(TrnStatus.SETTLED)
+    }
+
+    // Entered at dawn in Singapore for the US session that evening: dated for the
+    // order, it waits until the market's clock reaches that date.
+    @Test
+    fun `refuses to settle a trn dated after today on its market, though another zone has reached it`() {
+        val midway = Market("MIDWAY", timezoneId = "Pacific/Midway")
+        val marketTomorrow = LocalDate.now(ZoneId.of(midway.timezoneId)).plusDays(1)
+        val early =
+            proposed("trn-early", marketTomorrow).apply {
+                asset = Asset.of(AssetInput(midway.code, "EARLY"), midway)
+            }
+        whenever(trnRepository.findByPortfolioIdAndId(portfolio.id, "trn-early"))
+            .thenReturn(Optional.of(early))
+
+        val result = trnSettlementService.settleTransactions("pf-1", listOf("trn-early"))
+
+        assertThat(result).isEmpty()
+        assertThat(early.status).isEqualTo(TrnStatus.PROPOSED)
     }
 
     @Test

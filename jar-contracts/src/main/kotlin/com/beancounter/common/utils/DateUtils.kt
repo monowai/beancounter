@@ -1,6 +1,7 @@
 package com.beancounter.common.utils
 
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.model.Market
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -62,6 +63,25 @@ class DateUtils(
          */
         @JvmStatic
         fun isFutureEverywhere(date: LocalDate): Boolean = date.isAfter(LocalDate.now(EARLIEST_ZONE))
+
+        /**
+         * True when [date] is after today on [market]'s own clock: a trade cannot settle
+         * before its market has reached its date. CASH and PRIVATE have no exchange, so
+         * they take the client's date, judged by [isFutureEverywhere].
+         */
+        @JvmStatic
+        fun isAfterMarketToday(
+            date: LocalDate,
+            market: Market
+        ): Boolean =
+            if (market.code in CLIENT_DATED_MARKETS) {
+                isFutureEverywhere(date)
+            } else {
+                date.isAfter(LocalDate.now(market.timezone.toZoneId()))
+            }
+
+        /** Markets with no exchange clock of their own. */
+        private val CLIENT_DATED_MARKETS = setOf("CASH", "PRIVATE")
 
         private val log = LoggerFactory.getLogger(DateUtils::class.java)
     }

@@ -122,7 +122,7 @@ jobs:
     needs: build
     # Images are released from main only: a push to main, or a manual run
     # started on main.
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 15
     permissions:
@@ -172,9 +172,9 @@ jobs:
 
   publish-jars:
     needs: build
-    # main only: a release version is immutable and consumers pin it, so a
-    # deploy/** branch must never mint one.
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    # main only: a release version is immutable and consumers pin it, so no
+    # other branch may mint one.
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 20
     permissions:
@@ -262,11 +262,10 @@ jobs:
           coverage-reports: ${{ steps.reports.outputs.files }}
           language: Kotlin
 
-  # main only, as on CircleCI: deploy/** branches ship code that is already on
-  # main or about to be, and Snyk monitors the main dependency graph.
+  # main only: Snyk monitors the main dependency graph.
   security-scan:
     needs: build
-    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    if: github.ref == 'refs/heads/main' && (github.event_name == 'push' || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     env:

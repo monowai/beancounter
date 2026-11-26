@@ -21,10 +21,10 @@
 name: Build
 
 on:
-  pull_request:
+  push:
     branches: [main]
     paths-ignore: ['**/*.md']
-  push:
+  pull_request:
     branches: [main]
     paths-ignore: ['**/*.md']
   workflow_dispatch:
@@ -174,7 +174,7 @@ jobs:
     needs: build
     # main only: a release version is immutable and consumers pin it, so a
     # deploy/** branch must never mint one.
-    if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
     runs-on: ubuntu-24.04-arm
     timeout-minutes: 20
     permissions:

@@ -53,7 +53,7 @@ class TrnFinder(
                 ?: throw NotFoundException("Auto-settle leg not found: $legId")
         val trade =
             trnRepository
-                .findSettledTrade(legRef.batch, leg.portfolio.owner.id)
+                .findSettledTrade(legRef.batch)
                 .filter { portfolioService.canView(it.portfolio) }
         if (trade.size != 1) throw NotFoundException("Settled trade not found for: $legId")
         return trnPostProcessor.postProcess(trade)

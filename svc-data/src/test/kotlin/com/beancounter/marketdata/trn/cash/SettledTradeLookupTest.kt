@@ -13,6 +13,8 @@ import com.beancounter.common.input.PortfolioInput
 import com.beancounter.common.input.TrnInput
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Portfolio
+import com.beancounter.common.model.PortfolioShare
+import com.beancounter.common.model.ShareStatus
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
@@ -25,6 +27,7 @@ import com.beancounter.marketdata.assets.AssetService
 import com.beancounter.marketdata.assets.figi.FigiProxy
 import com.beancounter.marketdata.cache.CacheInvalidationProducer
 import com.beancounter.marketdata.fx.FxRateService
+import com.beancounter.marketdata.portfolio.PortfolioShareRepository
 import com.beancounter.marketdata.trn.TrnRepository
 import com.beancounter.marketdata.trn.TrnService
 import com.beancounter.marketdata.utils.BcMvcHelper
@@ -83,12 +86,15 @@ class SettledTradeLookupTest {
     private lateinit var systemUserService: Registration
 
     @Autowired
+    private lateinit var portfolioShareRepository: PortfolioShareRepository
+
+    @Autowired
     private lateinit var mockMvc: MockMvc
 
     private lateinit var token: Jwt
     private lateinit var testUser: SystemUser
     private lateinit var usdCashAsset: Asset
-    private lateinit var invest: Portfolio
+    private lateinit var aapl: Asset
     private lateinit var buy: Trn
 
     @BeforeEach
@@ -103,40 +109,17 @@ class SettledTradeLookupTest {
         val cashInput = AssetUtils.getCash(Constants.USD.code)
         usdCashAsset =
             assetService.handle(AssetRequest(mapOf(Constants.USD.code to cashInput))).data[Constants.USD.code]!!
-        val aapl =
+        aapl =
             assetService.handle(AssetRequest(AssetInput(Constants.NASDAQ.code, "AAPL"), "AAPL")).data["AAPL"]!!
 
         val uniqueId = UUID.randomUUID().toString().substring(0, 8)
         val master = bcMvcHelper.portfolio(PortfolioInput(code = "MASTER_$uniqueId", base = "USD", currency = "USD"))
-        invest =
+        val invest =
             bcMvcHelper.portfolio(
                 PortfolioInput(code = "INV_$uniqueId", base = "USD", currency = "USD", cashPortfolioId = master.id)
             )
         mockAuthConfig.login(testUser, systemUserService)
-        buy =
-            trnService
-                .save(
-                    invest,
-                    TrnRequest(
-                        invest.id,
-                        listOf(
-                            TrnInput(
-                                assetId = aapl.id,
-                                cashAssetId = usdCashAsset.id,
-                                trnType = TrnType.BUY,
-                                quantity = BigDecimal("10"),
-                                price = BigDecimal("200"),
-                                tradeAmount = BigDecimal("2000"),
-                                tradeCurrency = "USD",
-                                cashCurrency = "USD",
-                                cashAmount = BigDecimal("-2000"),
-                                tradeCashRate = BigDecimal.ONE,
-                                tradeDate = LocalDate.now(),
-                                status = TrnStatus.SETTLED
-                            )
-                        )
-                    )
-                ).single()
+        buy = buyInto(invest)
     }
 
     @Test
@@ -172,6 +155,66 @@ class SettledTradeLookupTest {
             .perform(get("$TRNS_ROOT/{trnId}/settles", leg.id).with(jwt().jwt(otherToken)))
             .andExpect(status().isNotFound)
     }
+
+    @Test
+    fun `should return the trade when the leg sits in another owner's shared funding portfolio`() {
+        val fundingOwner = SystemUser()
+        val fundingToken = mockAuthConfig.login(fundingOwner, systemUserService)
+        val uniqueId = UUID.randomUUID().toString().substring(0, 8)
+        val funding =
+            BcMvcHelper(mockMvc, fundingToken)
+                .portfolio(PortfolioInput(code = "FUND_$uniqueId", base = "USD", currency = "USD"))
+        mockAuthConfig.login(testUser, systemUserService)
+        val invest =
+            BcMvcHelper(mockMvc, token).portfolio(
+                PortfolioInput(code = "INVX_$uniqueId", base = "USD", currency = "USD", cashPortfolioId = funding.id)
+            )
+        portfolioShareRepository.save(
+            PortfolioShare(
+                portfolio = funding,
+                sharedWith = invest.owner,
+                createdBy = funding.owner,
+                status = ShareStatus.ACTIVE
+            )
+        )
+        mockAuthConfig.login(testUser, systemUserService)
+        val trade = buyInto(invest)
+        val fundingLeg = legsOf(trade).single { it.portfolio.id == funding.id }
+
+        val body =
+            mockMvc
+                .perform(get("$TRNS_ROOT/{trnId}/settles", fundingLeg.id).with(jwt().jwt(token)))
+                .andExpect(status().isOk)
+                .andReturn()
+                .response.contentAsString
+        val trns = objectMapper.readValue(body, TrnResponse::class.java).data.trns
+        assertThat(trns.map { it.id }).containsExactly(trade.id)
+    }
+
+    private fun buyInto(portfolio: Portfolio): Trn =
+        trnService
+            .save(
+                portfolio,
+                TrnRequest(
+                    portfolio.id,
+                    listOf(
+                        TrnInput(
+                            assetId = aapl.id,
+                            cashAssetId = usdCashAsset.id,
+                            trnType = TrnType.BUY,
+                            quantity = BigDecimal("10"),
+                            price = BigDecimal("200"),
+                            tradeAmount = BigDecimal("2000"),
+                            tradeCurrency = "USD",
+                            cashCurrency = "USD",
+                            cashAmount = BigDecimal("-2000"),
+                            tradeCashRate = BigDecimal.ONE,
+                            tradeDate = LocalDate.now(),
+                            status = TrnStatus.SETTLED
+                        )
+                    )
+                )
+            ).single()
 
     private fun legsOf(parent: Trn): List<Trn> =
         trnRepository.findByCallerRefProviderAndCallerRefBatch("BC-AUTO", parent.callerRef!!.callerId)

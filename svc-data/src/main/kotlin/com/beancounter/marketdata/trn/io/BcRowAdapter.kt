@@ -51,7 +51,7 @@ class BcRowAdapter(
      */
     private fun validateTradeDate(dateString: String) {
         val tradeDate = dateUtils.getDate(dateString)
-        if (dateUtils.isFutureEverywhere(tradeDate)) {
+        if (DateUtils.isFutureEverywhere(tradeDate)) {
             throw BusinessException("Rejecting the forward dated trade date of $tradeDate")
         }
     }

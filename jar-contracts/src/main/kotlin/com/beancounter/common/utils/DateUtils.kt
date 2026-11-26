@@ -51,6 +51,18 @@ class DateUtils(
 
         /** The zone furthest ahead of UTC: the first to reach each date. */
         val EARLIEST_ZONE: ZoneOffset = ZoneOffset.ofHours(14)
+
+        /**
+         * True when no zone has reached [date] yet. Clients send their own local date, so a
+         * service judging it by its own zone refuses a same-day entry from any client ahead
+         * of that zone (a UTC service and an SGT browser, for eight hours a day).
+         *
+         * For validating a date a user entered. Rate and price lookups keep [date], the
+         * service's today: a provider only has data for a date the service has reached.
+         */
+        @JvmStatic
+        fun isFutureEverywhere(date: LocalDate): Boolean = date.isAfter(LocalDate.now(EARLIEST_ZONE))
+
         private val log = LoggerFactory.getLogger(DateUtils::class.java)
     }
 
@@ -63,13 +75,6 @@ class DateUtils(
      * Returns the current date as a String formatted according to ISO local date (YYYY-MM-DD).
      */
     fun today(): String = LocalDate.now(zoneId).toString()
-
-    /**
-     * True when no zone has reached [date] yet. Clients send their own local date, so a
-     * service judging it by its own zone refuses a same-day entry from any client ahead
-     * of that zone (a UTC service and an SGT browser, for eight hours a day).
-     */
-    fun isFutureEverywhere(date: LocalDate): Boolean = date.isAfter(LocalDate.now(EARLIEST_ZONE))
 
     val date: LocalDate
         get() =

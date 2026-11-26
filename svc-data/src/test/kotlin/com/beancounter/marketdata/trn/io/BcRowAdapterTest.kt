@@ -376,12 +376,9 @@ class BcRowAdapterTest {
 
     /**
      * A client east of the service's JVM zone sends its own "today". Rejecting on
-     * `LocalDate.now()` (JVM default) instead of the configured `beancounter.zone`
-     * silently killed async CSV imports for ~8h a day on kauri: the pod runs UTC,
-     * the browser sent the SGT date, the message failed and was acked away.
-     *
-     * Kiritimati (UTC+14) is always at least a day ahead of Midway (UTC-11), so
-     * the assertion holds whatever the clock says.
+     * `LocalDate.now()` (JVM default) silently killed async CSV imports for ~8h a
+     * day on kauri: the pod runs UTC, the browser sent the SGT date, and the
+     * message failed where no user saw it.
      */
     @Test
     fun `accepts today from the configured zone when the JVM default zone lags`() {

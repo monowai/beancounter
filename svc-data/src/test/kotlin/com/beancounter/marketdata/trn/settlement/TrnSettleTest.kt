@@ -36,7 +36,6 @@ class TrnSettleTest {
     private lateinit var trnRepository: TrnRepository
     private lateinit var portfolioService: PortfolioService
     private lateinit var cacheInvalidationProducer: CacheInvalidationProducer
-    private lateinit var dateUtils: DateUtils
     private lateinit var fxTransactions: FxTransactions
     private lateinit var cashAutoSettleService: com.beancounter.marketdata.cash.CashAutoSettleService
     private lateinit var trnPostProcessor: TrnPostProcessor
@@ -60,10 +59,7 @@ class TrnSettleTest {
         trnRepository = mock()
         portfolioService = mock()
         cacheInvalidationProducer = mock()
-        dateUtils = mock()
         fxTransactions = mock()
-        whenever(dateUtils.date).thenReturn(today)
-        whenever(dateUtils.isFutureEverywhere(any())).thenCallRealMethod()
         whenever(portfolioService.find("pf-1")).thenReturn(portfolio)
         cashAutoSettleService = mock()
         whenever(cashAutoSettleService.emitCompensatingTransfer(any()))
@@ -81,7 +77,6 @@ class TrnSettleTest {
                 trnChangeEffects = TrnChangeEffects(cashAutoSettleService, cacheInvalidationProducer),
                 portfolioService = portfolioService,
                 portfolioAccessControl = mock(),
-                dateUtils = dateUtils,
                 trnPostProcessor = trnPostProcessor
             )
     }
@@ -100,12 +95,11 @@ class TrnSettleTest {
         verify(fxTransactions, never()).setRates(any<Portfolio>(), any<Trn>())
     }
 
-    // The service runs a day behind the client that entered the trade (UTC service,
-    // SGT browser): the client's today is due, not forward dated.
+    // A client ahead of the service's zone (SGT browser, UTC service) enters a trade
+    // for its own today: it is due, not forward dated.
     @Test
     fun `settles a trn dated today in a zone ahead of the service`() {
         val clientToday = LocalDate.now(DateUtils.EARLIEST_ZONE)
-        whenever(dateUtils.date).thenReturn(clientToday.minusDays(1))
         val dueTrn = proposed("trn-ahead", clientToday)
         whenever(trnRepository.findByPortfolioIdAndId(portfolio.id, "trn-ahead"))
             .thenReturn(Optional.of(dueTrn))

@@ -269,13 +269,13 @@ internal class DateUtilsTest {
     fun `should not count today in the earliest zone as future`() {
         val todayAhead = LocalDate.now(DateUtils.EARLIEST_ZONE)
 
-        assertThat(dateUtils.isFutureEverywhere(todayAhead)).isFalse()
+        assertThat(DateUtils.isFutureEverywhere(todayAhead)).isFalse()
     }
 
     @Test
     fun `should count a date no zone has reached as future`() {
         val tomorrowAhead = LocalDate.now(DateUtils.EARLIEST_ZONE).plusDays(1)
 
-        assertThat(dateUtils.isFutureEverywhere(tomorrowAhead)).isTrue()
+        assertThat(DateUtils.isFutureEverywhere(tomorrowAhead)).isTrue()
     }
 }

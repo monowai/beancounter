@@ -2,10 +2,14 @@ package com.beancounter.common.utils
 
 import com.beancounter.common.TestHelpers
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.model.Market
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.DateTimeException
 import java.time.LocalDate
+import java.time.ZoneId
 
 /**
  * Test class for DateUtils. This class comprehensively tests the functionality of the DateUtils class,
@@ -259,5 +263,57 @@ internal class DateUtilsTest {
             org.assertj.core.data.Offset
                 .offset(0.01)
         )
+    }
+
+    /**
+     * A client sends its own local date. A date is in the future only once no zone has
+     * reached it yet, so today at the earliest zone (UTC+14) is never refused.
+     */
+    @Test
+    fun `should not count today in the earliest zone as future`() {
+        val todayAhead = LocalDate.now(DateUtils.EARLIEST_ZONE)
+
+        assertThat(DateUtils.isFutureEverywhere(todayAhead)).isFalse()
+    }
+
+    @Test
+    fun `should count a date no zone has reached as future`() {
+        val tomorrowAhead = LocalDate.now(DateUtils.EARLIEST_ZONE).plusDays(1)
+
+        assertThat(DateUtils.isFutureEverywhere(tomorrowAhead)).isTrue()
+    }
+
+    // Midway (UTC-11) trails UTC+14 by 25 hours, so its tomorrow has always begun somewhere.
+    private val midway = Market("MIDWAY", timezoneId = "Pacific/Midway")
+
+    @Test
+    fun `should not count today on the market's clock as after the market's today`() {
+        val marketToday = LocalDate.now(ZoneId.of(midway.timezoneId))
+
+        assertThat(DateUtils.isAfterMarketToday(marketToday, midway)).isFalse()
+    }
+
+    @Test
+    fun `should count the market's tomorrow as after its today, though another zone has reached it`() {
+        val marketTomorrow = LocalDate.now(ZoneId.of(midway.timezoneId)).plusDays(1)
+
+        assertThat(DateUtils.isAfterMarketToday(marketTomorrow, midway)).isTrue()
+    }
+
+    @Test
+    fun `should take the client's date for a market with no exchange`() {
+        val clientToday = LocalDate.now(DateUtils.EARLIEST_ZONE)
+
+        assertThat(DateUtils.isAfterMarketToday(clientToday, Market("PRIVATE", timezoneId = "UTC"))).isFalse()
+        assertThat(DateUtils.isAfterMarketToday(clientToday, Market("CASH", timezoneId = "UTC"))).isFalse()
+    }
+
+    // TimeZone.getTimeZone falls back to GMT for an id it does not know; a market clock must not.
+    @Test
+    fun `should refuse a market whose zone id is unknown`() {
+        val unknown = Market("TYPO", timezoneId = "US/Easten")
+
+        assertThatThrownBy { DateUtils.isAfterMarketToday(LocalDate.now(), unknown) }
+            .isInstanceOf(DateTimeException::class.java)
     }
 }

@@ -682,10 +682,25 @@ class ReconcileCommitTest {
         val portfolio = portfolio("RCC-ROWFUTURE")
         val asset = asset("RCCF1")
         val broker = broker("RCC-ROWFUTURE-B", user)
-        val future = add(asset, "1").copy(tradeDate = DateUtils().date.plusDays(1))
+        val future = add(asset, "1").copy(tradeDate = LocalDate.now(DateUtils.EARLIEST_ZONE).plusDays(1))
 
         assertRefused(confirmed(portfolio, broker, "rcc-rowfuture-upload", future), "is after today")
         assertThat(trnsOf(portfolio)).isEmpty()
+    }
+
+    // A statement entered where the day has already begun, ahead of the service's zone.
+    @Test
+    fun `should record a statement dated today in the earliest zone`() {
+        val user = login("ahead")
+        val portfolio = portfolio("RCC-AHEAD")
+        val broker = broker("RCC-AHEAD-B", user)
+        val clientToday = LocalDate.now(DateUtils.EARLIEST_ZONE)
+
+        reconcileCommitService.commit(
+            confirmed(portfolio, broker, "rcc-ahead-upload", add(asset("RCCA1"), "1")).copy(tradeDate = clientToday)
+        )
+
+        assertThat(trnsOf(portfolio).single().tradeDate).isEqualTo(clientToday)
     }
 
     @Test
@@ -693,7 +708,7 @@ class ReconcileCommitTest {
         val user = login("future")
         val portfolio = portfolio("RCC-FUTURE")
         val broker = broker("RCC-FUTURE-B", user)
-        val tomorrow = DateUtils().date.plusDays(1)
+        val tomorrow = LocalDate.now(DateUtils.EARLIEST_ZONE).plusDays(1)
 
         assertRefused(
             confirmed(portfolio, broker, "rcc-future-upload", add(asset("RCCF1"), "1")).copy(tradeDate = tomorrow),

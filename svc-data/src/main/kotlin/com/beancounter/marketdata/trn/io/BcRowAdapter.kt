@@ -8,6 +8,7 @@ import com.beancounter.common.input.TrnInput
 import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.CallerRef
+import com.beancounter.common.model.Market
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.BcJson
@@ -34,10 +35,9 @@ class BcRowAdapter(
     val objectMapper: ObjectMapper = BcJson.objectMapper
 ) : RowAdapter {
     override fun transform(trustedTrnImportRequest: TrustedTrnImportRequest): TrnInput {
-        validateTradeDate(trustedTrnImportRequest.row[Columns.Date.ordinal].trim())
-
         val trnType = TrnType.valueOf(trustedTrnImportRequest.row[Columns.Type.ordinal].trim())
         val asset = resolveAsset(trustedTrnImportRequest)
+        validateTradeDate(trustedTrnImportRequest.row, asset.market)
         val ownerId = trustedTrnImportRequest.portfolio.owner.id
         val cashAssetId = getCashAssetId(trnType, asset, trustedTrnImportRequest.row, ownerId)
 
@@ -45,14 +45,17 @@ class BcRowAdapter(
     }
 
     /**
-     * "Today" is the configured `beancounter.zone`, not the JVM default. Clients send
-     * their own local date; a service running behind that zone (UTC pod, SGT browser)
-     * would otherwise read a same-day trade as forward dated and reject an import
-     * that no user can see fail — the CSV consumer acks the message away.
+     * A proposed trade is a plan and may carry any date. A settled one cannot be dated
+     * after today on its market's clock. A rejected import fails where no user sees it:
+     * the CSV consumer dead-letters the message.
      */
-    private fun validateTradeDate(dateString: String) {
-        val tradeDate = dateUtils.getDate(dateString)
-        if (tradeDate.isAfter(LocalDate.now(dateUtils.zoneId))) {
+    private fun validateTradeDate(
+        row: List<String>,
+        market: Market
+    ) {
+        if (getStatus(row) == TrnStatus.PROPOSED) return
+        val tradeDate = dateUtils.getDate(row[Columns.Date.ordinal].trim())
+        if (DateUtils.isAfterMarketToday(tradeDate, market)) {
             throw BusinessException("Rejecting the forward dated trade date of $tradeDate")
         }
     }

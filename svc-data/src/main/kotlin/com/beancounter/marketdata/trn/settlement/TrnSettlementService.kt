@@ -42,7 +42,6 @@ class TrnSettlementService(
     private val trnChangeEffects: TrnChangeEffects,
     private val portfolioService: PortfolioService,
     private val portfolioAccessControl: PortfolioAccessControl,
-    private val dateUtils: DateUtils,
     private val trnPostProcessor: TrnPostProcessor
 ) {
     private val log = LoggerFactory.getLogger(TrnSettlementService::class.java)
@@ -81,7 +80,7 @@ class TrnSettlementService(
                 log.warn("Cannot settle transaction {} - status is {} not PROPOSED", trnId, trn.status)
                 null
             }
-            trn.tradeDate.isAfter(dateUtils.date) -> {
+            DateUtils.isAfterMarketToday(trn.tradeDate, trn.asset.market) -> {
                 log.warn("Cannot settle transaction {} - tradeDate {} is in the future", trnId, trn.tradeDate)
                 null
             }

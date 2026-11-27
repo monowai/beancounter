@@ -238,9 +238,9 @@ agent:
     fast: "${AI_MODEL_FAST:${DEEPSEEK_MODEL_FAST:deepseek-flash}}"
     smart: "${AI_MODEL_SMART:${DEEPSEEK_MODEL_SMART:deepseek-flash}}"
     deep: "${AI_MODEL_DEEP:${DEEPSEEK_MODEL_DEEP:deepseek-v4-pro}}"
-    # Reads brokerage screenshots. Through waharoa set AI_MODEL_VISION=deepseek-flash-vision:
-    # the gateway's deepseek-flash route drops images.
-    vision: "${AI_MODEL_VISION:deepseek-flash}"
+    # Reads brokerage screenshots. The waharoa gateway's deepseek-flash route drops
+    # images; deepseek-flash-vision keeps them.
+    vision: "${AI_MODEL_VISION:deepseek-flash-vision}"
   conversations:
     # Conversations idle longer than this are purged by ConversationRetention.
     retention-days: 90

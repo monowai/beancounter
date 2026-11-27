@@ -50,7 +50,6 @@ class TrnSettlementServiceTest {
                 TrnChangeEffects(cashAutoSettleService, org.mockito.kotlin.mock()),
                 org.mockito.kotlin.mock(),
                 org.mockito.kotlin.mock(),
-                org.mockito.kotlin.mock(),
                 org.mockito.kotlin.mock()
             )
     }

@@ -1,6 +1,9 @@
 package com.beancounter.marketdata.trn.settlement
 
 import com.beancounter.client.ingest.FxTransactions
+import com.beancounter.common.input.AssetInput
+import com.beancounter.common.model.Asset
+import com.beancounter.common.model.Market
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.SystemUser
 import com.beancounter.common.model.Trn
@@ -26,6 +29,7 @@ import org.mockito.kotlin.verify
 import org.mockito.kotlin.whenever
 import java.math.BigDecimal
 import java.time.LocalDate
+import java.time.ZoneId
 import java.util.Optional
 
 /**
@@ -36,7 +40,6 @@ class TrnSettleTest {
     private lateinit var trnRepository: TrnRepository
     private lateinit var portfolioService: PortfolioService
     private lateinit var cacheInvalidationProducer: CacheInvalidationProducer
-    private lateinit var dateUtils: DateUtils
     private lateinit var fxTransactions: FxTransactions
     private lateinit var cashAutoSettleService: com.beancounter.marketdata.cash.CashAutoSettleService
     private lateinit var trnPostProcessor: TrnPostProcessor
@@ -60,9 +63,7 @@ class TrnSettleTest {
         trnRepository = mock()
         portfolioService = mock()
         cacheInvalidationProducer = mock()
-        dateUtils = mock()
         fxTransactions = mock()
-        whenever(dateUtils.date).thenReturn(today)
         whenever(portfolioService.find("pf-1")).thenReturn(portfolio)
         cashAutoSettleService = mock()
         whenever(cashAutoSettleService.emitCompensatingTransfer(any()))
@@ -80,14 +81,13 @@ class TrnSettleTest {
                 trnChangeEffects = TrnChangeEffects(cashAutoSettleService, cacheInvalidationProducer),
                 portfolioService = portfolioService,
                 portfolioAccessControl = mock(),
-                dateUtils = dateUtils,
                 trnPostProcessor = trnPostProcessor
             )
     }
 
     @Test
     fun `refuses to settle a trn whose tradeDate is in the future`() {
-        val forwardTrn = proposed("trn-future", today.plusDays(5))
+        val forwardTrn = proposed("trn-future", LocalDate.now(DateUtils.EARLIEST_ZONE).plusDays(5))
         whenever(trnRepository.findByPortfolioIdAndId(portfolio.id, "trn-future"))
             .thenReturn(Optional.of(forwardTrn))
 
@@ -97,6 +97,39 @@ class TrnSettleTest {
         assertThat(forwardTrn.status).isEqualTo(TrnStatus.PROPOSED)
         verify(trnRepository, never()).save(forwardTrn)
         verify(fxTransactions, never()).setRates(any<Portfolio>(), any<Trn>())
+    }
+
+    // An exchange settles on its own clock, whatever the service's zone.
+    @Test
+    fun `settles a trn dated today on its market`() {
+        val marketToday = LocalDate.now(ZoneId.of(MSFT.market.timezoneId))
+        val dueTrn = proposed("trn-ahead", marketToday)
+        whenever(trnRepository.findByPortfolioIdAndId(portfolio.id, "trn-ahead"))
+            .thenReturn(Optional.of(dueTrn))
+
+        val result = trnSettlementService.settleTransactions("pf-1", listOf("trn-ahead"))
+
+        assertThat(result).hasSize(1)
+        assertThat(dueTrn.status).isEqualTo(TrnStatus.SETTLED)
+    }
+
+    // Entered at dawn in Singapore for the US session that evening: dated for the
+    // order, it waits until the market's clock reaches that date.
+    @Test
+    fun `refuses to settle a trn dated after today on its market, though another zone has reached it`() {
+        val midway = Market("MIDWAY", timezoneId = "Pacific/Midway")
+        val marketTomorrow = LocalDate.now(ZoneId.of(midway.timezoneId)).plusDays(1)
+        val early =
+            proposed("trn-early", marketTomorrow).apply {
+                asset = Asset.of(AssetInput(midway.code, "EARLY"), midway)
+            }
+        whenever(trnRepository.findByPortfolioIdAndId(portfolio.id, "trn-early"))
+            .thenReturn(Optional.of(early))
+
+        val result = trnSettlementService.settleTransactions("pf-1", listOf("trn-early"))
+
+        assertThat(result).isEmpty()
+        assertThat(early.status).isEqualTo(TrnStatus.PROPOSED)
     }
 
     @Test

@@ -55,7 +55,7 @@ internal object ConfirmedRowRules {
         return rows.firstOrNull { !seen.add(it.label) }?.label
     }
 
-    private fun isFuture(tradeDate: LocalDate?): Boolean = tradeDate != null && tradeDate.isAfter(DateUtils().date)
+    private fun isFuture(tradeDate: LocalDate?): Boolean = tradeDate != null && DateUtils.isFutureEverywhere(tradeDate)
 
     private fun isCost(cost: BigDecimal?): Boolean = cost != null && cost.signum() >= 0
 

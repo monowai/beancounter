@@ -7,6 +7,7 @@ import com.beancounter.common.input.TrustedTrnImportRequest
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.AssetCategory
 import com.beancounter.common.model.Portfolio
+import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.marketdata.Constants.Companion.CASH_MARKET
@@ -32,7 +33,6 @@ import org.mockito.Mockito.lenient
 import org.mockito.junit.jupiter.MockitoExtension
 import java.time.LocalDate
 import java.time.ZoneId
-import java.util.TimeZone
 
 /**
  * BC Row Adapter tests for handling various assertions around transformations.
@@ -374,51 +374,36 @@ class BcRowAdapterTest {
         assertThat(result.cashAssetId).isEqualTo(nzdCashBalance.id)
     }
 
-    /**
-     * A client east of the service's JVM zone sends its own "today". Rejecting on
-     * `LocalDate.now()` (JVM default) instead of the configured `beancounter.zone`
-     * silently killed async CSV imports for ~8h a day on kauri: the pod runs UTC,
-     * the browser sent the SGT date, the message failed and was acked away.
-     *
-     * Kiritimati (UTC+14) is always at least a day ahead of Midway (UTC-11), so
-     * the assertion holds whatever the clock says.
-     */
+    // The browser sends its own date; an exchange settles on its own clock. A trade
+    // dated today on its market is accepted whatever the service or JVM zone says.
     @Test
-    fun `accepts today from the configured zone when the JVM default zone lags`() {
-        val serviceZone = ZoneId.of("Pacific/Kiritimati")
-        val jvmDefault = TimeZone.getDefault()
-        TimeZone.setDefault(TimeZone.getTimeZone("Pacific/Midway"))
-        try {
-            val today = LocalDate.now(serviceZone)
-            val adapter =
-                BcRowAdapter(
-                    ais,
-                    cashTrnServices,
-                    dateUtils = DateUtils(serviceZone.id)
-                )
+    fun `accepts a settled trade dated today on its market`() {
+        val marketToday = LocalDate.now(ZoneId.of(asset.market.timezoneId))
 
-            val result = adapter.transform(trustedTrnImportRequest(buyRow(today.toString())))
+        val result = bcRowAdapter.transform(trustedTrnImportRequest(buyRow(marketToday.toString())))
 
-            assertThat(result.tradeDate).isEqualTo(today)
-        } finally {
-            TimeZone.setDefault(jvmDefault)
-        }
+        assertThat(result.tradeDate).isEqualTo(marketToday)
     }
 
     @Test
-    fun `rejects a trade date beyond today in the configured zone`() {
-        val serviceZone = ZoneId.of("Pacific/Midway")
-        val adapter =
-            BcRowAdapter(
-                ais,
-                cashTrnServices,
-                dateUtils = DateUtils(serviceZone.id)
-            )
-        val tomorrow = LocalDate.now(serviceZone).plusDays(1)
+    fun `rejects a settled trade dated after today on its market`() {
+        val marketTomorrow = LocalDate.now(ZoneId.of(asset.market.timezoneId)).plusDays(1)
 
         assertThrows(BusinessException::class.java) {
-            adapter.transform(trustedTrnImportRequest(buyRow(tomorrow.toString())))
+            bcRowAdapter.transform(trustedTrnImportRequest(buyRow(marketTomorrow.toString())))
         }
+    }
+
+    // A proposed trade is a plan: it may be dated for when the order goes in.
+    @Test
+    fun `accepts a proposed trade dated weeks ahead`() {
+        val planned = LocalDate.now(DateUtils.EARLIEST_ZONE).plusWeeks(3)
+
+        val result =
+            bcRowAdapter.transform(trustedTrnImportRequest(buyRow(planned.toString()) + "PROPOSED"))
+
+        assertThat(result.tradeDate).isEqualTo(planned)
+        assertThat(result.status).isEqualTo(TrnStatus.PROPOSED)
     }
 
     @Test

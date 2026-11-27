@@ -1036,7 +1036,8 @@ class CashAutoSettleServiceTest {
         portfolio: Portfolio,
         cashAmount: BigDecimal,
         status: TrnStatus = TrnStatus.SETTLED,
-        tradeDate: LocalDate = LocalDate.now()
+        // A trade settles on its market's clock, not the JVM's.
+        tradeDate: LocalDate = LocalDate.now(aaplAsset.market.timezone.toZoneId())
     ): Trn =
         trnService
             .save(

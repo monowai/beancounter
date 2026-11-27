@@ -11,7 +11,7 @@ import org.springframework.boot.context.properties.ConfigurationProperties
  * `deep`  — reserved for queries the LLM itself escalates as ambiguous /
  *           multi-portfolio aggregation. Default deepseek-v4-pro. Currently unused by
  *           the page-context selector — wire in when a domain genuinely needs it.
- * `vision` — reading a brokerage screenshot. Default deepseek-flash. Its own
+ * `vision` — reading a brokerage screenshot. Default deepseek-flash-vision. Its own
  *           tier because a gateway may route images apart from chat: waharoa's
  *           deepseek-flash route drops them, deepseek-flash-vision keeps them.
  *
@@ -23,7 +23,7 @@ data class AgentModelTiers(
     var fast: String = DEEPSEEK_FLASH,
     var smart: String = DEEPSEEK_FLASH,
     var deep: String = "deepseek-v4-pro",
-    var vision: String = DEEPSEEK_FLASH
+    var vision: String = "deepseek-flash-vision"
 )
 
 private const val DEEPSEEK_FLASH = "deepseek-flash"

@@ -1,6 +1,7 @@
 package com.beancounter.common.utils
 
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.model.Market
 import jakarta.annotation.PostConstruct
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
@@ -9,6 +10,7 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.time.OffsetDateTime
 import java.time.ZoneId
+import java.time.ZoneOffset
 import java.time.ZoneOffset.UTC
 import java.time.format.DateTimeFormatter
 import java.time.format.DateTimeParseException
@@ -47,6 +49,43 @@ class DateUtils(
     companion object {
         const val TODAY = "today"
         const val FORMAT = "yyyy-MM-dd"
+
+        /** The zone furthest ahead of UTC: the first to reach each date. */
+        val EARLIEST_ZONE: ZoneOffset = ZoneOffset.ofHours(14)
+
+        /**
+         * True when no zone has reached [date] yet. Clients send their own local date, so a
+         * service judging it by its own zone refuses a same-day entry from any client ahead
+         * of that zone (a UTC service and an SGT browser, for eight hours a day).
+         *
+         * For validating a date a user entered. Rate and price lookups keep [date], the
+         * service's today: a provider only has data for a date the service has reached.
+         */
+        @JvmStatic
+        fun isFutureEverywhere(date: LocalDate): Boolean = date.isAfter(LocalDate.now(EARLIEST_ZONE))
+
+        /**
+         * True when [date] is after today on [market]'s own clock: a trade cannot settle
+         * before its market has reached its date. CASH and PRIVATE have no exchange, so
+         * they take the client's date, judged by [isFutureEverywhere].
+         *
+         * @throws java.time.DateTimeException when the market's zone id is unknown, rather
+         *   than judging its date on GMT as [Market.timezone] would.
+         */
+        @JvmStatic
+        fun isAfterMarketToday(
+            date: LocalDate,
+            market: Market
+        ): Boolean =
+            if (market.code in CLIENT_DATED_MARKETS) {
+                isFutureEverywhere(date)
+            } else {
+                date.isAfter(LocalDate.now(ZoneId.of(market.timezoneId)))
+            }
+
+        /** Markets with no exchange clock of their own. */
+        private val CLIENT_DATED_MARKETS = setOf("CASH", "PRIVATE")
+
         private val log = LoggerFactory.getLogger(DateUtils::class.java)
     }
 

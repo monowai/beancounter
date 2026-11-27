@@ -68,6 +68,9 @@ class DateUtils(
          * True when [date] is after today on [market]'s own clock: a trade cannot settle
          * before its market has reached its date. CASH and PRIVATE have no exchange, so
          * they take the client's date, judged by [isFutureEverywhere].
+         *
+         * @throws java.time.DateTimeException when the market's zone id is unknown, rather
+         *   than judging its date on GMT as [Market.timezone] would.
          */
         @JvmStatic
         fun isAfterMarketToday(
@@ -77,7 +80,7 @@ class DateUtils(
             if (market.code in CLIENT_DATED_MARKETS) {
                 isFutureEverywhere(date)
             } else {
-                date.isAfter(LocalDate.now(market.timezone.toZoneId()))
+                date.isAfter(LocalDate.now(ZoneId.of(market.timezoneId)))
             }
 
         /** Markets with no exchange clock of their own. */

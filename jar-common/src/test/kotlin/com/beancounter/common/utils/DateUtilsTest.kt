@@ -4,8 +4,10 @@ import com.beancounter.common.TestHelpers
 import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Market
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
+import java.time.DateTimeException
 import java.time.LocalDate
 import java.time.ZoneId
 
@@ -304,5 +306,14 @@ internal class DateUtilsTest {
 
         assertThat(DateUtils.isAfterMarketToday(clientToday, Market("PRIVATE", timezoneId = "UTC"))).isFalse()
         assertThat(DateUtils.isAfterMarketToday(clientToday, Market("CASH", timezoneId = "UTC"))).isFalse()
+    }
+
+    // TimeZone.getTimeZone falls back to GMT for an id it does not know; a market clock must not.
+    @Test
+    fun `should refuse a market whose zone id is unknown`() {
+        val unknown = Market("TYPO", timezoneId = "US/Easten")
+
+        assertThatThrownBy { DateUtils.isAfterMarketToday(LocalDate.now(), unknown) }
+            .isInstanceOf(DateTimeException::class.java)
     }
 }

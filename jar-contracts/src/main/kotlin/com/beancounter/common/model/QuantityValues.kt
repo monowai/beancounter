@@ -28,7 +28,7 @@ class QuantityValues(
         private set
     private var fixedPrecision: Int? = null
 
-    // This is a bit hacky. Should be derived from the asset and set, not computed.
+    // Derived from the total until set. Should come from the asset.
     var precision: Int
         get() =
             fixedPrecision
@@ -47,14 +47,17 @@ class QuantityValues(
     /**
      * Takes [quantity] out of what is held, whichever way it is signed. More than is held is
      * rejected: a short position needs its own accounting.
+     *
+     * @return the quantity held before the disposal
      */
-    fun dispose(quantity: BigDecimal) {
+    fun dispose(quantity: BigDecimal): BigDecimal {
         val disposed = quantity.abs()
         val held = getTotal()
         if (disposed > held) {
             throw BusinessException("$disposed is more than the $held held; short positions are not supported")
         }
         sold = sold.subtract(disposed)
+        return held
     }
 
     /** Takes [quantity] of cash out, whichever way it is signed. Cash may go below zero. */

@@ -1,6 +1,7 @@
 package com.beancounter.position.accumulation
 
 import com.beancounter.common.exception.BusinessException
+import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.QuantityValues
@@ -9,6 +10,7 @@ import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.PortfolioUtils.Companion.getPortfolio
+import com.beancounter.position.Constants
 import com.beancounter.position.Constants.Companion.PROP_PURCHASED
 import com.beancounter.position.Constants.Companion.PROP_SOLD
 import com.beancounter.position.Constants.Companion.PROP_TOTAL
@@ -19,6 +21,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import java.math.BigDecimal
+import java.time.LocalDate
 
 /**
  * Quantity Accumulation tests
@@ -348,5 +351,36 @@ internal class QuantityAccumulationTest {
         assertThat(position.dateValues.opened).isEqualTo(reentryDate)
         // last should be updated to the reentry date
         assertThat(position.dateValues.last).isEqualTo(reentryDate)
+    }
+
+    @Test
+    fun `should name the trn when a rule refuses it`() {
+        val asset = Asset("KMI", market = Constants.US)
+        val positions = Positions()
+        accumulator.accumulate(
+            Trn(
+                trnType = TrnType.BUY,
+                asset = asset,
+                quantity = BigDecimal.TEN,
+                tradeAmount = BigDecimal("100"),
+                tradeDate = LocalDate.of(2026, 1, 5)
+            ),
+            positions
+        )
+
+        assertThatThrownBy {
+            accumulator.accumulate(
+                Trn(
+                    trnType = TrnType.SELL,
+                    asset = asset,
+                    quantity = BigDecimal("11"),
+                    tradeAmount = BigDecimal("110"),
+                    tradeDate = LocalDate.of(2026, 1, 6)
+                ),
+                positions
+            )
+        }.isInstanceOf(BusinessException::class.java)
+            .hasMessageContaining("SELL of KMI on 2026-01-06")
+            .hasMessageContaining("11 is more than the 10 held")
     }
 }

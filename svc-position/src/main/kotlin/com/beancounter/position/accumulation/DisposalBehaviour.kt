@@ -1,6 +1,5 @@
 package com.beancounter.position.accumulation
 
-import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
@@ -27,12 +26,7 @@ abstract class DisposalBehaviour(
         position: Position
     ): Position {
         val disposed = trn.quantity.abs()
-        val held = position.quantityValues.getTotal()
-        try {
-            position.quantityValues.dispose(disposed)
-        } catch (e: BusinessException) {
-            throw BusinessException("${trn.trnType} of ${trn.asset.code} on ${trn.tradeDate}: ${e.message}", e)
-        }
+        val held = position.quantityValues.dispose(disposed)
 
         // Create optimized currency context once instead of 3 separate resolutions
         val currencyContext = createCurrencyContext(trn, position)

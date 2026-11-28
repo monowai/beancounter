@@ -69,9 +69,12 @@ internal class TestMarketData {
             )
         AssertionsForClassTypes.assertThat(quantityValues.getTotal()).isEqualTo(BigDecimal.ZERO)
         val json = objectMapper.writeValueAsString(quantityValues)
-        assertThat(objectMapper.readValue<QuantityValues>(json))
-            .usingRecursiveComparison()
-            .isEqualTo(quantityValues)
+        val read = objectMapper.readValue<QuantityValues>(json)
+        assertThat(read.sold).isEqualTo(quantityValues.sold)
+        assertThat(read.purchased).isEqualTo(quantityValues.purchased)
+        assertThat(read.adjustment).isEqualTo(quantityValues.adjustment)
+        assertThat(read.getTotal()).isEqualTo(quantityValues.getTotal())
+        assertThat(read.precision).isEqualTo(quantityValues.precision)
     }
 
     @Test

@@ -153,19 +153,20 @@ class FxBuyBehaviourTest {
             .hasFieldOrPropertyWithValue("purchases", BigDecimal("1000.00"))
     }
 
+    private val sgdCashAsset =
+        Asset(
+            code = "${SGD.code} ${TrnType.BALANCE}",
+            id = "${SGD.code} ${TrnType.BALANCE}",
+            name = "${SGD.code} Balance",
+            market = Market(CASH.code),
+            priceSymbol = SGD.code,
+            category = CASH.code
+        )
+    private val sgPortfolio = Portfolio(id = "blah", code = "sgdThing", base = NZD, currency = USD)
+
     @Test
     fun `sgd Cash Balance after USD FX Buy`() {
-        val sgdCashAsset =
-            Asset(
-                code = "${SGD.code} ${TrnType.BALANCE}",
-                id = "${SGD.code} ${TrnType.BALANCE}",
-                name = "${SGD.code} Balance",
-                market = Market(CASH.code),
-                priceSymbol = SGD.code,
-                category = CASH.code
-            )
         assertThat(sgdCashAsset).isNotNull
-        val sgPortfolio = Portfolio(id = "blah", code = "sgdThing", base = NZD, currency = USD)
         val sgdCash = BigDecimal("8756.00")
         val deposit =
             Trn(
@@ -218,16 +219,6 @@ class FxBuyBehaviourTest {
     fun `FX buy should take what it paid out of the cash it settles from, however the amount is signed`(
         cashAmount: String
     ) {
-        val sgdCashAsset =
-            Asset(
-                code = "${SGD.code} ${TrnType.BALANCE}",
-                id = "${SGD.code} ${TrnType.BALANCE}",
-                name = "${SGD.code} Balance",
-                market = Market(CASH.code),
-                priceSymbol = SGD.code,
-                category = CASH.code
-            )
-        val sgPortfolio = Portfolio(id = "blah", code = "sgdThing", base = NZD, currency = USD)
         val positions = Positions(sgPortfolio)
         val sgdPosition =
             accumulator.accumulate(

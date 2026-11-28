@@ -159,7 +159,7 @@ class Positions(
         // 4. The transaction is a position-building type (BUY, not DIVI/SPLIT etc.)
         //    Note: DIVIs can arrive after a position is sold out (ex-dividend dates)
         //    and should not trigger a "reopen" with cash flow clearing
-        val hasZeroQuantity = position.quantityValues.getTotal() == BigDecimal.ZERO
+        val hasZeroQuantity = !position.quantityValues.hasPosition()
         val hadActualTransactions = position.dateValues.firstTransaction != null
         val isPositionBuildingTrn = TrnType.isPositionBuilding(trn.trnType)
         val isReopening = !firstTrade && hasZeroQuantity && hadActualTransactions && isPositionBuildingTrn

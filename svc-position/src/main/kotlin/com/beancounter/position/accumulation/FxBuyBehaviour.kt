@@ -84,8 +84,8 @@ class FxBuyBehaviour(
         trn: Trn
     ) {
         // What was paid leaves the cash it settled from, however the amount was signed.
+        counterPosition.quantityValues.debit(trn.cashAmount)
         val paid = trn.cashAmount.abs().negate()
-        counterPosition.quantityValues.debit(paid)
 
         // Enable cost tracking for FX cash position
         Position.In.entries.forEach { pool ->

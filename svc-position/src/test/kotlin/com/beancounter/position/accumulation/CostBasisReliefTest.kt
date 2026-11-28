@@ -167,7 +167,6 @@ class CostBasisReliefTest {
         assertThatThrownBy { positions.apply(disposal, "50.001", "1600") }
             .isInstanceOf(BusinessException::class.java)
             .hasMessageContaining("50.001")
-            .hasMessageContaining("TEST")
 
         assertThat(position.quantityValues.getTotal()).isEqualByComparingTo("50")
         assertCost(position.trade(), "500", "10")

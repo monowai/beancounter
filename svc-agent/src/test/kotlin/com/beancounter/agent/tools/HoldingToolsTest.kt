@@ -11,6 +11,7 @@ import com.beancounter.common.model.Market
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
+import com.beancounter.common.model.QuantityValues
 import com.beancounter.common.model.TrnDto
 import com.beancounter.common.model.TrnType
 import org.assertj.core.api.Assertions.assertThat
@@ -37,8 +38,7 @@ class HoldingToolsTest {
 
     private fun closedRing(): Position =
         Position(ring, portfolio).apply {
-            quantityValues.purchased = BigDecimal("100")
-            quantityValues.sold = BigDecimal("-100")
+            quantityValues = QuantityValues(purchased = BigDecimal("100"), sold = BigDecimal("-100"))
             getMoneyValues(Position.In.TRADE, usd).apply {
                 priceData.close = BigDecimal("76.69")
                 priceData.priceDate = LocalDate.parse("2026-10-02")

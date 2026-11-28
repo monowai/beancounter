@@ -44,6 +44,7 @@ import com.beancounter.common.model.Market
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
+import com.beancounter.common.model.QuantityValues
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.BeforeEach
@@ -174,7 +175,7 @@ class HoldingAnalysisTest {
 
     private fun natoHolding(): Position =
         Position(nato, portfolio).apply {
-            quantityValues.purchased = BigDecimal("173")
+            quantityValues = QuantityValues(purchased = BigDecimal("173"))
             getMoneyValues(Position.In.TRADE, usd).apply {
                 averageCost = BigDecimal("21.5")
                 priceData.close = BigDecimal("25.1")
@@ -387,7 +388,17 @@ class HoldingAnalysisTest {
 
     @Test
     fun `a sold holding should be not-held`() {
-        held = listOf(natoHolding().apply { quantityValues.sold = BigDecimal("-173") })
+        held =
+            listOf(
+                natoHolding().apply {
+                    quantityValues =
+                        QuantityValues(
+                            sold = BigDecimal("-173"),
+                            purchased = quantityValues.purchased,
+                            adjustment = quantityValues.adjustment
+                        )
+                }
+            )
 
         assertThat(stream(analysis()).map { it.data() }).containsExactly("not-held")
     }

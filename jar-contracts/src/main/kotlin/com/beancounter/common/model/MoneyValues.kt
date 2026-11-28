@@ -1,5 +1,6 @@
 package com.beancounter.common.model
 
+import com.beancounter.common.utils.MathUtils
 import java.math.BigDecimal
 
 /**
@@ -45,6 +46,14 @@ data class MoneyValues(
     var unrealisedGain: BigDecimal = BigDecimal.ZERO
     var totalGain: BigDecimal = BigDecimal.ZERO
     var gainOnDay: BigDecimal = BigDecimal.ZERO
+
+    /** A disposal of [disposed] out of the [held] quantity takes its share of the cost with it. */
+    fun relieveCost(
+        disposed: BigDecimal,
+        held: BigDecimal
+    ) {
+        costBasis = costBasis.subtract(MathUtils.divide(costBasis.multiply(disposed), held))
+    }
 
     fun resetCosts() {
         averageCost = BigDecimal.ZERO

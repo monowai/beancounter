@@ -34,27 +34,27 @@ internal class QuantityAccumulationTest {
 
     @Test
     fun `Verify quantity precision handling`() {
-        val quantityValues = QuantityValues()
+        var quantityValues = QuantityValues()
 
         // Verify initial precision should be zero when no quantities are defined
-        assertThat(quantityValues.getPrecision()).isEqualTo(0)
+        assertThat(quantityValues.precision).isEqualTo(0)
 
         // Set purchased quantity with a decimal and verify precision calculation
         val decimalQuantity = BigDecimal("100.9992")
-        quantityValues.purchased = decimalQuantity
+        quantityValues = QuantityValues(purchased = decimalQuantity)
         assertThat(quantityValues.getTotal()).isEqualTo(decimalQuantity)
-        assertThat(quantityValues.getPrecision()).isEqualTo(3) // Precision of "100.9992" is 3
+        assertThat(quantityValues.precision).isEqualTo(3) // Precision of "100.9992" is 3
 
         // Reset purchased to a whole number and verify precision resets to zero
         val wholeNumberQuantity = BigDecimal(100)
-        quantityValues.purchased = wholeNumberQuantity
-        assertThat(quantityValues.getPrecision()).isEqualTo(
+        quantityValues = QuantityValues(purchased = wholeNumberQuantity)
+        assertThat(quantityValues.precision).isEqualTo(
             0
         ) // Whole numbers have zero decimal places
 
         // Setting and verifying a user-defined precision level
-        quantityValues.setPrecision(CUSTOM_PRECISION)
-        assertThat(quantityValues.getPrecision()).isEqualTo(CUSTOM_PRECISION)
+        quantityValues.precision = CUSTOM_PRECISION
+        assertThat(quantityValues.precision).isEqualTo(CUSTOM_PRECISION)
     }
 
     @Test

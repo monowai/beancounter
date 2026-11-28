@@ -3,6 +3,7 @@ package com.beancounter.position.composite
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.Position
+import com.beancounter.common.model.QuantityValues
 import com.beancounter.position.Constants.Companion.SGD
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -34,7 +35,7 @@ class CompositeControllerTest {
             Position(asset).apply {
                 subAccounts["OA"] = BigDecimal("145000")
                 subAccounts["SA"] = BigDecimal("78000")
-                quantityValues.adjustment = BigDecimal("223000")
+                quantityValues = QuantityValues(adjustment = BigDecimal("223000"))
             }
         whenever(service.valueFor(eq(asset.id), any())).thenReturn(position)
 

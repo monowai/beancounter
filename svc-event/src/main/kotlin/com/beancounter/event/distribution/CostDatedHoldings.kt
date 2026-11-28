@@ -23,7 +23,7 @@ data class ImportedShares(
     /** [held], what svc-position reports on the record date if anything, with these shares added. */
     fun addedTo(held: Position?): Position {
         val position = held ?: Position(asset, portfolio)
-        position.quantityValues.purchased = position.quantityValues.purchased.add(quantity)
+        position.quantityValues.buy(quantity)
         return position
     }
 }

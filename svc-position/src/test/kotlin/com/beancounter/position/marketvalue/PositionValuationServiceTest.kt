@@ -16,6 +16,7 @@ import com.beancounter.common.model.PeriodicCashFlows
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
+import com.beancounter.common.model.QuantityValues
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.position.Constants.Companion.US
 import com.beancounter.position.irr.IrrCalculator
@@ -240,7 +241,7 @@ class PositionValuationServiceTest {
         val asset = TestHelpers.createTestAsset("DayMover", US.code)
         val assetInputs = setOf(TestHelpers.createTestAssetInput(US.code, asset.code))
         val position = TestHelpers.createTestPosition(asset, portfolio)
-        position.quantityValues.purchased = BigDecimal("100")
+        position.quantityValues = QuantityValues(purchased = BigDecimal("100"))
         val positions = TestHelpers.createTestPositions(portfolio, listOf(position))
         val marketData = TestHelpers.createTestMarketData(asset, BigDecimal("10.00"))
         marketData.previousClose = BigDecimal("9.00")
@@ -308,7 +309,7 @@ class PositionValuationServiceTest {
         val position = TestHelpers.createTestPosition(asset, portfolio)
         position.dateValues.opened = LocalDate.now().minusDays(100)
         // Ensure position has quantity (not sold-out)
-        position.quantityValues.purchased = BigDecimal.TEN
+        position.quantityValues = QuantityValues(purchased = BigDecimal.TEN)
         val positions = TestHelpers.createTestPositions(portfolio, listOf(position))
 
         whenever(fxUtils.buildRequest(any(), any())).thenReturn(FxRequest())
@@ -350,7 +351,7 @@ class PositionValuationServiceTest {
         val assetInputs = setOf(TestHelpers.createTestAssetInput(US.code, asset.code))
         val position = TestHelpers.createTestPosition(asset, portfolio)
         position.dateValues.opened = LocalDate.now().minusDays(30)
-        position.quantityValues.purchased = BigDecimal.TEN
+        position.quantityValues = QuantityValues(purchased = BigDecimal.TEN)
         position.periodicCashFlows.closedCycles.add(CashFlow(-1000.0, LocalDate.now().minusYears(2)))
         position.periodicCashFlows.closedCycles.add(CashFlow(1500.0, LocalDate.now().minusYears(1)))
         val positions = TestHelpers.createTestPositions(portfolio, listOf(position))
@@ -395,7 +396,7 @@ class PositionValuationServiceTest {
         val assetInputs = setOf(TestHelpers.createTestAssetInput(US.code, asset.code))
         val position = TestHelpers.createTestPosition(asset, portfolio)
         position.dateValues.opened = LocalDate.now().minusDays(400)
-        position.quantityValues.purchased = BigDecimal.TEN
+        position.quantityValues = QuantityValues(purchased = BigDecimal.TEN)
         // Only the small contribution was recorded as a cash flow; the 88,000
         // opening balance is missing (BALANCE is excluded from cash flows).
         position.periodicCashFlows.cashFlows.add(
@@ -447,7 +448,7 @@ class PositionValuationServiceTest {
                 .CashFlow(-1000.0, LocalDate.now().minusDays(400))
         )
         // Ensure position has quantity so terminal cash flow gets added
-        position.quantityValues.purchased = BigDecimal.TEN
+        position.quantityValues = QuantityValues(purchased = BigDecimal.TEN)
 
         val positions = TestHelpers.createTestPositions(portfolio, listOf(position))
 
@@ -485,8 +486,7 @@ class PositionValuationServiceTest {
         val position = TestHelpers.createTestPosition(asset, portfolio)
 
         // Simulate sold-out position: quantity = 0, but opened date preserved for display
-        position.quantityValues.purchased = BigDecimal.ZERO
-        position.quantityValues.sold = BigDecimal.ZERO
+        position.quantityValues = QuantityValues(purchased = BigDecimal.ZERO, sold = BigDecimal.ZERO)
         position.dateValues.opened = LocalDate.now().minusDays(500) // Preserved after sell-out
         position.dateValues.firstTransaction = LocalDate.now().minusDays(500) // Historical date
 
@@ -535,8 +535,7 @@ class PositionValuationServiceTest {
         val position = TestHelpers.createTestPosition(asset, portfolio)
 
         // Simulate sold-out position: quantity = 0, opened preserved after sell-out
-        position.quantityValues.purchased = BigDecimal.ZERO
-        position.quantityValues.sold = BigDecimal.ZERO
+        position.quantityValues = QuantityValues(purchased = BigDecimal.ZERO, sold = BigDecimal.ZERO)
         position.dateValues.opened = LocalDate.now().minusDays(200) // Preserved, less than 365 days
         position.dateValues.firstTransaction = LocalDate.now().minusDays(200)
 
@@ -575,8 +574,7 @@ class PositionValuationServiceTest {
         val position = TestHelpers.createTestPosition(asset, portfolio)
 
         // Simulate sold-out position with realized gains
-        position.quantityValues.purchased = BigDecimal.ZERO
-        position.quantityValues.sold = BigDecimal.ZERO
+        position.quantityValues = QuantityValues(purchased = BigDecimal.ZERO, sold = BigDecimal.ZERO)
         position.dateValues.opened = LocalDate.now().minusDays(400)
         position.dateValues.firstTransaction = LocalDate.now().minusDays(400)
 

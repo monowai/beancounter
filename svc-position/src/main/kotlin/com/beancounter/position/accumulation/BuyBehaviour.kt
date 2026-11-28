@@ -30,7 +30,7 @@ class BuyBehaviour(
         if (position.dateValues.closed != null) {
             position.dateValues.closed = null
         }
-        position.quantityValues.purchased = position.quantityValues.purchased.add(trn.quantity)
+        position.quantityValues.buy(trn.quantity)
 
         // Create optimized currency context once instead of 3 separate resolutions
         val currencyContext = createCurrencyContext(trn, position)

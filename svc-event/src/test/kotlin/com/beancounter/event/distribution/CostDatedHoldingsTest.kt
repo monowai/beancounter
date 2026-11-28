@@ -13,6 +13,7 @@ import com.beancounter.common.input.TrustedTrnQuery
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
+import com.beancounter.common.model.QuantityValues
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnStatus
 import com.beancounter.common.model.TrnType
@@ -225,7 +226,7 @@ class CostDatedHoldingsTest {
     ): Positions {
         val positions = Positions(portfolio)
         val position = Position(asset, portfolio)
-        position.quantityValues.purchased = BigDecimal(quantity)
+        position.quantityValues = QuantityValues(purchased = BigDecimal(quantity))
         positions.add(position)
         return positions
     }

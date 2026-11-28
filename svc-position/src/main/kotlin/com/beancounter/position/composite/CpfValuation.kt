@@ -43,7 +43,7 @@ class CpfValuation(
 
         val position = Position(asset)
         balance.byCode.forEach { (code, value) -> position.subAccounts[code] = value }
-        position.quantityValues.adjustment = balance.total
+        position.quantityValues.resetTo(balance.total)
         return position
     }
 

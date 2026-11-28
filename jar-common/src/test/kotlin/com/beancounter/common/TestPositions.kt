@@ -11,6 +11,7 @@ import com.beancounter.common.model.DateValues
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
+import com.beancounter.common.model.QuantityValues
 import com.beancounter.common.model.Totals
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
@@ -57,7 +58,7 @@ internal class TestPositions {
                 asset.market.currency
             ).dividends =
             BigDecimal("100")
-        position.quantityValues.purchased = BigDecimal(200)
+        position.quantityValues = QuantityValues(purchased = BigDecimal(200))
 
         position.dateValues =
             DateValues()

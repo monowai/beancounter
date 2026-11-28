@@ -14,6 +14,7 @@ import com.beancounter.common.model.Currency
 import com.beancounter.common.model.Market
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
+import com.beancounter.common.model.QuantityValues
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.DateUtils
@@ -319,7 +320,7 @@ class PerformanceServiceTest {
             .thenAnswer { invocation ->
                 val positions = invocation.getArgument<com.beancounter.common.model.Positions>(1)
                 val pos = positions.getOrCreate(testAsset)
-                pos.quantityValues.purchased = BigDecimal("100")
+                pos.quantityValues = QuantityValues(purchased = BigDecimal("100"))
                 pos.moneyValues[Position.In.TRADE]!!.averageCost = BigDecimal("150")
                 pos
             }
@@ -376,7 +377,7 @@ class PerformanceServiceTest {
             .thenAnswer { invocation ->
                 val positions = invocation.getArgument<com.beancounter.common.model.Positions>(1)
                 val pos = positions.getOrCreate(privateAsset)
-                pos.quantityValues.purchased = BigDecimal("1")
+                pos.quantityValues = QuantityValues(purchased = BigDecimal("1"))
                 pos.moneyValues[Position.In.TRADE]!!.averageCost = BigDecimal("800000")
                 pos
             }

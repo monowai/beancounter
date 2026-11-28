@@ -27,7 +27,7 @@ class FxBuyBehaviour(
         positions: Positions,
         position: Position
     ): Position {
-        position.quantityValues.purchased = position.quantityValues.purchased.add(trn.quantity)
+        position.quantityValues.buy(trn.quantity)
         cashCost.value(
             currencyResolver.getMoneyValues(
                 Position.In.TRADE,
@@ -83,8 +83,9 @@ class FxBuyBehaviour(
         cashCurrency: Currency,
         trn: Trn
     ) {
-        counterPosition.quantityValues.sold =
-            counterPosition.quantityValues.sold.add(trn.cashAmount)
+        // What was paid leaves the cash it settled from, however the amount was signed.
+        val paid = trn.cashAmount.abs().negate()
+        counterPosition.quantityValues.debit(paid)
 
         // Enable cost tracking for FX cash position
         Position.In.entries.forEach { pool ->
@@ -96,7 +97,7 @@ class FxBuyBehaviour(
                     counterPosition
                 ),
                 counterPosition,
-                trn.cashAmount,
+                paid,
                 trn.rateFor(pool)
             )
         }

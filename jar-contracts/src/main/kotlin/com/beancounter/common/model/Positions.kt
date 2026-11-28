@@ -61,7 +61,7 @@ class Positions(
 
     fun add(position: Position): Position {
         if (cashUtils.isCash(position.asset)) {
-            position.quantityValues.setPrecision(2)
+            position.quantityValues.precision = 2
         }
         positions[toKey(position.asset)] = position
         updateMixedCurrenciesFlag(position)

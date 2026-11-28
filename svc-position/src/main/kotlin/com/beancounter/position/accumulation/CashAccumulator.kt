@@ -40,9 +40,9 @@ class CashAccumulator(
             }
 
         if (TrnType.isCashCredited(trn.trnType)) {
-            cashPosition.quantityValues.purchased = cashPosition.quantityValues.purchased.add(signedQuantity)
+            cashPosition.quantityValues.buy(signedQuantity)
         } else {
-            cashPosition.quantityValues.sold = cashPosition.quantityValues.sold.add(signedQuantity)
+            cashPosition.quantityValues.debit(signedQuantity)
         }
 
         // For cash transactions (DEPOSIT, WITHDRAWAL), the currency comes from the trade itself

@@ -228,9 +228,7 @@ class PortfolioConsolidation(
 }
 
 private fun Position.addQuantities(source: Position) {
-    quantityValues.purchased = quantityValues.purchased.add(source.quantityValues.purchased)
-    quantityValues.sold = quantityValues.sold.add(source.quantityValues.sold)
-    quantityValues.adjustment = quantityValues.adjustment.add(source.quantityValues.adjustment)
+    quantityValues.add(source.quantityValues)
     earmarkedQuantity = earmarkedQuantity.add(source.earmarkedQuantity)
 }
 

@@ -8,6 +8,7 @@ import com.beancounter.common.model.Market
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
+import com.beancounter.common.model.QuantityValues
 import com.beancounter.common.utils.DateUtils
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
@@ -41,7 +42,7 @@ class PositionToolsTest {
     private fun samplePositions(): Positions {
         val asset = Asset(code = "AAPL", market = nasdaq, category = "Equity")
         val position = Position(asset, portfolio)
-        position.quantityValues.purchased = BigDecimal("50")
+        position.quantityValues = QuantityValues(purchased = BigDecimal("50"))
         val money = position.getMoneyValues(Position.In.PORTFOLIO)
         money.weight = BigDecimal("0.125")
         money.irr = BigDecimal("0.14")

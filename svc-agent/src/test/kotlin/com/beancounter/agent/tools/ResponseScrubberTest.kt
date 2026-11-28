@@ -8,6 +8,7 @@ import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.PriceData
+import com.beancounter.common.model.QuantityValues
 import com.beancounter.common.model.Totals
 import org.assertj.core.api.Assertions.assertThat
 import org.assertj.core.api.Assertions.within
@@ -72,7 +73,7 @@ class ResponseScrubberTest {
                 close = BigDecimal("178.50"),
                 changePercent = BigDecimal("0.012")
             )
-        position.quantityValues.purchased = BigDecimal("50")
+        position.quantityValues = QuantityValues(purchased = BigDecimal("50"))
         position.dateValues.opened = LocalDate.parse("2025-09-01")
         position.dateValues.last = LocalDate.parse("2026-04-10")
         position.dateValues.lastDividend = LocalDate.parse("2026-02-15")
@@ -133,7 +134,7 @@ class ResponseScrubberTest {
         // dividend yet — null must pass through, not crash.
         val asset = Asset(code = "NEW", market = nasdaq, category = "Equity")
         val position = Position(asset, portfolio)
-        position.quantityValues.purchased = BigDecimal("10")
+        position.quantityValues = QuantityValues(purchased = BigDecimal("10"))
         position.dateValues.opened = LocalDate.parse("2026-05-17")
         // last + lastDividend left null
 
@@ -170,7 +171,7 @@ class ResponseScrubberTest {
         changePercent: String
     ): Position {
         val position = Position(Asset(code = code, market = nasdaq, category = "Equity"), portfolio)
-        position.quantityValues.purchased = BigDecimal("10")
+        position.quantityValues = QuantityValues(purchased = BigDecimal("10"))
         val money = position.getMoneyValues(Position.In.PORTFOLIO)
         money.marketValue = BigDecimal(marketValue)
         money.gainOnDay = BigDecimal(gainOnDay)
@@ -224,7 +225,7 @@ class ResponseScrubberTest {
         // contains only open holdings.
         val openAsset = Asset(code = "OPEN", market = nasdaq, category = "Equity")
         val openPosition = Position(openAsset, portfolio)
-        openPosition.quantityValues.purchased = BigDecimal("10")
+        openPosition.quantityValues = QuantityValues(purchased = BigDecimal("10"))
 
         val closedAsset = Asset(code = "OLD", market = nasdaq, category = "Equity")
         val closedPosition = Position(closedAsset, portfolio)
@@ -249,7 +250,7 @@ class ResponseScrubberTest {
         // the LLM needs the closed flag to tell the two apart.
         val openAsset = Asset(code = "OPEN", market = nasdaq, category = "Equity")
         val openPosition = Position(openAsset, portfolio)
-        openPosition.quantityValues.purchased = BigDecimal("10")
+        openPosition.quantityValues = QuantityValues(purchased = BigDecimal("10"))
 
         val closedAsset = Asset(code = "OLD", market = nasdaq, category = "Equity")
         val closedPosition = Position(closedAsset, portfolio)

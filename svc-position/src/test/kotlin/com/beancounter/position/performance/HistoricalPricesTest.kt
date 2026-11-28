@@ -9,6 +9,7 @@ import com.beancounter.common.model.Market
 import com.beancounter.common.model.MarketData
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
+import com.beancounter.common.model.QuantityValues
 import com.beancounter.position.Constants.Companion.SGD
 import com.beancounter.position.Constants.Companion.USD
 import com.beancounter.position.Constants.Companion.owner
@@ -144,7 +145,7 @@ class HistoricalPricesTest {
         averageCost: String
     ): Position =
         Position(asset, portfolio).apply {
-            quantityValues.purchased = BigDecimal.TEN
+            quantityValues = QuantityValues(purchased = BigDecimal.TEN)
             moneyValues.getValue(Position.In.TRADE).averageCost = BigDecimal(averageCost)
         }
 }

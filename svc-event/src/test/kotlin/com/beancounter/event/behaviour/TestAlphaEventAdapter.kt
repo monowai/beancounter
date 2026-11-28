@@ -38,8 +38,7 @@ class TestAlphaEventAdapter {
                 KMI
             )
         assertThat(asset.id).isNotNull
-        val quantityValues = QuantityValues()
-        quantityValues.purchased = BigDecimal("80")
+        val quantityValues = QuantityValues(purchased = BigDecimal("80"))
         val position = Position(asset)
         position.quantityValues = quantityValues
         assertThat(position.quantityValues.getTotal()).isEqualTo(BigDecimal("80"))
@@ -141,8 +140,7 @@ class TestAlphaEventAdapter {
                 market,
                 KMI
             )
-        val quantityValues = QuantityValues()
-        quantityValues.purchased = BigDecimal("80")
+        val quantityValues = QuantityValues(purchased = BigDecimal("80"))
         val position = Position(asset)
         position.quantityValues = quantityValues
         assertThat(position.quantityValues.getTotal()).isEqualTo(BigDecimal("80"))

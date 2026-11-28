@@ -25,10 +25,7 @@ class SplitBehaviour(
         positions: Positions,
         position: Position
     ): Position {
-        val total = position.quantityValues.getTotal()
-        // The ratio applies to everything held, which already carries earlier splits.
-        position.quantityValues.adjustment =
-            position.quantityValues.adjustment.add(trn.quantity.multiply(total).subtract(total))
+        position.quantityValues.applySplit(trn.quantity)
         value(
             position,
             position.getMoneyValues(

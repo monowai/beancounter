@@ -6,6 +6,7 @@ import com.beancounter.common.model.Market
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
+import com.beancounter.common.model.QuantityValues
 import com.beancounter.common.utils.AssetUtils
 import com.beancounter.common.utils.DateUtils
 import org.assertj.core.api.Assertions.assertThat
@@ -55,7 +56,7 @@ class PriceRequestTest {
         val assetZeroQty = AssetUtils.getTestAsset(market, "SOLD")
 
         val positionWithQty = Position(assetWithQty, portfolio)
-        positionWithQty.quantityValues.purchased = BigDecimal("100")
+        positionWithQty.quantityValues = QuantityValues(purchased = BigDecimal("100"))
 
         val positionZeroQty = Position(assetZeroQty, portfolio)
         // Zero quantity - sold out position (purchased = 0, sold = 0, total = 0)
@@ -85,7 +86,7 @@ class PriceRequestTest {
         val assetZeroQty = AssetUtils.getTestAsset(market, "SOLD")
 
         val positionWithQty = Position(assetWithQty, portfolio)
-        positionWithQty.quantityValues.purchased = BigDecimal("100")
+        positionWithQty.quantityValues = QuantityValues(purchased = BigDecimal("100"))
 
         val positionZeroQty = Position(assetZeroQty, portfolio)
 

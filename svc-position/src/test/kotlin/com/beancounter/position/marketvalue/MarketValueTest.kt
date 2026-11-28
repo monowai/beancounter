@@ -11,6 +11,7 @@ import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.PriceData.Companion.of
+import com.beancounter.common.model.QuantityValues
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.common.utils.AssetUtils.Companion.getTestAsset
@@ -397,7 +398,7 @@ internal class MarketValueTest {
         assertThat(policyAsset.assetCategory.id).isEqualTo("POLICY")
         val positions = Positions(portfolio)
         val position = positions.getOrCreate(policyAsset)
-        position.quantityValues.purchased = BigDecimal("281000")
+        position.quantityValues = QuantityValues(purchased = BigDecimal("281000"))
         // costBasis intentionally left at zero — simulates legacy DEPOSIT flow.
 
         val marketData = MarketData(policyAsset, close = BigDecimal("1.28"))
@@ -435,7 +436,7 @@ internal class MarketValueTest {
         val positions = Positions(portfolio)
         val position = positions.getOrCreate(policyAsset)
         val pinnedCost = BigDecimal("276000")
-        position.quantityValues.purchased = BigDecimal("291000")
+        position.quantityValues = QuantityValues(purchased = BigDecimal("291000"))
         listOf(Position.In.TRADE, Position.In.BASE, Position.In.PORTFOLIO).forEach { pool ->
             val moneyValues = position.getMoneyValues(pool, policyAsset.market.currency)
             moneyValues.costBasis = pinnedCost
@@ -526,7 +527,7 @@ internal class MarketValueTest {
         val cash = cashAsset()
         val positions = Positions(portfolio)
         val position = positions.getOrCreate(cash)
-        position.quantityValues.purchased = settled
+        position.quantityValues = QuantityValues(purchased = settled)
         position.earmarkedQuantity = earmarkedQty
 
         val marketData = MarketData(cash, close = close)

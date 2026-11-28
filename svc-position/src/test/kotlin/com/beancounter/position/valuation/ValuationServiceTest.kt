@@ -18,6 +18,7 @@ import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
+import com.beancounter.common.model.QuantityValues
 import com.beancounter.common.model.Totals
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
@@ -142,8 +143,7 @@ class ValuationServiceTest {
         // Add a position with zero quantity (fully sold)
         val asset = TestHelpers.createTestAsset("SOLD_ASSET", "US")
         val position = Position(asset, portfolio)
-        position.quantityValues.purchased = BigDecimal.ZERO
-        position.quantityValues.sold = BigDecimal.ZERO
+        position.quantityValues = QuantityValues(purchased = BigDecimal.ZERO, sold = BigDecimal.ZERO)
         positions.add(position)
 
         // When positionValuationService.value() returns positions WITHOUT totals set
@@ -169,7 +169,7 @@ class ValuationServiceTest {
         // Add a position with quantity
         val asset = TestHelpers.createTestAsset("HELD_ASSET", "US")
         val position = Position(asset, portfolio)
-        position.quantityValues.purchased = BigDecimal.TEN
+        position.quantityValues = QuantityValues(purchased = BigDecimal.TEN)
         positions.add(position)
 
         // Set up PORTFOLIO totals (in portfolio currency)
@@ -437,7 +437,7 @@ class ValuationServiceTest {
             Positions(portfolio).apply {
                 add(
                     Position(asset, portfolio).apply {
-                        quantityValues.purchased = BigDecimal("10")
+                        quantityValues = QuantityValues(purchased = BigDecimal("10"))
                         held["DBS"] = BigDecimal("7")
                         held["SCB"] = BigDecimal("3")
                     }
@@ -447,7 +447,7 @@ class ValuationServiceTest {
             Positions(portfolio2).apply {
                 add(
                     Position(asset, portfolio2).apply {
-                        quantityValues.purchased = BigDecimal("5")
+                        quantityValues = QuantityValues(purchased = BigDecimal("5"))
                         held["DBS"] = BigDecimal("5")
                     }
                 )
@@ -530,7 +530,7 @@ class ValuationServiceTest {
             Positions(portfolio).apply {
                 add(
                     Position(asset, portfolio).apply {
-                        quantityValues.purchased = BigDecimal("255")
+                        quantityValues = QuantityValues(purchased = BigDecimal("255"))
                         held["DBS"] = BigDecimal("175")
                         held["SCB"] = BigDecimal("80")
                         subAccounts["OA"] = BigDecimal("1000")
@@ -541,7 +541,7 @@ class ValuationServiceTest {
             Positions(portfolio2).apply {
                 add(
                     Position(asset, portfolio2).apply {
-                        quantityValues.purchased = BigDecimal("25")
+                        quantityValues = QuantityValues(purchased = BigDecimal("25"))
                         held["DBS"] = BigDecimal("25")
                         subAccounts["OA"] = BigDecimal("500")
                     }
@@ -622,7 +622,7 @@ class ValuationServiceTest {
             Positions(portfolio).apply {
                 add(
                     Position(asset, portfolio).apply {
-                        quantityValues.purchased = BigDecimal("10")
+                        quantityValues = QuantityValues(purchased = BigDecimal("10"))
                     }
                 )
             }
@@ -630,8 +630,7 @@ class ValuationServiceTest {
             Positions(portfolio2).apply {
                 add(
                     Position(asset, portfolio2).apply {
-                        quantityValues.purchased = BigDecimal("10")
-                        quantityValues.sold = BigDecimal("-10")
+                        quantityValues = QuantityValues(purchased = BigDecimal("10"), sold = BigDecimal("-10"))
                     }
                 )
             }
@@ -784,7 +783,7 @@ class ValuationServiceTest {
             Positions(usdPortfolio).apply {
                 add(
                     Position(asset, usdPortfolio).apply {
-                        quantityValues.purchased = BigDecimal("10")
+                        quantityValues = QuantityValues(purchased = BigDecimal("10"))
                     }
                 )
             }
@@ -852,7 +851,7 @@ class ValuationServiceTest {
             Positions(nzdPortfolio).apply {
                 add(
                     Position(asset, nzdPortfolio).apply {
-                        quantityValues.purchased = BigDecimal("1")
+                        quantityValues = QuantityValues(purchased = BigDecimal("1"))
                         getMoneyValues(Position.In.PORTFOLIO, Currency("NZD")).apply {
                             costValue = BigDecimal("1000000.00")
                             costBasis = BigDecimal("1000000.00")
@@ -1000,7 +999,7 @@ class ValuationServiceTest {
             Positions(nzdPortfolio).apply {
                 add(
                     Position(asset, nzdPortfolio).apply {
-                        quantityValues.purchased = BigDecimal.ONE
+                        quantityValues = QuantityValues(purchased = BigDecimal.ONE)
                         getMoneyValues(Position.In.PORTFOLIO, Currency("NZD")).costBasis = PRICE_150
                     }
                 )
@@ -1052,7 +1051,7 @@ class ValuationServiceTest {
                 Positions(p).apply {
                     add(
                         Position(usdCash, p).apply {
-                            quantityValues.purchased = BigDecimal("1000")
+                            quantityValues = QuantityValues(purchased = BigDecimal("1000"))
                             earmarkedQuantity = earmark
                         }
                     )
@@ -1185,7 +1184,7 @@ class ValuationServiceTest {
 
         val asset = TestHelpers.createTestAsset("AAPL", "US")
         val position = Position(asset, portfolio)
-        position.quantityValues.purchased = BigDecimal.TEN
+        position.quantityValues = QuantityValues(purchased = BigDecimal.TEN)
         positions.add(position)
 
         val totals = Totals(portfolio.currency)
@@ -1286,7 +1285,7 @@ class ValuationServiceTest {
 
         val asset = TestHelpers.createTestAsset("HELD_ASSET", "LSE")
         val position = Position(asset, multiCurrencyPortfolio)
-        position.quantityValues.purchased = BigDecimal.TEN
+        position.quantityValues = QuantityValues(purchased = BigDecimal.TEN)
         positions.add(position)
 
         // Set up PORTFOLIO totals (in GBP) with one value
@@ -1330,7 +1329,7 @@ class ValuationServiceTest {
         // First position with gainOnDay
         val asset1 = TestHelpers.createTestAsset("AAPL", "US")
         val position1 = Position(asset1, portfolio)
-        position1.quantityValues.purchased = BigDecimal.TEN
+        position1.quantityValues = QuantityValues(purchased = BigDecimal.TEN)
         position1.moneyValues[Position.In.BASE] =
             MoneyValues(portfolio.base).apply {
                 gainOnDay = PRICE_150
@@ -1341,7 +1340,7 @@ class ValuationServiceTest {
         // Second position with gainOnDay
         val asset2 = TestHelpers.createTestAsset("GOOGL", "US")
         val position2 = Position(asset2, portfolio)
-        position2.quantityValues.purchased = BigDecimal("5")
+        position2.quantityValues = QuantityValues(purchased = BigDecimal("5"))
         position2.moneyValues[Position.In.BASE] =
             MoneyValues(portfolio.base).apply {
                 gainOnDay = BigDecimal("-50.00")
@@ -1378,7 +1377,7 @@ class ValuationServiceTest {
         val equityAsset1 = TestHelpers.createTestAsset("AAPL", "US")
         equityAsset1.assetCategory = AssetCategory(id = AssetCategory.REPORT_EQUITY, name = "Equity")
         val equityPosition1 = Position(equityAsset1, portfolio)
-        equityPosition1.quantityValues.purchased = BigDecimal.TEN
+        equityPosition1.quantityValues = QuantityValues(purchased = BigDecimal.TEN)
         equityPosition1.moneyValues[Position.In.BASE] =
             MoneyValues(portfolio.base).apply {
                 marketValue = BigDecimal("1500.00")
@@ -1389,7 +1388,7 @@ class ValuationServiceTest {
         val equityAsset2 = TestHelpers.createTestAsset("GOOGL", "US")
         equityAsset2.assetCategory = AssetCategory(id = AssetCategory.REPORT_EQUITY, name = "Equity")
         val equityPosition2 = Position(equityAsset2, portfolio)
-        equityPosition2.quantityValues.purchased = BigDecimal("5")
+        equityPosition2.quantityValues = QuantityValues(purchased = BigDecimal("5"))
         equityPosition2.moneyValues[Position.In.BASE] =
             MoneyValues(portfolio.base).apply {
                 marketValue = BigDecimal("12500.00")
@@ -1400,7 +1399,7 @@ class ValuationServiceTest {
         val cashAsset = TestHelpers.createTestAsset("USD", "OFFM")
         cashAsset.assetCategory = AssetCategory(id = AssetCategory.REPORT_CASH, name = "Cash")
         val cashPosition = Position(cashAsset, portfolio)
-        cashPosition.quantityValues.purchased = BigDecimal("1000")
+        cashPosition.quantityValues = QuantityValues(purchased = BigDecimal("1000"))
         cashPosition.moneyValues[Position.In.BASE] =
             MoneyValues(portfolio.base).apply {
                 marketValue = BigDecimal("1000.00")
@@ -1440,7 +1439,7 @@ class ValuationServiceTest {
 
         val asset = TestHelpers.createTestAsset("AAPL", "US")
         val position = Position(asset, portfolio)
-        position.quantityValues.purchased = BigDecimal.TEN
+        position.quantityValues = QuantityValues(purchased = BigDecimal.TEN)
         // No gainOnDay set in moneyValues - using default constructor
         positions.add(position)
 
@@ -1470,7 +1469,7 @@ class ValuationServiceTest {
 
         val asset = TestHelpers.createTestAsset("AAPL", "US")
         val position = Position(asset, portfolio)
-        position.quantityValues.purchased = BigDecimal.TEN
+        position.quantityValues = QuantityValues(purchased = BigDecimal.TEN)
         positions.add(position)
 
         val baseTotals = Totals(portfolio.base)
@@ -1500,7 +1499,7 @@ class ValuationServiceTest {
 
         val asset = TestHelpers.createTestAsset("AAPL", "US")
         val position = Position(asset, portfolio)
-        position.quantityValues.purchased = BigDecimal.TEN
+        position.quantityValues = QuantityValues(purchased = BigDecimal.TEN)
         positions.add(position)
 
         val baseTotals = Totals(portfolio.base)

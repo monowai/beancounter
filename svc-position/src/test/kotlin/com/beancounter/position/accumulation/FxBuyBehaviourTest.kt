@@ -17,6 +17,8 @@ import com.beancounter.position.Constants.Companion.nzdCashBalance
 import com.beancounter.position.Constants.Companion.usdCashBalance
 import org.assertj.core.api.Assertions.assertThat
 import org.junit.jupiter.api.Test
+import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.ValueSource
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import java.math.BigDecimal
@@ -151,19 +153,20 @@ class FxBuyBehaviourTest {
             .hasFieldOrPropertyWithValue("purchases", BigDecimal("1000.00"))
     }
 
+    private val sgdCashAsset =
+        Asset(
+            code = "${SGD.code} ${TrnType.BALANCE}",
+            id = "${SGD.code} ${TrnType.BALANCE}",
+            name = "${SGD.code} Balance",
+            market = Market(CASH.code),
+            priceSymbol = SGD.code,
+            category = CASH.code
+        )
+    private val sgPortfolio = Portfolio(id = "blah", code = "sgdThing", base = NZD, currency = USD)
+
     @Test
     fun `sgd Cash Balance after USD FX Buy`() {
-        val sgdCashAsset =
-            Asset(
-                code = "${SGD.code} ${TrnType.BALANCE}",
-                id = "${SGD.code} ${TrnType.BALANCE}",
-                name = "${SGD.code} Balance",
-                market = Market(CASH.code),
-                priceSymbol = SGD.code,
-                category = CASH.code
-            )
         assertThat(sgdCashAsset).isNotNull
-        val sgPortfolio = Portfolio(id = "blah", code = "sgdThing", base = NZD, currency = USD)
         val sgdCash = BigDecimal("8756.00")
         val deposit =
             Trn(
@@ -209,5 +212,43 @@ class FxBuyBehaviourTest {
         assertThat(moneyValues[Position.In.TRADE]?.currency).isEqualTo(SGD)
         assertThat(moneyValues[Position.In.PORTFOLIO]?.currency).isEqualTo(USD)
         assertThat(moneyValues[Position.In.BASE]?.currency).isEqualTo(NZD)
+    }
+
+    @ParameterizedTest
+    @ValueSource(strings = ["-8000.00", "8000.00"])
+    fun `FX buy should take what it paid out of the cash it settles from, however the amount is signed`(
+        cashAmount: String
+    ) {
+        val positions = Positions(sgPortfolio)
+        val sgdPosition =
+            accumulator.accumulate(
+                Trn(
+                    asset = sgdCashAsset,
+                    cashAsset = sgdCashAsset,
+                    portfolio = sgPortfolio,
+                    cashCurrency = SGD,
+                    tradeCurrency = SGD,
+                    quantity = BigDecimal("8756.00"),
+                    cashAmount = BigDecimal("8756.00"),
+                    trnType = TrnType.DEPOSIT
+                ),
+                positions
+            )
+        accumulator.accumulate(
+            Trn(
+                asset = usdCashBalance,
+                trnType = TrnType.FX_BUY,
+                cashAsset = sgdCashAsset,
+                portfolio = sgPortfolio,
+                cashCurrency = SGD,
+                tradeCurrency = usdCashBalance.market.currency,
+                quantity = BigDecimal("5822.00"),
+                cashAmount = BigDecimal(cashAmount)
+            ),
+            positions
+        )
+
+        assertThat(sgdPosition.quantityValues.getTotal()).isEqualByComparingTo("756.00")
+        assertThat(sgdPosition.getMoneyValues(Position.In.TRADE, SGD).sales).isEqualByComparingTo("-8000.00")
     }
 }

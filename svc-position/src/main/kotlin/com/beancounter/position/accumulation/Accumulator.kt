@@ -71,10 +71,15 @@ class Accumulator(
                 position
             )
         }
-        trnBehaviourFactory[trn.trnType].accumulate(
-            trn,
-            positions
-        )
+        try {
+            trnBehaviourFactory[trn.trnType].accumulate(
+                trn,
+                positions
+            )
+        } catch (e: BusinessException) {
+            // A rule names what it refused; say which trn it refused it for.
+            throw BusinessException("${trn.trnType} of ${trn.asset.code} on ${trn.tradeDate}: ${e.message}", e)
+        }
         position.dateValues.last = latest(position.dateValues.last, trn.tradeDate)
 
         // Is cash impacted by this transaction opposed to being a "cash" transaction

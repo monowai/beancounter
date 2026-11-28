@@ -6,6 +6,7 @@ import com.beancounter.common.model.Market
 import com.beancounter.common.model.Portfolio
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
+import com.beancounter.common.model.QuantityValues
 import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 import com.beancounter.position.Constants
@@ -404,7 +405,12 @@ class BalanceBehaviourTest {
     fun `BALANCE should replace a quantity adjustment left by an earlier split`() {
         val positions = Positions()
         val position = accumulator.accumulate(cashTrn(TrnType.DEPOSIT, "1000", 1), positions)
-        position.quantityValues.adjustment = BigDecimal("1000")
+        position.quantityValues =
+            QuantityValues(
+                sold = position.quantityValues.sold,
+                purchased = position.quantityValues.purchased,
+                adjustment = BigDecimal("1000")
+            )
 
         accumulator.accumulate(cashTrn(TrnType.BALANCE, "5000", 2), positions)
 

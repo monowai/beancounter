@@ -157,6 +157,8 @@ class ReduceBehaviourTest {
             )
         val positions = Positions(portfolio = portfolio)
 
+        accumulator.accumulate(trn.copy(trnType = TrnType.ADD), positions)
+
         // When I accumulate a REDUCE transaction
         accumulator.accumulate(trn, positions)
 

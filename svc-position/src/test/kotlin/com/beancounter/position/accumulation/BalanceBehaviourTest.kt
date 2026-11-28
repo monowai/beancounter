@@ -21,6 +21,7 @@ import org.junit.jupiter.api.Test
 import org.springframework.beans.factory.annotation.Autowired
 import org.springframework.boot.test.context.SpringBootTest
 import java.math.BigDecimal
+import java.time.LocalDate
 
 /**
  * Verify behaviour around balance behaviour assumptions.
@@ -372,5 +373,41 @@ class BalanceBehaviourTest {
             .containsEntry("OA", BigDecimal("31312.81"))
             .containsEntry("SA", BigDecimal("20437.29"))
             .containsEntry("MA", BigDecimal("18562.40"))
+    }
+
+    private fun cashTrn(
+        trnType: TrnType,
+        amount: String,
+        day: Int
+    ) = Trn(
+        trnType = trnType,
+        asset = Constants.nzdCashBalance,
+        quantity = BigDecimal(amount),
+        tradeAmount = BigDecimal(amount),
+        tradeDate = LocalDate.of(2026, 1, day)
+    )
+
+    @Test
+    fun `cash BALANCE should replace the balance built by earlier deposits and withdrawals`() {
+        val positions = Positions()
+        accumulator.accumulate(cashTrn(TrnType.DEPOSIT, "1000", 1), positions)
+        accumulator.accumulate(cashTrn(TrnType.WITHDRAWAL, "300", 2), positions)
+        val position = accumulator.accumulate(cashTrn(TrnType.BALANCE, "5000", 3), positions)
+
+        assertThat(position.quantityValues.getTotal()).isEqualByComparingTo("5000")
+
+        accumulator.accumulate(cashTrn(TrnType.WITHDRAWAL, "200", 4), positions)
+        assertThat(position.quantityValues.getTotal()).isEqualByComparingTo("4800")
+    }
+
+    @Test
+    fun `BALANCE should replace a quantity adjustment left by an earlier split`() {
+        val positions = Positions()
+        val position = accumulator.accumulate(cashTrn(TrnType.DEPOSIT, "1000", 1), positions)
+        position.quantityValues.adjustment = BigDecimal("1000")
+
+        accumulator.accumulate(cashTrn(TrnType.BALANCE, "5000", 2), positions)
+
+        assertThat(position.quantityValues.getTotal()).isEqualByComparingTo("5000")
     }
 }

@@ -115,6 +115,9 @@ internal class MoneyValueTest {
 
     private val costBasis = BigDecimal("2100.23")
 
+    // What is left of the cost once 3 of the 10 are sold.
+    private val costBasisAfterSale = BigDecimal("1470.16")
+
     val gainValue = BigDecimal("211.56")
 
     @Test
@@ -176,7 +179,7 @@ internal class MoneyValueTest {
         assertThat(tradeMoney)
             .hasFieldOrPropertyWithValue(
                 PROP_COST_BASIS,
-                costBasis
+                costBasisAfterSale
             ).hasFieldOrPropertyWithValue(
                 PROP_SALES,
                 sell.tradeAmount
@@ -266,11 +269,11 @@ internal class MoneyValueTest {
             positions
         )
 
-        // Sell does not affect the cost basis or average cost, but it will create a signed gain
+        // Sell takes its share of the cost and leaves average cost alone; it creates a signed gain
         assertThat(position.getMoneyValues(Position.In.TRADE))
             .hasFieldOrPropertyWithValue(
                 PROP_COST_BASIS,
-                costBasis
+                costBasisAfterSale
             ).hasFieldOrPropertyWithValue(
                 PROP_AVERAGE_COST,
                 expectedAverageCost

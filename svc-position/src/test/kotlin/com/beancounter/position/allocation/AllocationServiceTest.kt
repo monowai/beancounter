@@ -194,6 +194,64 @@ class AllocationServiceTest {
     }
 
     @Test
+    fun `calculateAllocation reports a held tax wrapper apart from the composite split`() {
+        val sgd = Currency("SGD")
+        val portfolio = TestHelpers.createTestPortfolio(currencyCode = "SGD", baseCurrency = "SGD")
+
+        val cpfAsset = TestHelpers.createTestAsset(code = "userA.CPF", marketCode = "PRIVATE")
+        val cpf = Position(cpfAsset, portfolio)
+        cpf.subAccounts["OA"] = BigDecimal("100000")
+        cpf.subAccounts["MA"] = BigDecimal("50000")
+        cpf.moneyValues[Position.In.PORTFOLIO] =
+            MoneyValues(sgd).apply { marketValue = BigDecimal("150000") }
+
+        val wrapperAsset = TestHelpers.createTestAsset(code = "userA.401K", marketCode = "PRIVATE")
+        val wrapper = Position(wrapperAsset, portfolio)
+        wrapper.subAccounts["PRE_TAX"] = BigDecimal("60000")
+        wrapper.subAccounts["MATCH"] = BigDecimal("20000")
+        wrapper.moneyValues[Position.In.PORTFOLIO] =
+            MoneyValues(sgd).apply { marketValue = BigDecimal("108000") }
+
+        val positions = TestHelpers.createTestPositions(portfolio, listOf(cpf, wrapper))
+        positions.totals[Position.In.PORTFOLIO] =
+            Totals(currency = sgd, marketValue = BigDecimal("258000"))
+
+        whenever(assetConfigClient.find(cpfAsset.id)).thenReturn(
+            PrivateAssetConfigDto(
+                assetId = cpfAsset.id,
+                policyType = "CPF",
+                currency = "SGD",
+                subAccounts =
+                    listOf(
+                        SubAccountDto(code = "OA", balance = BigDecimal("100000"), liquid = true),
+                        SubAccountDto(code = "MA", balance = BigDecimal("50000"), liquid = false)
+                    )
+            )
+        )
+        whenever(assetConfigClient.find(wrapperAsset.id)).thenReturn(
+            PrivateAssetConfigDto(
+                assetId = wrapperAsset.id,
+                policyType = "US_401K",
+                currency = "USD",
+                subAccounts =
+                    listOf(
+                        SubAccountDto(code = "PRE_TAX", balance = BigDecimal("60000"), liquid = true),
+                        SubAccountDto(code = "MATCH", balance = BigDecimal("20000"), liquid = false)
+                    )
+            )
+        )
+
+        val data = allocationService.calculateAllocation(positions)
+
+        // The composite split is CPF alone; the wrapper is reported at its
+        // market value in the allocation's currency, whatever its flags.
+        assertThat(data.compositeLiquid).isEqualByComparingTo("100000")
+        assertThat(data.compositeNonLiquid).isEqualByComparingTo("50000")
+        assertThat(data.heldWrapperValue).isEqualByComparingTo("108000")
+        assertThat(data.totalValue).isEqualByComparingTo("258000")
+    }
+
+    @Test
     fun `calculateAllocation skips composite lookup when position has no subAccounts`() {
         val sgd = Currency("SGD")
         val portfolio = TestHelpers.createTestPortfolio(currencyCode = "SGD", baseCurrency = "SGD")
@@ -225,7 +283,8 @@ class AllocationServiceTest {
                 totalValue = BigDecimal("288194.11"),
                 currency = "USD",
                 compositeLiquid = BigDecimal("173940.00"),
-                compositeNonLiquid = BigDecimal("45240.00")
+                compositeNonLiquid = BigDecimal("45240.00"),
+                heldWrapperValue = BigDecimal("10000.00")
             )
 
         val pair = IsoCurrencyPair(from = "USD", to = "SGD")
@@ -243,5 +302,6 @@ class AllocationServiceTest {
         assertThat(result.totalValue).isEqualByComparingTo(BigDecimal("370992.28"))
         assertThat(result.compositeLiquid).isEqualByComparingTo(BigDecimal("223912.96"))
         assertThat(result.compositeNonLiquid).isEqualByComparingTo(BigDecimal("58237.45"))
+        assertThat(result.heldWrapperValue).isEqualByComparingTo(BigDecimal("12873.00"))
     }
 }

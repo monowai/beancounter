@@ -34,7 +34,16 @@ data class AllocationData(
      * this amount from the spendable pot to the non-spendable bucket so
      * the locked CPF balances are not drawn down alongside cash + ETFs.
      */
-    val compositeNonLiquid: BigDecimal = BigDecimal.ZERO
+    val compositeNonLiquid: BigDecimal = BigDecimal.ZERO,
+    /**
+     * Market value of held tax-wrapper positions (US 401(k) / IRA, UK ISA),
+     * in [currency]. Included in [totalValue] but kept out of
+     * [compositeLiquid] / [compositeNonLiquid]: a wrapper is not a CPF-style
+     * composite, and the projection seeds its shielded pools from the
+     * wrapper's own accounts, so it removes this value from the spendable pot
+     * (beancounter #1036).
+     */
+    val heldWrapperValue: BigDecimal = BigDecimal.ZERO
 )
 
 /**

@@ -2,6 +2,7 @@ package com.beancounter.position.allocation
 
 import com.beancounter.auth.TokenService
 import com.beancounter.client.FxService
+import com.beancounter.common.composite.CompositeValuation
 import com.beancounter.common.contracts.AllocationData
 import com.beancounter.common.contracts.CategoryAllocation
 import com.beancounter.common.contracts.FxRequest
@@ -93,7 +94,7 @@ class AllocationService(
                 .map { it.asset.id }
                 .toSet()
 
-        val (compositeLiquid, compositeNonLiquid) = compositeSplit(positions, valueIn)
+        val split = compositeSplit(positions, valueIn)
 
         return AllocationData(
             cashAllocation = cashAllocation,
@@ -103,19 +104,30 @@ class AllocationService(
             currency = currency,
             categoryBreakdown = categoryBreakdown,
             heldAssetIds = heldAssetIds,
-            compositeLiquid = compositeLiquid.setScale(2, RoundingMode.HALF_UP),
-            compositeNonLiquid = compositeNonLiquid.setScale(2, RoundingMode.HALF_UP)
+            compositeLiquid = split.liquid.setScale(2, RoundingMode.HALF_UP),
+            compositeNonLiquid = split.nonLiquid.setScale(2, RoundingMode.HALF_UP),
+            heldWrapperValue = split.wrapper.setScale(2, RoundingMode.HALF_UP)
         )
     }
 
+    /** Composite liquid and locked shares, and held tax wrappers, in one valuation bucket. */
+    private data class CompositeSplit(
+        val liquid: BigDecimal,
+        val nonLiquid: BigDecimal,
+        val wrapper: BigDecimal
+    )
+
     /**
-     * Splits the value of any composite-policy position (currently CPF —
-     * any position whose [Position.subAccounts] map is non-empty) into a
-     * liquid and non-liquid portion, in the requested valuation bucket's
-     * currency. The split is driven by the sub-account [liquid] flag on
+     * Splits the value of any composite-policy position (CPF — any position
+     * whose [Position.subAccounts] map is non-empty) into a liquid and
+     * non-liquid portion, in the requested valuation bucket's currency. The
+     * split is driven by the sub-account [liquid] flag on
      * [com.beancounter.position.composite.SubAccountDto] — the same flag
      * jar-common's [com.beancounter.common.composite.CompositeValuation]
      * uses, so svc-position and svc-retire stay in lock-step.
+     *
+     * A held tax wrapper (401(k) / IRA / ISA) is not split: its market value
+     * is reported on its own, whatever its sub-account flags (beancounter #1036).
      *
      * The position's bucket [MoneyValues.marketValue] is the truth for
      * what the user sees; we apply the liquid/total ratio (derived from
@@ -126,9 +138,10 @@ class AllocationService(
     private fun compositeSplit(
         positions: Positions,
         valueIn: Position.In
-    ): Pair<BigDecimal, BigDecimal> {
+    ): CompositeSplit {
         var liquid = BigDecimal.ZERO
         var nonLiquid = BigDecimal.ZERO
+        var wrapper = BigDecimal.ZERO
         for (position in positions.positions.values) {
             if (position.subAccounts.isEmpty()) continue
             val marketValue = position.moneyValues[valueIn]?.marketValue ?: BigDecimal.ZERO
@@ -149,11 +162,15 @@ class AllocationService(
                     )
                     continue
                 }
+            if (config.policyType in CompositeValuation.wrapperPolicyTypes) {
+                wrapper = wrapper.add(marketValue)
+                continue
+            }
             val (liquidShare, nonLiquidShare) = splitMarketValue(config, marketValue)
             liquid = liquid.add(liquidShare)
             nonLiquid = nonLiquid.add(nonLiquidShare)
         }
-        return liquid to nonLiquid
+        return CompositeSplit(liquid, nonLiquid, wrapper)
     }
 
     private fun splitMarketValue(
@@ -246,6 +263,10 @@ class AllocationService(
                     .setScale(2, RoundingMode.HALF_UP),
             compositeNonLiquid =
                 allocation.compositeNonLiquid
+                    .multiply(rate)
+                    .setScale(2, RoundingMode.HALF_UP),
+            heldWrapperValue =
+                allocation.heldWrapperValue
                     .multiply(rate)
                     .setScale(2, RoundingMode.HALF_UP)
         )

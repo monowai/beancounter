@@ -51,13 +51,20 @@ class CompositeValuation {
 
     companion object {
         /**
+         * Tax wrappers: their sub-accounts sum like CPF's, but a held wrapper
+         * is not a composite to split into liquid and locked shares; the
+         * projection models it from its own accounts (beancounter #1036).
+         */
+        val wrapperPolicyTypes: Set<String> = setOf("US_401K", "US_IRA", "UK_ISA")
+
+        /**
          * Policy types this support class knows how to roll up. US_401K /
          * US_IRA / UK_ISA sub-account balances use the same simple sum as
          * CPF — anything absent from this set is silently dropped by
          * callers' composite roll-up, so new composite policy types MUST be
          * registered here.
          */
-        val supportedPolicyTypes: Set<String> = setOf("CPF", "US_401K", "US_IRA", "UK_ISA")
+        val supportedPolicyTypes: Set<String> = setOf("CPF") + wrapperPolicyTypes
     }
 }
 

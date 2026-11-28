@@ -24,7 +24,26 @@ enum class TrnType {
     EXPENSE // -ve Cash Impact for asset-related expenses (maintenance, taxes, etc.)
     ;
 
+    /**
+     * A trn has a trade date and no time of day. Trns of one trade date apply in this order:
+     * buys and adds, then the split, then the rest, and last a balance, which states the
+     * position the day closed on.
+     */
+    val sameDayOrder: Int
+        get() =
+            when (this) {
+                BUY, ADD -> 0
+                SPLIT -> 1
+                BALANCE -> AFTER_THE_REST
+                else -> 2
+            }
+
     companion object {
+        private const val AFTER_THE_REST = 3
+
+        /** Trade date order, and [sameDayOrder] within a trade date. The sort is stable. */
+        val inTradeOrder: Comparator<Trn> = compareBy({ it.tradeDate }, { it.trnType.sameDayOrder })
+
         val creditsCash =
             arrayOf(
                 DEPOSIT,

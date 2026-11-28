@@ -4,7 +4,8 @@ import com.beancounter.common.model.Trn
 import com.beancounter.common.model.TrnType
 
 /**
- * The order trns accumulate in. svc-data returns them in trade date order.
+ * The order trns accumulate in: trade date order, and [TrnType.sameDayOrder] within a trade
+ * date, so a sale never accumulates before the purchase of the same day.
  *
  * An imported holding is an ADD whose cost date is before its trade date. It is owed dividends
  * from its cost date, so those dividends are dated before the ADD. In trade date order such a
@@ -12,11 +13,11 @@ import com.beancounter.common.model.TrnType
  * flows. Each one is moved to just after the ADD instead, so it accumulates onto the holding.
  *
  * Only those dividends move. The ADD, splits and every other trn stay in trade date order, so a
- * split before the ADD's trade date never applies to it. A list without such dividends is
- * returned as it is.
+ * split before the ADD's trade date never applies to it.
  */
 object AccumulationOrder {
-    fun of(trns: List<Trn>): List<Trn> {
+    fun of(stored: List<Trn>): List<Trn> {
+        val trns = stored.sortedWith(TrnType.inTradeOrder)
         val moved = moved(trns)
         if (moved.isEmpty()) return trns
         val following = moved.entries.groupBy({ it.value }, { trns[it.key] })

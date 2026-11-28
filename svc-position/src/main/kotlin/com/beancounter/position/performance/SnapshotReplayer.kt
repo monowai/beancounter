@@ -49,7 +49,8 @@ class SnapshotReplayer(
         valuationDates: List<LocalDate>,
         prices: HistoricalPrices
     ): List<CachedSnapshot> {
-        val replay = SnapshotReplay(portfolio, transactions, prices, accumulator, boundary)
+        val replay =
+            SnapshotReplay(portfolio, transactions.sortedWith(TrnType.inTradeOrder), prices, accumulator, boundary)
         return valuationDates.map { replay.snapshotOn(it) }
     }
 

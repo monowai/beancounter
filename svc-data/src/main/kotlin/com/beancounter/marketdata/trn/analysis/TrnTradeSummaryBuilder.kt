@@ -20,18 +20,6 @@ import java.math.BigDecimal
  * set (see [TrnBrokerService]).
  */
 object TrnTradeSummaryBuilder {
-    private const val BALANCE_ORDER = 3
-
-    // Same-day ordering: buys/adds, then the split, then sells/reduces, then a
-    // BALANCE (an absolute end-of-day position snapshot) which resets the total.
-    private fun sameDayOrder(type: TrnType): Int =
-        when (type) {
-            TrnType.BUY, TrnType.ADD -> 0
-            TrnType.SPLIT -> 1
-            TrnType.BALANCE -> BALANCE_ORDER
-            else -> 2
-        }
-
     fun build(
         trns: Collection<Trn>,
         groupBy: TrnGroupBy
@@ -80,9 +68,7 @@ object TrnTradeSummaryBuilder {
         val splitEvents = portfolioIds.flatMap { splitsByPortfolio[it].orEmpty() }
         val events = groupTrns.filter { it.trnType != TrnType.SPLIT } + splitEvents
         var quantity = BigDecimal.ZERO
-        for (trn in events.sortedWith(
-            compareBy({ it.tradeDate }, { sameDayOrder(it.trnType) })
-        )) {
+        for (trn in events.sortedWith(TrnType.inTradeOrder)) {
             quantity =
                 when (trn.trnType) {
                     TrnType.BUY, TrnType.ADD -> quantity.add(trn.quantity)

@@ -30,14 +30,6 @@ internal object BrokerHoldingAggregation {
         val portfolioMap: MutableMap<String, PortfolioTrns> = mutableMapOf()
     )
 
-    // Same-day tie-breaker for split-adjusted accumulation: buys/adds, then split, then sells.
-    private fun sameDayOrder(type: TrnType): Int =
-        when (type) {
-            TrnType.BUY, TrnType.ADD -> 0
-            TrnType.SPLIT -> 1
-            else -> 2
-        }
-
     private fun aggregateByAsset(transactions: Collection<Trn>): Map<String, AssetAggregation> {
         val assetMap = mutableMapOf<String, AssetAggregation>()
         // Chronological order matters: a SPLIT multiplies whatever quantity is held at
@@ -45,7 +37,7 @@ internal object BrokerHoldingAggregation {
         // Same-day events have no intra-day timestamp, so apply a deterministic order:
         // buys/adds first, then the split, then sells/reduces — matching a broker ex-date
         // where same-day trades settle against post-split share counts.
-        for (trn in transactions.sortedWith(compareBy({ it.tradeDate }, { sameDayOrder(it.trnType) }))) {
+        for (trn in transactions.sortedWith(TrnType.inTradeOrder)) {
             val asset = trn.asset
             val agg =
                 assetMap.getOrPut(asset.id) {
@@ -101,7 +93,7 @@ internal object BrokerHoldingAggregation {
                 Step(date, TrnType.REDUCE, quantity, candidate = true)
         var held = BigDecimal.ZERO
         var lowest: BigDecimal? = null
-        for (step in steps.sortedWith(compareBy({ it.date }, { sameDayOrder(it.type) }, { it.candidate }))) {
+        for (step in steps.sortedWith(compareBy({ it.date }, { it.type.sameDayOrder }, { it.candidate }))) {
             held = held.add(delta(step.type, step.quantity, held))
             if (step.candidate || lowest != null) lowest = minOf(lowest ?: held, held)
         }
@@ -117,7 +109,7 @@ internal object BrokerHoldingAggregation {
     ): BigDecimal =
         transactions
             .filter { it.portfolio.id == portfolioId && it.asset.id == assetId && !it.tradeDate.isAfter(date) }
-            .sortedWith(compareBy({ it.tradeDate }, { sameDayOrder(it.trnType) }))
+            .sortedWith(TrnType.inTradeOrder)
             .fold(BigDecimal.ZERO) { held, trn -> held.add(delta(trn.trnType, trn.quantity, held)) }
 
     /** How a trn of [type] and [quantity] changes a holding of [held]. */

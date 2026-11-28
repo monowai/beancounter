@@ -2,6 +2,7 @@ package com.beancounter.position.allocation
 
 import com.beancounter.auth.TokenService
 import com.beancounter.client.FxService
+import com.beancounter.common.composite.CompositeValuation
 import com.beancounter.common.contracts.AllocationData
 import com.beancounter.common.contracts.CategoryAllocation
 import com.beancounter.common.contracts.FxRequest
@@ -16,6 +17,7 @@ import com.beancounter.common.model.Positions
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils.Companion.HUNDRED
 import com.beancounter.position.composite.AssetConfigClient
+import com.beancounter.position.composite.CpfValuation
 import com.beancounter.position.composite.PrivateAssetConfigDto
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -93,7 +95,7 @@ class AllocationService(
                 .map { it.asset.id }
                 .toSet()
 
-        val (compositeLiquid, compositeNonLiquid) = compositeSplit(positions, valueIn)
+        val split = compositeSplit(positions, valueIn)
 
         return AllocationData(
             cashAllocation = cashAllocation,
@@ -103,19 +105,28 @@ class AllocationService(
             currency = currency,
             categoryBreakdown = categoryBreakdown,
             heldAssetIds = heldAssetIds,
-            compositeLiquid = compositeLiquid.setScale(2, RoundingMode.HALF_UP),
-            compositeNonLiquid = compositeNonLiquid.setScale(2, RoundingMode.HALF_UP)
+            compositeLiquid = split.liquid.setScale(2, RoundingMode.HALF_UP),
+            compositeNonLiquid = split.nonLiquid.setScale(2, RoundingMode.HALF_UP),
+            heldWrapperValue = split.wrapper.setScale(2, RoundingMode.HALF_UP)
         )
     }
 
+    /** CPF's liquid and locked shares, and the held tax wrappers' value. */
+    private data class CompositeSplit(
+        val liquid: BigDecimal,
+        val nonLiquid: BigDecimal,
+        val wrapper: BigDecimal
+    )
+
     /**
-     * Splits the value of any composite-policy position (currently CPF —
-     * any position whose [Position.subAccounts] map is non-empty) into a
-     * liquid and non-liquid portion, in the requested valuation bucket's
-     * currency. The split is driven by the sub-account [liquid] flag on
+     * Among positions with sub-accounts, in the requested valuation bucket's
+     * currency: a CPF position is split into a liquid and non-liquid portion by
+     * the sub-account [liquid] flag on
      * [com.beancounter.position.composite.SubAccountDto] — the same flag
-     * jar-common's [com.beancounter.common.composite.CompositeValuation]
-     * uses, so svc-position and svc-retire stay in lock-step.
+     * jar-common's [com.beancounter.common.composite.CompositeValuation] uses,
+     * so svc-position and svc-retire stay in lock-step. A held tax wrapper
+     * (401(k) / IRA / ISA) is summed at market value, whatever its flags. Any
+     * other policy is a plain holding (beancounter #1036).
      *
      * The position's bucket [MoneyValues.marketValue] is the truth for
      * what the user sees; we apply the liquid/total ratio (derived from
@@ -126,9 +137,10 @@ class AllocationService(
     private fun compositeSplit(
         positions: Positions,
         valueIn: Position.In
-    ): Pair<BigDecimal, BigDecimal> {
+    ): CompositeSplit {
         var liquid = BigDecimal.ZERO
         var nonLiquid = BigDecimal.ZERO
+        var wrapper = BigDecimal.ZERO
         for (position in positions.positions.values) {
             if (position.subAccounts.isEmpty()) continue
             val marketValue = position.moneyValues[valueIn]?.marketValue ?: BigDecimal.ZERO
@@ -149,11 +161,18 @@ class AllocationService(
                     )
                     continue
                 }
-            val (liquidShare, nonLiquidShare) = splitMarketValue(config, marketValue)
-            liquid = liquid.add(liquidShare)
-            nonLiquid = nonLiquid.add(nonLiquidShare)
+            when (config.policyType) {
+                in CompositeValuation.wrapperPolicyTypes -> {
+                    wrapper = wrapper.add(marketValue)
+                }
+                CpfValuation.POLICY_TYPE -> {
+                    val (liquidShare, nonLiquidShare) = splitMarketValue(config, marketValue)
+                    liquid = liquid.add(liquidShare)
+                    nonLiquid = nonLiquid.add(nonLiquidShare)
+                }
+            }
         }
-        return liquid to nonLiquid
+        return CompositeSplit(liquid, nonLiquid, wrapper)
     }
 
     private fun splitMarketValue(
@@ -218,36 +237,22 @@ class AllocationService(
             rate
         )
 
-        // Convert total value
-        val convertedTotalValue = allocation.totalValue.multiply(rate).setScale(2, RoundingMode.HALF_UP)
-
-        // Convert category market values (percentages stay the same)
-        val convertedBreakdown =
-            allocation.categoryBreakdown.mapValues { (_, categoryAllocation) ->
-                categoryAllocation.copy(
-                    marketValue =
-                        categoryAllocation.marketValue
-                            .multiply(rate)
-                            .setScale(2, RoundingMode.HALF_UP)
-                )
-            }
+        fun converted(value: BigDecimal): BigDecimal = value.multiply(rate).setScale(2, RoundingMode.HALF_UP)
 
         return allocation.copy(
-            totalValue = convertedTotalValue,
+            totalValue = converted(allocation.totalValue),
             currency = targetCurrency,
-            categoryBreakdown = convertedBreakdown,
+            // Percentages stay the same; market values convert.
+            categoryBreakdown =
+                allocation.categoryBreakdown.mapValues { (_, category) ->
+                    category.copy(marketValue = converted(category.marketValue))
+                },
             // FX-scale the composite-split fields too — otherwise a SGD-
-            // labelled response carries USD-magnitude composite values
-            // (USD 173,940 → 45,240 on Mary's CPF), undercounting the
-            // PORTFOLIO bucket by the SGD/USD ratio downstream.
-            compositeLiquid =
-                allocation.compositeLiquid
-                    .multiply(rate)
-                    .setScale(2, RoundingMode.HALF_UP),
-            compositeNonLiquid =
-                allocation.compositeNonLiquid
-                    .multiply(rate)
-                    .setScale(2, RoundingMode.HALF_UP)
+            // labelled response carries USD-magnitude composite values,
+            // undercounting the PORTFOLIO bucket by the SGD/USD ratio downstream.
+            compositeLiquid = converted(allocation.compositeLiquid),
+            compositeNonLiquid = converted(allocation.compositeNonLiquid),
+            heldWrapperValue = converted(allocation.heldWrapperValue)
         )
     }
 

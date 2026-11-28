@@ -6,7 +6,7 @@ import org.springframework.stereotype.Service
 
 /**
  * Accumulates a REDUCE transaction: a sell without cash impact.
- * Used for reducing positions or adding liabilities without affecting cash positions.
+ * Used for reducing positions without affecting cash positions.
  */
 @Service
 class ReduceBehaviour(

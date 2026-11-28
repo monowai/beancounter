@@ -147,6 +147,8 @@ internal class CashBehaviourTest {
             )
 
         val positions = Positions()
+        // Something to sell, brought in without touching cash.
+        accumulator.accumulate(trn.copy(trnType = TrnType.ADD), positions)
         val position =
             accumulator.accumulate(
                 trn,

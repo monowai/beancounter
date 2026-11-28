@@ -1,5 +1,6 @@
 package com.beancounter.position.accumulation
 
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
@@ -14,8 +15,8 @@ import java.math.BigDecimal
 /**
  * Takes quantity out of a position, recording sales and realised gain and closing the position
  * when none remains. The disposal takes its share of the cost with it, so the cost basis stays
- * the cost of what is still held. Cash is not touched here: TrnType decides whether a type
- * moves cash.
+ * the cost of what is still held. A disposal of more than is held is rejected: a short position
+ * needs its own accounting. Cash is not touched here: TrnType decides whether a type moves cash.
  */
 abstract class DisposalBehaviour(
     currencyResolver: CurrencyResolver,
@@ -33,6 +34,12 @@ abstract class DisposalBehaviour(
         }
         val quantityValues = position.quantityValues
         val held = quantityValues.getTotal()
+        if (trn.quantity.abs() > held) {
+            throw BusinessException(
+                "${trn.trnType} of ${trn.quantity.abs()} ${trn.asset.code} on ${trn.tradeDate} " +
+                    "is more than the $held held; short positions are not supported"
+            )
+        }
         quantityValues.sold = quantityValues.sold.add(soldQuantity)
 
         // Create optimized currency context once instead of 3 separate resolutions
@@ -85,17 +92,12 @@ abstract class DisposalBehaviour(
         moneyValues.costValue = averageCost.getCostValue(position, moneyValues)
     }
 
-    // The disposed share of the cost held: all of it once nothing, or less than nothing, is left.
     private fun relieveCost(
         moneyValues: MoneyValues,
         disposed: BigDecimal,
         held: BigDecimal
     ) {
         moneyValues.costBasis =
-            if (disposed >= held) {
-                ZERO
-            } else {
-                moneyValues.costBasis.subtract(divide(moneyValues.costBasis.multiply(disposed), held))
-            }
+            moneyValues.costBasis.subtract(divide(moneyValues.costBasis.multiply(disposed), held))
     }
 }

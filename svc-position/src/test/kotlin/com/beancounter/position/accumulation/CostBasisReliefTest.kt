@@ -1,5 +1,6 @@
 package com.beancounter.position.accumulation
 
+import com.beancounter.common.exception.BusinessException
 import com.beancounter.common.model.Asset
 import com.beancounter.common.model.MoneyValues
 import com.beancounter.common.model.Portfolio
@@ -13,6 +14,7 @@ import com.beancounter.position.Constants.Companion.SGD
 import com.beancounter.position.Constants.Companion.TEST
 import com.beancounter.position.Constants.Companion.USD
 import org.assertj.core.api.Assertions.assertThat
+import org.assertj.core.api.Assertions.assertThatThrownBy
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.params.ParameterizedTest
 import org.junit.jupiter.params.provider.EnumSource
@@ -156,13 +158,25 @@ class CostBasisReliefTest {
         assertCost(position.inPortfolio(), "1350", "27")
     }
 
-    @Test
-    fun `selling more than is held should relieve no more than the cost held`() {
+    @ParameterizedTest
+    @EnumSource(value = TrnType::class, names = ["SELL", "REDUCE"])
+    fun `should reject a disposal of more than is held and leave the position as it was`(disposal: TrnType) {
         val positions = Positions(portfolio)
-        positions.apply(TrnType.BUY, "50", "500")
-        val position = positions.apply(TrnType.SELL, "80", "1600")
+        val position = positions.apply(TrnType.BUY, "50", "500")
 
-        assertThat(position.trade().costBasis).isEqualByComparingTo("0")
-        assertThat(position.base().costBasis).isEqualByComparingTo("0")
+        assertThatThrownBy { positions.apply(disposal, "50.001", "1600") }
+            .isInstanceOf(BusinessException::class.java)
+            .hasMessageContaining("50.001")
+            .hasMessageContaining("TEST")
+
+        assertThat(position.quantityValues.getTotal()).isEqualByComparingTo("50")
+        assertCost(position.trade(), "500", "10")
+        assertThat(position.trade().sales).isEqualByComparingTo("0")
+    }
+
+    @Test
+    fun `should reject a sell when nothing is held`() {
+        assertThatThrownBy { Positions(portfolio).apply(TrnType.SELL, "1", "10") }
+            .isInstanceOf(BusinessException::class.java)
     }
 }

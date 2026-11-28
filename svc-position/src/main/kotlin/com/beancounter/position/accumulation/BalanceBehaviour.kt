@@ -32,6 +32,7 @@ class BalanceBehaviour(
         // The balance is absolute: it replaces whatever earlier trns built up.
         position.quantityValues.purchased = trn.tradeAmount
         position.quantityValues.sold = BigDecimal.ZERO
+        position.quantityValues.adjustment = BigDecimal.ZERO
         // Composite policies (CPF / ILP / generic pension) carry a per-bucket
         // map on the BALANCE trn. Snapshot semantics: overwrite (not add) so
         // re-running with a fresh balance replaces the previous snapshot,

@@ -400,4 +400,32 @@ class BalanceBehaviourTest {
         accumulator.accumulate(cashTrn(TrnType.WITHDRAWAL, "200", 4), positions)
         assertThat(position.quantityValues.getTotal()).isEqualByComparingTo("4800")
     }
+
+    @Test
+    fun `BALANCE should replace a quantity adjustment left by an earlier split`() {
+        val positions = Positions()
+        val cash = Constants.nzdCashBalance
+        val deposit =
+            Trn(
+                trnType = TrnType.DEPOSIT,
+                asset = cash,
+                quantity = BigDecimal("1000"),
+                tradeAmount = BigDecimal("1000"),
+                tradeDate = LocalDate.of(2026, 1, 1)
+            )
+        val position = accumulator.accumulate(deposit, positions)
+        position.quantityValues.adjustment = BigDecimal("1000")
+
+        val balance =
+            Trn(
+                trnType = TrnType.BALANCE,
+                asset = cash,
+                quantity = BigDecimal("5000"),
+                tradeAmount = BigDecimal("5000"),
+                tradeDate = LocalDate.of(2026, 1, 2)
+            )
+        accumulator.accumulate(balance, positions)
+
+        assertThat(position.quantityValues.getTotal()).isEqualByComparingTo("5000")
+    }
 }

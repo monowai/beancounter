@@ -252,6 +252,36 @@ class AllocationServiceTest {
     }
 
     @Test
+    fun `calculateAllocation leaves a held generic pension out of the CPF split`() {
+        val sgd = Currency("SGD")
+        val portfolio = TestHelpers.createTestPortfolio(currencyCode = "SGD", baseCurrency = "SGD")
+        val pensionAsset = TestHelpers.createTestAsset(code = "userA.PENSION", marketCode = "PRIVATE")
+        val pension = Position(pensionAsset, portfolio)
+        pension.subAccounts["MAIN"] = BigDecimal("70000")
+        pension.moneyValues[Position.In.PORTFOLIO] =
+            MoneyValues(sgd).apply { marketValue = BigDecimal("70000") }
+        val positions = TestHelpers.createTestPositions(portfolio, listOf(pension))
+        positions.totals[Position.In.PORTFOLIO] =
+            Totals(currency = sgd, marketValue = BigDecimal("70000"))
+        whenever(assetConfigClient.find(pensionAsset.id)).thenReturn(
+            PrivateAssetConfigDto(
+                assetId = pensionAsset.id,
+                policyType = "GENERIC",
+                currency = "SGD",
+                subAccounts = listOf(SubAccountDto(code = "MAIN", balance = BigDecimal("70000"), liquid = false))
+            )
+        )
+
+        val data = allocationService.calculateAllocation(positions)
+
+        // Not CPF and not a wrapper: a plain holding, in neither composite share.
+        assertThat(data.compositeLiquid).isEqualByComparingTo("0")
+        assertThat(data.compositeNonLiquid).isEqualByComparingTo("0")
+        assertThat(data.heldWrapperValue).isEqualByComparingTo("0")
+        assertThat(data.totalValue).isEqualByComparingTo("70000")
+    }
+
+    @Test
     fun `calculateAllocation skips composite lookup when position has no subAccounts`() {
         val sgd = Currency("SGD")
         val portfolio = TestHelpers.createTestPortfolio(currencyCode = "SGD", baseCurrency = "SGD")

@@ -58,11 +58,11 @@ class CompositeValuation {
         val wrapperPolicyTypes: Set<String> = setOf("US_401K", "US_IRA", "UK_ISA")
 
         /**
-         * Policy types this support class knows how to roll up. US_401K /
-         * US_IRA / UK_ISA sub-account balances use the same simple sum as
-         * CPF — anything absent from this set is silently dropped by
-         * callers' composite roll-up, so new composite policy types MUST be
-         * registered here.
+         * Policy types this support class knows how to roll up: CPF, and the
+         * wrappers, whose sub-account balances use the same simple sum.
+         * Anything absent from this set is silently dropped by callers'
+         * composite roll-up, so new composite policy types MUST be registered
+         * here. Declared after [wrapperPolicyTypes], which it reads.
          */
         val supportedPolicyTypes: Set<String> = setOf("CPF") + wrapperPolicyTypes
     }

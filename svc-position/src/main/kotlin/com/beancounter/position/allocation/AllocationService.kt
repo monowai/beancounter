@@ -17,6 +17,7 @@ import com.beancounter.common.model.Positions
 import com.beancounter.common.utils.DateUtils
 import com.beancounter.common.utils.MathUtils.Companion.HUNDRED
 import com.beancounter.position.composite.AssetConfigClient
+import com.beancounter.position.composite.CpfValuation
 import com.beancounter.position.composite.PrivateAssetConfigDto
 import org.slf4j.LoggerFactory
 import org.springframework.stereotype.Service
@@ -110,7 +111,7 @@ class AllocationService(
         )
     }
 
-    /** Composite liquid and locked shares, and held tax wrappers, in one valuation bucket. */
+    /** CPF's liquid and locked shares, and the held tax wrappers' value. */
     private data class CompositeSplit(
         val liquid: BigDecimal,
         val nonLiquid: BigDecimal,
@@ -118,16 +119,14 @@ class AllocationService(
     )
 
     /**
-     * Splits the value of any composite-policy position (CPF — any position
-     * whose [Position.subAccounts] map is non-empty) into a liquid and
-     * non-liquid portion, in the requested valuation bucket's currency. The
-     * split is driven by the sub-account [liquid] flag on
+     * Among positions with sub-accounts, in the requested valuation bucket's
+     * currency: a CPF position is split into a liquid and non-liquid portion by
+     * the sub-account [liquid] flag on
      * [com.beancounter.position.composite.SubAccountDto] — the same flag
-     * jar-common's [com.beancounter.common.composite.CompositeValuation]
-     * uses, so svc-position and svc-retire stay in lock-step.
-     *
-     * A held tax wrapper (401(k) / IRA / ISA) is not split: its market value
-     * is reported on its own, whatever its sub-account flags (beancounter #1036).
+     * jar-common's [com.beancounter.common.composite.CompositeValuation] uses,
+     * so svc-position and svc-retire stay in lock-step. A held tax wrapper
+     * (401(k) / IRA / ISA) is summed at market value, whatever its flags. Any
+     * other policy is a plain holding (beancounter #1036).
      *
      * The position's bucket [MoneyValues.marketValue] is the truth for
      * what the user sees; we apply the liquid/total ratio (derived from
@@ -162,13 +161,16 @@ class AllocationService(
                     )
                     continue
                 }
-            if (config.policyType in CompositeValuation.wrapperPolicyTypes) {
-                wrapper = wrapper.add(marketValue)
-                continue
+            when (config.policyType) {
+                in CompositeValuation.wrapperPolicyTypes -> {
+                    wrapper = wrapper.add(marketValue)
+                }
+                CpfValuation.POLICY_TYPE -> {
+                    val (liquidShare, nonLiquidShare) = splitMarketValue(config, marketValue)
+                    liquid = liquid.add(liquidShare)
+                    nonLiquid = nonLiquid.add(nonLiquidShare)
+                }
             }
-            val (liquidShare, nonLiquidShare) = splitMarketValue(config, marketValue)
-            liquid = liquid.add(liquidShare)
-            nonLiquid = nonLiquid.add(nonLiquidShare)
         }
         return CompositeSplit(liquid, nonLiquid, wrapper)
     }
@@ -235,40 +237,22 @@ class AllocationService(
             rate
         )
 
-        // Convert total value
-        val convertedTotalValue = allocation.totalValue.multiply(rate).setScale(2, RoundingMode.HALF_UP)
-
-        // Convert category market values (percentages stay the same)
-        val convertedBreakdown =
-            allocation.categoryBreakdown.mapValues { (_, categoryAllocation) ->
-                categoryAllocation.copy(
-                    marketValue =
-                        categoryAllocation.marketValue
-                            .multiply(rate)
-                            .setScale(2, RoundingMode.HALF_UP)
-                )
-            }
+        fun converted(value: BigDecimal): BigDecimal = value.multiply(rate).setScale(2, RoundingMode.HALF_UP)
 
         return allocation.copy(
-            totalValue = convertedTotalValue,
+            totalValue = converted(allocation.totalValue),
             currency = targetCurrency,
-            categoryBreakdown = convertedBreakdown,
+            // Percentages stay the same; market values convert.
+            categoryBreakdown =
+                allocation.categoryBreakdown.mapValues { (_, category) ->
+                    category.copy(marketValue = converted(category.marketValue))
+                },
             // FX-scale the composite-split fields too — otherwise a SGD-
-            // labelled response carries USD-magnitude composite values
-            // (USD 173,940 → 45,240 on Mary's CPF), undercounting the
-            // PORTFOLIO bucket by the SGD/USD ratio downstream.
-            compositeLiquid =
-                allocation.compositeLiquid
-                    .multiply(rate)
-                    .setScale(2, RoundingMode.HALF_UP),
-            compositeNonLiquid =
-                allocation.compositeNonLiquid
-                    .multiply(rate)
-                    .setScale(2, RoundingMode.HALF_UP),
-            heldWrapperValue =
-                allocation.heldWrapperValue
-                    .multiply(rate)
-                    .setScale(2, RoundingMode.HALF_UP)
+            // labelled response carries USD-magnitude composite values,
+            // undercounting the PORTFOLIO bucket by the SGD/USD ratio downstream.
+            compositeLiquid = converted(allocation.compositeLiquid),
+            compositeNonLiquid = converted(allocation.compositeNonLiquid),
+            heldWrapperValue = converted(allocation.heldWrapperValue)
         )
     }
 

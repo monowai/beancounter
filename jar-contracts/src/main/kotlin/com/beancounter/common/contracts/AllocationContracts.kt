@@ -21,27 +21,23 @@ data class AllocationData(
      */
     val heldAssetIds: Set<String> = emptySet(),
     /**
-     * Sum of composite-policy sub-account balances flagged liquid (CPF
-     * OA / SA / RA pre-55), in [currency]. Allows the projection engine
+     * Sum of held CPF sub-account balances flagged liquid (OA / SA / RA
+     * pre-55), in [currency]. Allows the projection engine
      * to keep these balances in the spendable bucket while treating the
      * locked portion as non-liquid — without re-running the per-asset
      * sub-account rollup itself.
      */
     val compositeLiquid: BigDecimal = BigDecimal.ZERO,
     /**
-     * Sum of composite-policy sub-account balances flagged non-liquid
-     * (CPF MA, future RA-post-55), in [currency]. The projection moves
+     * Sum of held CPF sub-account balances flagged non-liquid (MA, future
+     * RA-post-55), in [currency]. The projection moves
      * this amount from the spendable pot to the non-spendable bucket so
      * the locked CPF balances are not drawn down alongside cash + ETFs.
      */
     val compositeNonLiquid: BigDecimal = BigDecimal.ZERO,
     /**
-     * Market value of held tax-wrapper positions (US 401(k) / IRA, UK ISA),
-     * in [currency]. Included in [totalValue] but kept out of
-     * [compositeLiquid] / [compositeNonLiquid]: a wrapper is not a CPF-style
-     * composite, and the projection seeds its shielded pools from the
-     * wrapper's own accounts, so it removes this value from the spendable pot
-     * (beancounter #1036).
+     * Market value of held tax-wrapper positions (US 401(k) / IRA, UK ISA), in
+     * [currency]. Included in [totalValue]; never in the composite fields.
      */
     val heldWrapperValue: BigDecimal = BigDecimal.ZERO
 )

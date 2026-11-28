@@ -27,20 +27,17 @@ abstract class DisposalBehaviour(
         positions: Positions,
         position: Position
     ): Position {
-        var soldQuantity = trn.quantity
-        if (soldQuantity.toDouble() > 0) {
-            // Sign the quantities
-            soldQuantity = ZERO.subtract(trn.quantity)
-        }
+        // A disposal may arrive signed either way; sold is held negative.
+        val disposed = trn.quantity.abs()
         val quantityValues = position.quantityValues
         val held = quantityValues.getTotal()
-        if (trn.quantity.abs() > held) {
+        if (disposed > held) {
             throw BusinessException(
-                "${trn.trnType} of ${trn.quantity.abs()} ${trn.asset.code} on ${trn.tradeDate} " +
+                "${trn.trnType} of $disposed ${trn.asset.code} on ${trn.tradeDate} " +
                     "is more than the $held held; short positions are not supported"
             )
         }
-        quantityValues.sold = quantityValues.sold.add(soldQuantity)
+        quantityValues.sold = quantityValues.sold.subtract(disposed)
 
         // Create optimized currency context once instead of 3 separate resolutions
         val currencyContext = createCurrencyContext(trn, position)
@@ -48,7 +45,7 @@ abstract class DisposalBehaviour(
         // Apply sell updates across all currencies efficiently
         applyMultiCurrencyUpdate(currencyContext, trn) { moneyValues, rate ->
             updateSales(moneyValues, trn, rate, position)
-            relieveCost(moneyValues, trn.quantity.abs(), held)
+            relieveCost(moneyValues, disposed, held)
         }
 
         return position

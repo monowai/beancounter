@@ -375,22 +375,21 @@ class BalanceBehaviourTest {
             .containsEntry("MA", BigDecimal("18562.40"))
     }
 
+    private fun cashTrn(
+        trnType: TrnType,
+        amount: String,
+        day: Int
+    ) = Trn(
+        trnType = trnType,
+        asset = Constants.nzdCashBalance,
+        quantity = BigDecimal(amount),
+        tradeAmount = BigDecimal(amount),
+        tradeDate = LocalDate.of(2026, 1, day)
+    )
+
     @Test
     fun `cash BALANCE should replace the balance built by earlier deposits and withdrawals`() {
         val positions = Positions()
-        val cash = Constants.nzdCashBalance
-
-        fun cashTrn(
-            trnType: TrnType,
-            amount: String,
-            day: Int
-        ) = Trn(
-            trnType = trnType,
-            asset = cash,
-            quantity = BigDecimal(amount),
-            tradeAmount = BigDecimal(amount),
-            tradeDate = LocalDate.of(2026, 1, day)
-        )
         accumulator.accumulate(cashTrn(TrnType.DEPOSIT, "1000", 1), positions)
         accumulator.accumulate(cashTrn(TrnType.WITHDRAWAL, "300", 2), positions)
         val position = accumulator.accumulate(cashTrn(TrnType.BALANCE, "5000", 3), positions)
@@ -404,27 +403,10 @@ class BalanceBehaviourTest {
     @Test
     fun `BALANCE should replace a quantity adjustment left by an earlier split`() {
         val positions = Positions()
-        val cash = Constants.nzdCashBalance
-        val deposit =
-            Trn(
-                trnType = TrnType.DEPOSIT,
-                asset = cash,
-                quantity = BigDecimal("1000"),
-                tradeAmount = BigDecimal("1000"),
-                tradeDate = LocalDate.of(2026, 1, 1)
-            )
-        val position = accumulator.accumulate(deposit, positions)
+        val position = accumulator.accumulate(cashTrn(TrnType.DEPOSIT, "1000", 1), positions)
         position.quantityValues.adjustment = BigDecimal("1000")
 
-        val balance =
-            Trn(
-                trnType = TrnType.BALANCE,
-                asset = cash,
-                quantity = BigDecimal("5000"),
-                tradeAmount = BigDecimal("5000"),
-                tradeDate = LocalDate.of(2026, 1, 2)
-            )
-        accumulator.accumulate(balance, positions)
+        accumulator.accumulate(cashTrn(TrnType.BALANCE, "5000", 2), positions)
 
         assertThat(position.quantityValues.getTotal()).isEqualByComparingTo("5000")
     }

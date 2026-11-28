@@ -23,14 +23,10 @@ internal class StockSplitTest {
     private val buyBehaviour = BuyBehaviour()
     private val splitBehaviour = SplitBehaviour()
     private val sellBehaviour = SellBehaviour()
+    private val apple = getTestAsset(NASDAQ, AAPL)
 
     @Test
     fun `should handle quantity correctly for stock split`() {
-        val apple =
-            getTestAsset(
-                NASDAQ,
-                AAPL
-            )
         val positions = Positions()
 
         val tradeAmount = BigDecimal("2000")
@@ -133,7 +129,7 @@ internal class StockSplitTest {
     private fun split(ratio: String) =
         Trn(
             trnType = TrnType.SPLIT,
-            asset = getTestAsset(NASDAQ, AAPL),
+            asset = apple,
             quantity = BigDecimal(ratio)
         )
 
@@ -142,7 +138,7 @@ internal class StockSplitTest {
         quantity: String
     ) = Trn(
         trnType = trnType,
-        asset = getTestAsset(NASDAQ, AAPL),
+        asset = apple,
         quantity = BigDecimal(quantity),
         tradeAmount = BigDecimal("2000")
     )

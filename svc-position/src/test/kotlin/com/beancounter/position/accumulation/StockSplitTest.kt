@@ -129,4 +129,57 @@ internal class StockSplitTest {
                 buyTrn.quantity
             )
     }
+
+    private fun split(ratio: String) =
+        Trn(
+            trnType = TrnType.SPLIT,
+            asset = getTestAsset(NASDAQ, AAPL),
+            quantity = BigDecimal(ratio)
+        )
+
+    private fun trade(
+        trnType: TrnType,
+        quantity: String
+    ) = Trn(
+        trnType = trnType,
+        asset = getTestAsset(NASDAQ, AAPL),
+        quantity = BigDecimal(quantity),
+        tradeAmount = BigDecimal("2000")
+    )
+
+    @Test
+    fun `second split should compound on the first`() {
+        val positions = Positions()
+        val position = buyBehaviour.accumulate(trade(TrnType.BUY, "100"), positions)
+        splitBehaviour.accumulate(split("2"), positions)
+        splitBehaviour.accumulate(split("3"), positions)
+
+        assertThat(position.quantityValues.getTotal()).isEqualByComparingTo("600")
+        val tradeMoney = position.getMoneyValues(Position.In.TRADE)
+        assertThat(tradeMoney.costBasis).isEqualByComparingTo("2000")
+        assertThat(tradeMoney.costValue).isEqualByComparingTo("2000")
+    }
+
+    @Test
+    fun `split should apply to everything held, including earlier splits, buys and sales`() {
+        val positions = Positions()
+        val position = buyBehaviour.accumulate(trade(TrnType.BUY, "100"), positions)
+        splitBehaviour.accumulate(split("2"), positions)
+        buyBehaviour.accumulate(trade(TrnType.BUY, "100"), positions)
+        sellBehaviour.accumulate(trade(TrnType.SELL, "50"), positions)
+        splitBehaviour.accumulate(split("2"), positions)
+
+        // (100 x 2 + 100 - 50) x 2
+        assertThat(position.quantityValues.getTotal()).isEqualByComparingTo("500")
+    }
+
+    @Test
+    fun `reverse split after a split should shrink the whole holding`() {
+        val positions = Positions()
+        val position = buyBehaviour.accumulate(trade(TrnType.BUY, "100"), positions)
+        splitBehaviour.accumulate(split("4"), positions)
+        splitBehaviour.accumulate(split("0.1"), positions)
+
+        assertThat(position.quantityValues.getTotal()).isEqualByComparingTo("40")
+    }
 }

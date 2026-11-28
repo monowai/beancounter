@@ -5,6 +5,7 @@ import com.beancounter.common.model.Position
 import com.beancounter.common.model.Positions
 import com.beancounter.common.model.Trn
 import com.beancounter.common.utils.MathUtils.Companion.add
+import com.beancounter.common.utils.MathUtils.Companion.divide
 import com.beancounter.common.utils.MathUtils.Companion.getMathContext
 import com.beancounter.common.utils.MathUtils.Companion.multiply
 import com.beancounter.position.marketvalue.AverageCost
@@ -12,7 +13,9 @@ import java.math.BigDecimal
 
 /**
  * Takes quantity out of a position, recording sales and realised gain and closing the position
- * when none remains. Cash is not touched here: TrnType decides whether a type moves cash.
+ * when none remains. The disposal takes its share of the cost with it, so the cost basis stays
+ * the cost of what is still held. Cash is not touched here: TrnType decides whether a type
+ * moves cash.
  */
 abstract class DisposalBehaviour(
     currencyResolver: CurrencyResolver,
@@ -29,6 +32,7 @@ abstract class DisposalBehaviour(
             soldQuantity = ZERO.subtract(trn.quantity)
         }
         val quantityValues = position.quantityValues
+        val held = quantityValues.getTotal()
         quantityValues.sold = quantityValues.sold.add(soldQuantity)
 
         // Create optimized currency context once instead of 3 separate resolutions
@@ -37,6 +41,7 @@ abstract class DisposalBehaviour(
         // Apply sell updates across all currencies efficiently
         applyMultiCurrencyUpdate(currencyContext, trn) { moneyValues, rate ->
             updateSales(moneyValues, trn, rate, position)
+            relieveCost(moneyValues, trn.quantity.abs(), held)
         }
 
         return position
@@ -63,7 +68,7 @@ abstract class DisposalBehaviour(
             moneyValues.realisedGain = add(moneyValues.realisedGain, realisedGain)
         }
 
-        if (position.quantityValues.getTotal().compareTo(ZERO) == 0) {
+        if (!position.quantityValues.hasPosition()) {
             // Position is fully closed - reset all values and record closed date
             moneyValues.costBasis = ZERO
             moneyValues.costValue = ZERO
@@ -78,5 +83,19 @@ abstract class DisposalBehaviour(
 
         // If quantity changes, we need to update the cost Value
         moneyValues.costValue = averageCost.getCostValue(position, moneyValues)
+    }
+
+    // The disposed share of the cost held: all of it once nothing, or less than nothing, is left.
+    private fun relieveCost(
+        moneyValues: MoneyValues,
+        disposed: BigDecimal,
+        held: BigDecimal
+    ) {
+        moneyValues.costBasis =
+            if (disposed >= held) {
+                ZERO
+            } else {
+                moneyValues.costBasis.subtract(divide(moneyValues.costBasis.multiply(disposed), held))
+            }
     }
 }

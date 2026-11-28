@@ -292,4 +292,46 @@ class BrokerHeldTrackingTest {
 
         assertThat(position.held["Broker A"]).isEqualByComparingTo("200")
     }
+
+    @Test
+    fun `should keep broker holdings equal to the position across repeated splits`() {
+        val positions = Positions()
+        accumulator.accumulate(
+            Trn(
+                asset = asset,
+                trnType = TrnType.BUY,
+                quantity = hundred,
+                tradeAmount = BigDecimal("1000"),
+                broker = brokerA,
+                tradeDate = LocalDate.of(2026, 1, 1)
+            ),
+            positions
+        )
+        listOf("2" to 1, "3" to 2).forEach { (ratio, day) ->
+            accumulator.accumulate(
+                Trn(
+                    asset = asset,
+                    trnType = TrnType.SPLIT,
+                    quantity = BigDecimal(ratio),
+                    tradeDate = LocalDate.of(2026, 2, day)
+                ),
+                positions
+            )
+        }
+        val position =
+            accumulator.accumulate(
+                Trn(
+                    asset = asset,
+                    trnType = TrnType.SELL,
+                    quantity = hundred,
+                    tradeAmount = BigDecimal("500"),
+                    broker = brokerA,
+                    tradeDate = LocalDate.of(2026, 3, 1)
+                ),
+                positions
+            )
+
+        assertThat(position.quantityValues.getTotal()).isEqualByComparingTo("500")
+        assertThat(position.held["Broker A"]).isEqualByComparingTo("500")
+    }
 }
